@@ -30,7 +30,7 @@
     <parent>
         <artifactId>connid</artifactId>
         <groupId>org.connid</groupId>
-        <version>1.3.1-SNAPSHOT</version>
+        <version>1.3.1</version>
     </parent>
 
     <groupId>org.connid.bundles</groupId>
@@ -41,8 +41,14 @@
 
     <packaging>jar</packaging>
 
+    <scm>
+        <connection>scm:svn:http://connid.googlecode.com/svn/bundles/ldap/trunk/</connection>
+        <developerConnection>scm:svn:https://connid.googlecode.com/svn/bundles/ldap/trunk/</developerConnection>
+        <url>http://connid.googlecode.com/svn/bundles/ldap/trunk/</url>
+    </scm>
+
     <properties>
-        <base.version>1.3.1-SNAPSHOT</base.version>
+        <base.version>1.3.1</base.version>
         
         <opends.setup.dir>${java.io.tmpdir}/opends-setup</opends.setup.dir>
         <opends.dest.dir>${project.build.directory}/test-classes/org/identityconnectors/ldap/opends</opends.dest.dir>
@@ -287,6 +293,15 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.0</version>
+                <configuration>
+                    <tagBase>https://connid.googlecode.com/svn/bundles/ldap/tags</tagBase>
+                </configuration>
             </plugin>
         </plugins>
         
