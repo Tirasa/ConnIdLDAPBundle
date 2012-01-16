@@ -205,6 +205,9 @@
                                 </exec>
 
                                 <!-- Set up an admin user. -->
+                                <copy tofile="${opends.setup.dir}/${tool.start-ds}" file="${project.build.directory}/test-classes/opends/${tool.start-ds}" />
+                                <copy tofile="${opends.setup.dir}/${tool.stop-ds}" file="${project.build.directory}/test-classes/opends/${tool.stop-ds}" />
+                                
                                 <exec executable="${opends.setup.dir}/${tool.start-ds}" dir="${opends.setup.dir}" />
                                 <exec executable="${opends.setup.dir}/${tool.ldapmodify}" dir="${opends.setup.dir}">
                                     <arg value="-h" />

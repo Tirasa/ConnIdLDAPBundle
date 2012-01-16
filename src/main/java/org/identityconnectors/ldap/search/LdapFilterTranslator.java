@@ -22,8 +22,8 @@
  */
 package org.identityconnectors.ldap.search;
 
-import static org.identityconnectors.ldap.LdapEntry.isDNAttribute;
-import static org.identityconnectors.ldap.LdapUtil.escapeAttrValue;
+import static org.identityconnectors.ldap.commons.LdapEntry.isDNAttribute;
+import static org.identityconnectors.ldap.commons.LdapUtil.escapeAttrValue;
 
 import java.util.List;
 
@@ -54,8 +54,8 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
     // seems incorrect. For an object not having an a attribute, (a <= X) will
     // be Undefined (cf. RFC 4511, section 4.5.1.7). But (a > X) would be Undefined
     // too, and so would be (!(a > X)).
-
     private final LdapSchemaMapping mapping;
+
     private final ObjectClass objectClass;
 
     public LdapFilterTranslator(LdapSchemaMapping mapping, ObjectClass objectClass) {
@@ -75,7 +75,8 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
 
     @Override
     public LdapFilter createContainsExpression(ContainsFilter filter, boolean not) {
-        String attrName = mapping.getLdapAttribute(objectClass, filter.getAttribute());
+        String attrName = mapping.getLdapAttribute(objectClass, filter.
+                getAttribute());
         if (attrName == null) {
             return null;
         }
@@ -95,7 +96,8 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
 
     @Override
     public LdapFilter createEndsWithExpression(EndsWithFilter filter, boolean not) {
-        String attrName = mapping.getLdapAttribute(objectClass, filter.getAttribute());
+        String attrName = mapping.getLdapAttribute(objectClass, filter.
+                getAttribute());
         if (attrName == null) {
             return null;
         }
@@ -140,7 +142,8 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
 
     @Override
     public LdapFilter createStartsWithExpression(StartsWithFilter filter, boolean not) {
-        String attrName = mapping.getLdapAttribute(objectClass, filter.getAttribute());
+        String attrName = mapping.getLdapAttribute(objectClass, filter.
+                getAttribute());
         if (attrName == null) {
             return null;
         }
@@ -162,7 +165,8 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
     }
 
     private LdapFilter createSingleValueFilter(String type, SingleValueAttributeFilter filter, boolean not) {
-        String attrName = mapping.getLdapAttribute(objectClass, filter.getAttribute());
+        String attrName = mapping.getLdapAttribute(objectClass, filter.
+                getAttribute());
         if (attrName == null) {
             return null;
         }
@@ -185,7 +189,8 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
     }
 
     private LdapFilter createContainsAllValuesFilter(AttributeFilter filter, boolean not) {
-        String attrName = mapping.getLdapAttribute(objectClass, filter.getAttribute());
+        String attrName = mapping.getLdapAttribute(objectClass, filter.
+                getAttribute());
         if (attrName == null) {
             return null;
         }
@@ -195,38 +200,38 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
         }
         StringBuilder builder;
         switch (values.size()) {
-        case 0:
-            return null;
-        case 1:
-            Object single = values.get(0);
-            if (single == null) {
+            case 0:
                 return null;
-            }
-            if (isDNAttribute(attrName)) {
-                return LdapFilter.forEntryDN(single.toString());
-            }
-            builder = createBuilder(not);
-            addSimpleFilter(attrName, "=", values.get(0), builder);
-            return finishBuilder(builder);
-        default:
-            if (isDNAttribute(attrName)) {
-                return null; // Because the DN is single-valued.
-            }
-            builder = createBuilder(not);
-            boolean hasValue = false;
-            builder.append('&');
-            for (Object value : values) {
-                if (value != null) {
-                    hasValue = true;
-                    builder.append('(');
-                    addSimpleFilter(attrName, "=", value, builder);
-                    builder.append(')');
+            case 1:
+                Object single = values.get(0);
+                if (single == null) {
+                    return null;
                 }
-            }
-            if (!hasValue) {
-                return null;
-            }
-            return finishBuilder(builder);
+                if (isDNAttribute(attrName)) {
+                    return LdapFilter.forEntryDN(single.toString());
+                }
+                builder = createBuilder(not);
+                addSimpleFilter(attrName, "=", values.get(0), builder);
+                return finishBuilder(builder);
+            default:
+                if (isDNAttribute(attrName)) {
+                    return null; // Because the DN is single-valued.
+                }
+                builder = createBuilder(not);
+                boolean hasValue = false;
+                builder.append('&');
+                for (Object value : values) {
+                    if (value != null) {
+                        hasValue = true;
+                        builder.append('(');
+                        addSimpleFilter(attrName, "=", value, builder);
+                        builder.append(')');
+                    }
+                }
+                if (!hasValue) {
+                    return null;
+                }
+                return finishBuilder(builder);
         }
     }
 

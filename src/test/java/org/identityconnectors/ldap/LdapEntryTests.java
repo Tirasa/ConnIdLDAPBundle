@@ -22,6 +22,7 @@
  */
 package org.identityconnectors.ldap;
 
+import org.identityconnectors.ldap.commons.LdapEntry;
 import static org.junit.Assert.assertEquals;
 
 import javax.naming.directory.BasicAttribute;

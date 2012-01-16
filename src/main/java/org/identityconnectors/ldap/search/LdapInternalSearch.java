@@ -41,12 +41,21 @@ import org.identityconnectors.ldap.LdapConnection;
 public class LdapInternalSearch {
 
     private final LdapConnection conn;
+
     private final String filter;
+
     private final List<String> baseDNs;
+
     private final LdapSearchStrategy strategy;
+
     private final SearchControls controls;
 
-    public LdapInternalSearch(LdapConnection conn, String filter, List<String> baseDNs, LdapSearchStrategy strategy, SearchControls controls) {
+    public LdapInternalSearch(
+            final LdapConnection conn,
+            final String filter,
+            final List<String> baseDNs,
+            final LdapSearchStrategy strategy,
+            final SearchControls controls) {
         this.conn = conn;
         this.filter = filter;
         this.baseDNs = baseDNs;
@@ -54,10 +63,17 @@ public class LdapInternalSearch {
         this.controls = controls;
     }
 
-    public void execute(SearchResultsHandler handler) {
+    public void execute(final SearchResultsHandler handler) {
         String filter = blankAsAllObjects(this.filter);
         try {
-            strategy.doSearch(conn.getInitialContext(), baseDNs, filter, controls, handler);
+
+            strategy.doSearch(
+                    conn.getInitialContext(),
+                    baseDNs,
+                    filter,
+                    controls,
+                    handler);
+
         } catch (IOException e) {
             throw new ConnectorException(e);
         } catch (NamingException e) {

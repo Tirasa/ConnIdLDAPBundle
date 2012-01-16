@@ -20,14 +20,16 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  */
-package org.identityconnectors.ldap;
+package org.identityconnectors.ldap.commons;
 
+import org.identityconnectors.ldap.commons.LdapNativeSchema;
+import org.identityconnectors.ldap.commons.LdapAttributeType;
 import static java.util.Collections.unmodifiableSet;
 import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveMap;
 import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
-import static org.identityconnectors.ldap.LdapUtil.addStringAttrValues;
-import static org.identityconnectors.ldap.LdapUtil.attrNameEquals;
-import static org.identityconnectors.ldap.LdapUtil.getStringAttrValue;
+import static org.identityconnectors.ldap.commons.LdapUtil.addStringAttrValues;
+import static org.identityconnectors.ldap.commons.LdapUtil.attrNameEquals;
+import static org.identityconnectors.ldap.commons.LdapUtil.getStringAttrValue;
 
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -43,6 +45,7 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
+import org.identityconnectors.ldap.LdapConnection;
 
 /**
  * Implements {@link LdapNativeSchema} by reading it from the server.
@@ -53,11 +56,15 @@ public class ServerNativeSchema implements LdapNativeSchema {
     private static final Set<String> LDAP_DIRECTORY_ATTRS;
 
     private final LdapConnection conn;
+
     private final DirContext schemaCtx;
 
     private final Set<String> structuralLdapClasses = newCaseInsensitiveSet();
+
     private final Map<String, Set<String>> ldapClass2MustAttrs = newCaseInsensitiveMap();
+
     private final Map<String, Set<String>> ldapClass2MayAttrs = newCaseInsensitiveMap();
+
     private final Map<String, Set<String>> ldapClass2Sup = newCaseInsensitiveMap();
 
     private final Map<String, LdapAttributeType> attrName2Type = newCaseInsensitiveMap();
@@ -71,7 +78,8 @@ public class ServerNativeSchema implements LdapNativeSchema {
         LDAP_DIRECTORY_ATTRS.add("entryDN");
     }
 
-    public ServerNativeSchema(LdapConnection conn) throws NamingException {
+    public ServerNativeSchema(LdapConnection conn)
+            throws NamingException {
         this.conn = conn;
         schemaCtx = conn.getInitialContext().getSchema("");
         try {
@@ -82,14 +90,17 @@ public class ServerNativeSchema implements LdapNativeSchema {
         }
     }
 
+    @Override
     public Set<String> getStructuralObjectClasses() {
         return unmodifiableSet(structuralLdapClasses);
     }
 
+    @Override
     public Set<String> getRequiredAttributes(String ldapClass) {
         return getAttributes(ldapClass, true);
     }
 
+    @Override
     public Set<String> getOptionalAttributes(String ldapClass) {
         return getAttributes(ldapClass, false);
     }
@@ -104,7 +115,8 @@ public class ServerNativeSchema implements LdapNativeSchema {
             String current = queue.remove();
             if (!visited.contains(current)) {
                 visited.add(current);
-                Set<String> attrs = required ? ldapClass2MustAttrs.get(current) : ldapClass2MayAttrs.get(current);
+                Set<String> attrs = required ? ldapClass2MustAttrs.get(current) : ldapClass2MayAttrs.
+                        get(current);
                 if (attrs != null) {
                     result.addAll(attrs);
                 }
@@ -118,6 +130,7 @@ public class ServerNativeSchema implements LdapNativeSchema {
         return result;
     }
 
+    @Override
     public Set<String> getEffectiveObjectClasses(String ldapClass) {
         Set<String> result = newCaseInsensitiveSet();
         Queue<String> classQueue = new LinkedList<String>();
@@ -137,20 +150,25 @@ public class ServerNativeSchema implements LdapNativeSchema {
         return result;
     }
 
+    @Override
     public LdapAttributeType getAttributeDescription(String ldapAttrName) {
         return attrName2Type.get(ldapAttrName);
     }
 
-    private void initObjectClasses() throws NamingException {
+    private void initObjectClasses()
+            throws NamingException {
         DirContext objClassCtx = (DirContext) schemaCtx.lookup("ClassDefinition");
         NamingEnumeration<NameClassPair> objClassEnum = objClassCtx.list("");
         while (objClassEnum.hasMore()) {
             String objClassName = objClassEnum.next().getName();
             Attributes attrs = objClassCtx.getAttributes(objClassName);
 
-            boolean abstractAttr = "true".equals(getStringAttrValue(attrs, "ABSTRACT"));
-            boolean structuralAttr = "true".equals(getStringAttrValue(attrs, "STRUCTURAL"));
-            boolean auxiliaryAttr = "true".equals(getStringAttrValue(attrs, "AUXILIARY"));
+            boolean abstractAttr = "true".equals(getStringAttrValue(attrs,
+                    "ABSTRACT"));
+            boolean structuralAttr = "true".equals(getStringAttrValue(attrs,
+                    "STRUCTURAL"));
+            boolean auxiliaryAttr = "true".equals(getStringAttrValue(attrs,
+                    "AUXILIARY"));
             boolean structural = structuralAttr || !(abstractAttr || auxiliaryAttr);
 
             Set<String> mustAttrs = newCaseInsensitiveSet();
@@ -183,15 +201,19 @@ public class ServerNativeSchema implements LdapNativeSchema {
         }
     }
 
-    private void initAttributeDescriptions() throws NamingException {
-        DirContext attrsCtx = (DirContext) schemaCtx.lookup("AttributeDefinition");
+    private void initAttributeDescriptions()
+            throws NamingException {
+        DirContext attrsCtx = (DirContext) schemaCtx.lookup(
+                "AttributeDefinition");
         NamingEnumeration<NameClassPair> attrsEnum = attrsCtx.list("");
         while (attrsEnum.hasMore()) {
             String attrName = attrsEnum.next().getName();
             Attributes attrs = attrsCtx.getAttributes(attrName);
 
-            boolean singleValue = "true".equals(getStringAttrValue(attrs, "SINGLE-VALUE"));
-            boolean noUserModification = "true".equals(getStringAttrValue(attrs, "NO-USER-MODIFICATION"));
+            boolean singleValue = "true".equals(getStringAttrValue(attrs,
+                    "SINGLE-VALUE"));
+            boolean noUserModification = "true".equals(getStringAttrValue(attrs,
+                    "NO-USER-MODIFICATION"));
             String usage = getStringAttrValue(attrs, "USAGE");
             boolean userApplications = "userApplications".equals(usage) || usage == null;
 
@@ -225,7 +247,9 @@ public class ServerNativeSchema implements LdapNativeSchema {
         }
 
         for (String dirAttrName : LDAP_DIRECTORY_ATTRS) {
-            attrName2Type.put(dirAttrName, new LdapAttributeType(String.class, EnumSet.of(Flags.NOT_CREATABLE, Flags.NOT_UPDATEABLE, Flags.NOT_RETURNED_BY_DEFAULT)));
+            attrName2Type.put(dirAttrName, new LdapAttributeType(String.class,
+                    EnumSet.of(Flags.NOT_CREATABLE, Flags.NOT_UPDATEABLE,
+                    Flags.NOT_RETURNED_BY_DEFAULT)));
         }
     }
 }

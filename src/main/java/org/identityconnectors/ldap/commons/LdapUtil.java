@@ -20,7 +20,7 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  */
-package org.identityconnectors.ldap;
+package org.identityconnectors.ldap.commons;
 
 import java.util.Collection;
 import java.util.HashSet;

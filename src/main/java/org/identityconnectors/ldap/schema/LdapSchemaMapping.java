@@ -27,10 +27,10 @@ import static java.util.Collections.unmodifiableSet;
 import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveMap;
 import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
 import static org.identityconnectors.common.CollectionUtil.newReadOnlyList;
-import static org.identityconnectors.ldap.LdapEntry.isDNAttribute;
-import static org.identityconnectors.ldap.LdapUtil.addBinaryOption;
-import static org.identityconnectors.ldap.LdapUtil.getStringAttrValue;
-import static org.identityconnectors.ldap.LdapUtil.quietCreateLdapName;
+import static org.identityconnectors.ldap.commons.LdapEntry.isDNAttribute;
+import static org.identityconnectors.ldap.commons.LdapUtil.addBinaryOption;
+import static org.identityconnectors.ldap.commons.LdapUtil.getStringAttrValue;
+import static org.identityconnectors.ldap.commons.LdapUtil.quietCreateLdapName;
 
 import java.util.Iterator;
 import java.util.List;
@@ -59,8 +59,8 @@ import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.ldap.LdapConnection;
-import org.identityconnectors.ldap.LdapEntry;
-import org.identityconnectors.ldap.ObjectClassMappingConfig;
+import org.identityconnectors.ldap.commons.LdapEntry;
+import org.identityconnectors.ldap.commons.ObjectClassMappingConfig;
 
 /**
  * The authoritative description of the mapping between the LDAP schema
@@ -78,13 +78,11 @@ public class LdapSchemaMapping {
     // - type mapping.
     // - operations.
     // - groups.
-
     // XXX should the naming attribute be present in the schema (e.g. "cn" for account)?
-
     // XXX need a method like getAttributesToReturn(String[] wanted);
     // XXX need to check that (extended) naming attributes really exist.
-
-    public static final ObjectClass ANY_OBJECT_CLASS = new ObjectClass(ObjectClassUtil.createSpecialName("ANY"));
+    public static final ObjectClass ANY_OBJECT_CLASS = new ObjectClass(ObjectClassUtil.
+            createSpecialName("ANY"));
 
     /**
      * The LDAP attribute to map to {@link Name} by default.
@@ -92,6 +90,7 @@ public class LdapSchemaMapping {
     static final String DEFAULT_LDAP_NAME_ATTR = "entryDN";
 
     private final LdapConnection conn;
+
     private final Map<String, Set<String>> ldapClass2Effective = newCaseInsensitiveMap();
 
     private Schema schema;
@@ -110,7 +109,8 @@ public class LdapSchemaMapping {
     private Set<String> getEffectiveLdapClasses(String ldapClass) {
         Set<String> result = ldapClass2Effective.get(ldapClass);
         if (result == null) {
-            result = conn.createNativeSchema().getEffectiveObjectClasses(ldapClass);
+            result = conn.createNativeSchema().getEffectiveObjectClasses(
+                    ldapClass);
             ldapClass2Effective.put(ldapClass, result);
         }
         return result;
@@ -124,14 +124,16 @@ public class LdapSchemaMapping {
         if (oclass.equals(ANY_OBJECT_CLASS)) {
             return emptyList();
         }
-        ObjectClassMappingConfig oclassConfig = conn.getConfiguration().getObjectClassMappingConfigs().get(oclass);
+        ObjectClassMappingConfig oclassConfig = conn.getConfiguration().
+                getObjectClassMappingConfigs().get(oclass);
         if (oclassConfig != null) {
             return oclassConfig.getLdapClasses();
         }
         if (!ObjectClassUtil.isSpecial(oclass)) {
             return newReadOnlyList(oclass.getObjectClassValue());
         }
-        throw new ConnectorException("Object class " + oclass.getObjectClassValue() + " is not mapped to an LDAP object class");
+        throw new ConnectorException("Object class " + oclass.
+                getObjectClassValue() + " is not mapped to an LDAP object class");
     }
 
     /**
@@ -148,7 +150,8 @@ public class LdapSchemaMapping {
     }
 
     public List<String> getUserNameLdapAttributes(ObjectClass oclass) {
-        ObjectClassMappingConfig oclassConfig = conn.getConfiguration().getObjectClassMappingConfigs().get(oclass);
+        ObjectClassMappingConfig oclassConfig = conn.getConfiguration().
+                getObjectClassMappingConfigs().get(oclass);
         if (oclassConfig != null) {
             return oclassConfig.getShortNameLdapAttributes();
         }
@@ -172,7 +175,8 @@ public class LdapSchemaMapping {
         }
 
         if (result == null && !oclass.equals(ANY_OBJECT_CLASS)) {
-            log.warn("Attribute {0} of object class {1} is not mapped to an LDAP attribute",
+            log.warn(
+                    "Attribute {0} of object class {1} is not mapped to an LDAP attribute",
                     attrName, oclass.getObjectClassValue());
         }
         return result;
@@ -234,7 +238,8 @@ public class LdapSchemaMapping {
             return new Uid(entryDN);
         } else {
             try {
-                Attributes attributes = conn.getInitialContext().getAttributes(entryDN, new String[] { ldapUidAttr });
+                Attributes attributes = conn.getInitialContext().getAttributes(
+                        entryDN, new String[]{ldapUidAttr});
                 return createUid(ldapUidAttr, attributes);
             } catch (NamingException e) {
                 throw new ConnectorException(e);
@@ -247,7 +252,8 @@ public class LdapSchemaMapping {
         if (value != null) {
             return new Uid(value);
         }
-        throw new ConnectorException("No attribute named " + ldapUidAttr + " found in the search result");
+        throw new ConnectorException(
+                "No attribute named " + ldapUidAttr + " found in the search result");
     }
 
     /**
@@ -258,7 +264,8 @@ public class LdapSchemaMapping {
         String ldapNameAttr = getLdapNameAttribute(oclass);
         if (!isDNAttribute(ldapNameAttr)) {
             // Not yet implemented.
-            throw new UnsupportedOperationException("Name can only be mapped to the entry DN");
+            throw new UnsupportedOperationException(
+                    "Name can only be mapped to the entry DN");
         }
         return new Name(entry.getDN().toString());
     }
@@ -275,7 +282,8 @@ public class LdapSchemaMapping {
         }
 
         if (ldapAttr == null) {
-            return emptyWhenNotFound ? AttributeBuilder.build(attrName, emptyList()) : null;
+            return emptyWhenNotFound ? AttributeBuilder.build(attrName,
+                    emptyList()) : null;
         }
 
         AttributeBuilder builder = new AttributeBuilder();
@@ -295,19 +303,23 @@ public class LdapSchemaMapping {
         LdapName entryName = quietCreateLdapName(getEntryDN(oclass, name));
 
         BasicAttributes ldapAttrs = new BasicAttributes();
-        NamingEnumeration<? extends javax.naming.directory.Attribute> initialAttrEnum = initialAttrs.getAll();
+        NamingEnumeration<? extends javax.naming.directory.Attribute> initialAttrEnum = initialAttrs.
+                getAll();
         while (initialAttrEnum.hasMoreElements()) {
             ldapAttrs.put(initialAttrEnum.nextElement());
         }
         BasicAttribute objectClass = new BasicAttribute("objectClass");
-        for (String ldapClass : conn.getSchemaMapping().getEffectiveLdapClasses(oclass)) {
+        for (String ldapClass : conn.getSchemaMapping().getEffectiveLdapClasses(
+                oclass)) {
             objectClass.add(ldapClass);
         }
         ldapAttrs.put(objectClass);
 
-        log.ok("Creating LDAP subcontext {0} with attributes {1}", entryName, ldapAttrs);
+        log.ok("Creating LDAP subcontext {0} with attributes {1}", entryName,
+                ldapAttrs);
         try {
-            conn.getInitialContext().createSubcontext(entryName, ldapAttrs).close();
+            conn.getInitialContext().createSubcontext(entryName, ldapAttrs).
+                    close();
             return entryName.toString();
         } catch (NamingException e) {
             throw new ConnectorException(e);
@@ -316,7 +328,8 @@ public class LdapSchemaMapping {
 
     public javax.naming.directory.Attribute encodeAttribute(ObjectClass oclass, Attribute attr) {
         if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-            throw new IllegalArgumentException("This method should not be used for password attributes");
+            throw new IllegalArgumentException(
+                    "This method should not be used for password attributes");
         }
 
         String ldapAttrName = getLdapAttribute(oclass, attr.getName(), true);
@@ -352,7 +365,8 @@ public class LdapSchemaMapping {
         String ldapNameAttr = getLdapNameAttribute(oclass);
         if (!isDNAttribute(ldapNameAttr)) {
             // Not yet implemented.
-            throw new UnsupportedOperationException("Name can only be mapped to the entry DN");
+            throw new UnsupportedOperationException(
+                    "Name can only be mapped to the entry DN");
         }
         return name.getNameValue();
     }
@@ -368,7 +382,8 @@ public class LdapSchemaMapping {
     }
 
     public void removeNonReadableAttributes(ObjectClass oclass, Set<String> attrNames) {
-        ObjectClassInfo oci = schema().findObjectClassInfo(oclass.getObjectClassValue());
+        ObjectClassInfo oci = schema().findObjectClassInfo(oclass.
+                getObjectClassValue());
         if (oci == null) {
             return;
         }

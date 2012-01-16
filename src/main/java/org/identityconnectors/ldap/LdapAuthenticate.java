@@ -22,6 +22,7 @@
  */
 package org.identityconnectors.ldap;
 
+import org.identityconnectors.ldap.commons.LdapConstants;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;

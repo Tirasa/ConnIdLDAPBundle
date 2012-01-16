@@ -22,9 +22,7 @@
  */
 package org.identityconnectors.ldap.modify;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -40,16 +38,17 @@ import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.ldap.LdapConfiguration;
 import org.identityconnectors.ldap.LdapConnectorTestBase;
+import org.identityconnectors.ldap.MyStatusManagement;
 import org.junit.Test;
 
-public class LdapCreateTests extends LdapConnectorTestBase{
+public class LdapCreateTests extends LdapConnectorTestBase {
 
     // TODO test that we can create an entry of an object class not in the schema.
     // TODO test that we can't create an entry outside the configured base DNs.
-
     @Override
     protected boolean restartServerAfterEachTest() {
         return true;
@@ -97,7 +96,8 @@ public class LdapCreateTests extends LdapConnectorTestBase{
         attributes.add(AttributeBuilder.build("sn", "Worker"));
         Uid uid = facade.create(ObjectClass.ACCOUNT, attributes, null);
 
-        ConnectorObject newAccount = facade.getObject(ObjectClass.ACCOUNT, uid, null);
+        ConnectorObject newAccount = facade.getObject(ObjectClass.ACCOUNT, uid,
+                null);
         assertEquals(name, newAccount.getName());
     }
 
@@ -187,28 +187,35 @@ public class LdapCreateTests extends LdapConnectorTestBase{
     }
 
     @Test
-    public void testCreateBinaryAttributes() throws IOException {
+    public void testCreateBinaryAttributes()
+            throws IOException {
         ConnectorFacade facade = newFacade();
 
         Set<Attribute> attributes = new HashSet<Attribute>();
-        attributes.add(new Name("uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com"));
+        attributes.add(new Name(
+                "uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com"));
         attributes.add(AttributeBuilder.build("uid", "daffy.duck"));
         attributes.add(AttributeBuilder.build("cn", "Daffy Duck"));
         attributes.add(AttributeBuilder.build("givenName", "Daffy"));
         attributes.add(AttributeBuilder.build("sn", "Duck"));
-        byte[] certificate = IOUtil.getResourceAsBytes(LdapCreateTests.class, "certificate.cert");
+        byte[] certificate = IOUtil.getResourceAsBytes(LdapCreateTests.class,
+                "certificate.cert");
         attributes.add(AttributeBuilder.build("userCertificate", certificate));
-        byte[] photo = IOUtil.getResourceAsBytes(LdapCreateTests.class, "photo.jpg");
+        byte[] photo = IOUtil.getResourceAsBytes(LdapCreateTests.class,
+                "photo.jpg");
         attributes.add(AttributeBuilder.build("jpegPhoto", photo));
         Uid uid = facade.create(ObjectClass.ACCOUNT, attributes, null);
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet("userCertificate", "jpegPhoto");
 
-        ConnectorObject newAccount = facade.getObject(ObjectClass.ACCOUNT, uid, builder.build());
-        byte[] storedCertificate = (byte[]) newAccount.getAttributeByName("userCertificate").getValue().get(0);
+        ConnectorObject newAccount = facade.getObject(ObjectClass.ACCOUNT, uid,
+                builder.build());
+        byte[] storedCertificate = (byte[]) newAccount.getAttributeByName(
+                "userCertificate").getValue().get(0);
         assertTrue(Arrays.equals(certificate, storedCertificate));
-        byte[] storedPhoto = (byte[]) newAccount.getAttributeByName("jpegPhoto").getValue().get(0);
+        byte[] storedPhoto = (byte[]) newAccount.getAttributeByName("jpegPhoto").
+                getValue().get(0);
         assertTrue(Arrays.equals(photo, storedPhoto));
     }
 
@@ -217,15 +224,63 @@ public class LdapCreateTests extends LdapConnectorTestBase{
         ConnectorFacade facade = newFacade();
 
         Set<Attribute> attributes = new HashSet<Attribute>();
-        attributes.add(new Name("uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com"));
+        attributes.add(new Name(
+                "uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com"));
         attributes.add(AttributeBuilder.build("uid", "daffy.duck"));
         attributes.add(AttributeBuilder.build("cn", "Daffy Duck"));
         attributes.add(AttributeBuilder.build("givenName", "Daffy"));
         attributes.add(AttributeBuilder.build("sn", "Duck"));
-        GuardedString password = new GuardedString("I.hate.rabbits".toCharArray());
+        GuardedString password = new GuardedString(
+                "I.hate.rabbits".toCharArray());
         attributes.add(AttributeBuilder.buildPassword(password));
         facade.create(ObjectClass.ACCOUNT, attributes, null);
 
         facade.authenticate(ObjectClass.ACCOUNT, "daffy.duck", password, null);
+    }
+
+    @Test
+    public void testCreateDisabled() {
+        final LdapConfiguration config = new LdapConfiguration();
+
+        config.setHost("localhost");
+        config.setPort(PORT);
+        config.setBaseContexts(ACME_DN, BIG_COMPANY_DN);
+        config.setPrincipal(ADMIN_DN);
+        config.setCredentials(ADMIN_PASSWORD);
+        config.setReadSchema(false);
+        config.setStatusManagementClass(MyStatusManagement.class.getName());
+
+        ConnectorFacade facade = newFacade(config);
+
+        Set<Attribute> attributes = new HashSet<Attribute>();
+        attributes.add(new Name(
+                "uid=daffy2,ou=Users,o=Acme,dc=example,dc=com"));
+        attributes.add(AttributeBuilder.build("uid", "daffy2"));
+        attributes.add(AttributeBuilder.build("cn", "Daffy Duck 2"));
+        attributes.add(AttributeBuilder.build("givenName", "Daffy"));
+        attributes.add(AttributeBuilder.build("sn", "Duck"));
+        GuardedString password = new GuardedString(
+                "I.hate.rabbits".toCharArray());
+        attributes.add(AttributeBuilder.buildPassword(password));
+        attributes.add(AttributeBuilder.buildEnabled(false));
+
+        final Uid uid = facade.create(ObjectClass.ACCOUNT, attributes, null);
+        assertNotNull(uid);
+
+        OperationOptionsBuilder builder = new OperationOptionsBuilder();
+        builder.setAttributesToGet(Arrays.asList(
+                new String[]{"description", OperationalAttributes.ENABLE_NAME}));
+
+        final ConnectorObject obj =
+                facade.getObject(ObjectClass.ACCOUNT, uid, builder.build());
+
+        assertNotNull(obj);
+
+        final Attribute status =
+                obj.getAttributeByName(OperationalAttributes.ENABLE_NAME);
+
+        assertNotNull(status);
+        assertFalse(status.getValue().isEmpty());
+        assertFalse((Boolean) status.getValue().get(0));
     }
 }

@@ -37,11 +37,11 @@ import org.identityconnectors.framework.common.objects.SchemaBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.framework.spi.operations.AuthenticateOp;
 import org.identityconnectors.framework.spi.operations.SyncOp;
-import org.identityconnectors.ldap.LdapAttributeType;
+import org.identityconnectors.ldap.commons.LdapAttributeType;
 import org.identityconnectors.ldap.LdapConnection;
 import org.identityconnectors.ldap.LdapConnector;
-import org.identityconnectors.ldap.LdapNativeSchema;
-import org.identityconnectors.ldap.ObjectClassMappingConfig;
+import org.identityconnectors.ldap.commons.LdapNativeSchema;
+import org.identityconnectors.ldap.commons.ObjectClassMappingConfig;
 import org.identityconnectors.ldap.LdapConnection.ServerType;
 
 class LdapSchemaBuilder {

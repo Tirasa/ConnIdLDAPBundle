@@ -20,7 +20,7 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  */
-package org.identityconnectors.ldap;
+package org.identityconnectors.ldap.commons;
 
 import static org.identityconnectors.common.CollectionUtil.newReadOnlyList;
 import static org.identityconnectors.common.CollectionUtil.newReadOnlySet;
@@ -37,12 +37,21 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 public class ObjectClassMappingConfig {
 
     private final ObjectClass objectClass;
+
     private List<String> ldapClasses;
+
     private final boolean container;
+
     private List<String> shortNameLdapAttributes;
+
     private final Set<AttributeInfo> operationalAttributes;
 
-    public ObjectClassMappingConfig(ObjectClass objectClass, List<String> ldapClasses, boolean container, List<String> shortNameLdapAttributes, AttributeInfo... operationalAttributes) {
+    public ObjectClassMappingConfig(
+            final ObjectClass objectClass,
+            final List<String> ldapClasses,
+            final boolean container,
+            final List<String> shortNameLdapAttributes,
+            final AttributeInfo... operationalAttributes) {
         assert objectClass != null;
         this.objectClass = objectClass;
         assert ldapClasses != null;
@@ -81,13 +90,15 @@ public class ObjectClassMappingConfig {
         return operationalAttributes;
     }
 
+    @Override
     public int hashCode() {
         return objectClass.hashCode();
     }
 
+    @Override
     public boolean equals(Object o) {
         if (o instanceof ObjectClassMappingConfig) {
-            ObjectClassMappingConfig that = (ObjectClassMappingConfig)o;
+            ObjectClassMappingConfig that = (ObjectClassMappingConfig) o;
             if (!objectClass.equals(that.objectClass)) {
                 return false;
             }

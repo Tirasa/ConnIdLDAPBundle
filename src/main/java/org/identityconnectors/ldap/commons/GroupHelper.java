@@ -20,10 +20,10 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  */
-package org.identityconnectors.ldap;
+package org.identityconnectors.ldap.commons;
 
 import static java.util.Collections.singletonList;
-import static org.identityconnectors.ldap.LdapUtil.escapeAttrValue;
+import static org.identityconnectors.ldap.commons.LdapUtil.escapeAttrValue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,6 +42,7 @@ import javax.naming.ldap.LdapName;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.ldap.LdapConnection;
 import org.identityconnectors.ldap.search.LdapSearches;
 import org.identityconnectors.ldap.search.SearchResultsHandler;
 
@@ -75,7 +76,8 @@ public class GroupHelper {
 
     public List<String> getLdapGroups(String entryDN) {
         log.ok("Retrieving LDAP groups for {0}", entryDN);
-        String filter = createAttributeFilter(getLdapGroupMemberAttribute(), singletonList(entryDN));
+        String filter = createAttributeFilter(getLdapGroupMemberAttribute(),
+                singletonList(entryDN));
         ToDNHandler handler = new ToDNHandler();
         LdapSearches.findEntries(handler, conn, filter);
         return handler.getResults();
@@ -83,7 +85,8 @@ public class GroupHelper {
 
     public Set<GroupMembership> getLdapGroupMemberships(String entryDN) {
         log.ok("Retrieving LDAP group memberships for {0}", entryDN);
-        String filter = createAttributeFilter(getLdapGroupMemberAttribute(), singletonList(entryDN));
+        String filter = createAttributeFilter(getLdapGroupMemberAttribute(),
+                singletonList(entryDN));
         ToGroupMembershipHandler handler = new ToGroupMembershipHandler();
         handler.setMemberRef(entryDN);
         LdapSearches.findEntries(handler, conn, filter);
@@ -107,13 +110,16 @@ public class GroupHelper {
     }
 
     public void modifyLdapGroupMemberships(Modification<GroupMembership> mod) {
-        log.ok("Modifying LDAP group memberships: removing {0}, adding {1}", mod.getRemoved(), mod.getAdded());
+        log.ok("Modifying LDAP group memberships: removing {0}, adding {1}",
+                mod.getRemoved(), mod.getAdded());
         String ldapGroupMemberAttribute = getLdapGroupMemberAttribute();
         for (GroupMembership membership : mod.getRemoved()) {
-            removeMemberFromGroup(ldapGroupMemberAttribute, membership.getMemberRef(), membership.getGroupDN());
+            removeMemberFromGroup(ldapGroupMemberAttribute, membership.
+                    getMemberRef(), membership.getGroupDN());
         }
         for (GroupMembership membership : mod.getAdded()) {
-            addMemberToGroup(ldapGroupMemberAttribute, membership.getMemberRef(), membership.getGroupDN());
+            addMemberToGroup(ldapGroupMemberAttribute, membership.getMemberRef(),
+                    membership.getGroupDN());
         }
     }
 
@@ -129,7 +135,8 @@ public class GroupHelper {
         log.ok("Retrieving POSIX group memberships for ", posixRefAttrs);
         ToGroupMembershipHandler handler = new ToGroupMembershipHandler();
         for (String posixRefAttr : posixRefAttrs) {
-            String filter = createAttributeFilter("memberUid", singletonList(posixRefAttr));
+            String filter = createAttributeFilter("memberUid", singletonList(
+                    posixRefAttr));
             handler.setMemberRef(posixRefAttr);
             LdapSearches.findEntries(handler, conn, filter);
         }
@@ -146,17 +153,21 @@ public class GroupHelper {
     public void removePosixGroupMemberships(Set<GroupMembership> memberships) {
         log.ok("Removing POSIX group memberships {0}", memberships);
         for (GroupMembership membership : memberships) {
-            removeMemberFromGroup("memberUid", membership.getMemberRef(), membership.getGroupDN());
+            removeMemberFromGroup("memberUid", membership.getMemberRef(),
+                    membership.getGroupDN());
         }
     }
 
     public void modifyPosixGroupMemberships(Modification<GroupMembership> mod) {
-        log.ok("Modifying POSIX group memberships: removing {0}, adding {1}", mod.getRemoved(), mod.getAdded());
+        log.ok("Modifying POSIX group memberships: removing {0}, adding {1}",
+                mod.getRemoved(), mod.getAdded());
         for (GroupMembership membership : mod.getRemoved()) {
-            removeMemberFromGroup("memberUid", membership.getMemberRef(), membership.getGroupDN());
+            removeMemberFromGroup("memberUid", membership.getMemberRef(),
+                    membership.getGroupDN());
         }
         for (GroupMembership membership : mod.getAdded()) {
-            addMemberToGroup("memberUid", membership.getMemberRef(), membership.getGroupDN());
+            addMemberToGroup("memberUid", membership.getMemberRef(), membership.
+                    getGroupDN());
         }
     }
 
@@ -181,11 +192,14 @@ public class GroupHelper {
 
     private void addMemberToGroup(String memberAttr, String memberValue, String groupDN) {
         BasicAttribute attr = new BasicAttribute(memberAttr, memberValue);
-        ModificationItem item = new ModificationItem(DirContext.ADD_ATTRIBUTE, attr);
+        ModificationItem item = new ModificationItem(DirContext.ADD_ATTRIBUTE,
+                attr);
         try {
-            conn.getInitialContext().modifyAttributes(groupDN, new ModificationItem[] { item });
+            conn.getInitialContext().modifyAttributes(groupDN,
+                    new ModificationItem[]{item});
         } catch (AttributeInUseException e) {
-            throw new ConnectorException(conn.format("memberAlreadyInGroup", null, memberValue, groupDN), e);
+            throw new ConnectorException(conn.format("memberAlreadyInGroup",
+                    null, memberValue, groupDN), e);
         } catch (NamingException e) {
             throw new ConnectorException(e);
         }
@@ -193,9 +207,11 @@ public class GroupHelper {
 
     private void removeMemberFromGroup(String memberAttr, String memberValue, String groupDN) {
         BasicAttribute attr = new BasicAttribute(memberAttr, memberValue);
-        ModificationItem item = new ModificationItem(DirContext.REMOVE_ATTRIBUTE, attr);
+        ModificationItem item = new ModificationItem(DirContext.REMOVE_ATTRIBUTE,
+                attr);
         try {
-            conn.getInitialContext().modifyAttributes(groupDN, new ModificationItem[] { item });
+            conn.getInitialContext().modifyAttributes(groupDN,
+                    new ModificationItem[]{item});
         } catch (NamingException e) {
             throw new ConnectorException(e);
         }
@@ -204,6 +220,7 @@ public class GroupHelper {
     public static final class GroupMembership {
 
         private final String memberRef;
+
         private final String groupDN;
 
         public GroupMembership(String memberRef, String groupDn) {
@@ -225,7 +242,7 @@ public class GroupHelper {
 
         public boolean equals(Object o) {
             if (o instanceof GroupMembership) {
-                GroupMembership that = (GroupMembership)o;
+                GroupMembership that = (GroupMembership) o;
                 if (!memberRef.equals(that.memberRef)) {
                     return false;
                 }
@@ -246,8 +263,11 @@ public class GroupHelper {
     public static final class Modification<T> {
 
         private final Set<T> removed = new LinkedHashSet<T>();
+
         private final Set<T> added = new LinkedHashSet<T>();
+
         private Set<T> effectiveAdded;
+
         private Set<T> effectiveRemoved;
 
         public void add(T item) {
@@ -305,8 +325,10 @@ public class GroupHelper {
 
         private final List<String> results = new ArrayList<String>();
 
-        public boolean handle(String baseDN, SearchResult searchResult) throws NamingException {
-            results.add(LdapEntry.create(baseDN, searchResult).getDN().toString());
+        public boolean handle(String baseDN, SearchResult searchResult)
+                throws NamingException {
+            results.add(
+                    LdapEntry.create(baseDN, searchResult).getDN().toString());
             return true;
         }
 
@@ -318,6 +340,7 @@ public class GroupHelper {
     private static final class ToGroupMembershipHandler implements SearchResultsHandler {
 
         private final Set<GroupMembership> results = new HashSet<GroupMembership>();
+
         private String memberRef;
 
         public ToGroupMembershipHandler() {
@@ -327,7 +350,8 @@ public class GroupHelper {
             this.memberRef = memberRef;
         }
 
-        public boolean handle(String baseDN, SearchResult searchResult) throws NamingException {
+        public boolean handle(String baseDN, SearchResult searchResult)
+                throws NamingException {
             LdapName groupDN = LdapEntry.create(baseDN, searchResult).getDN();
             results.add(new GroupMembership(memberRef, groupDN.toString()));
             return true;

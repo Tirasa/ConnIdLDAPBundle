@@ -20,27 +20,34 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  */
-package org.identityconnectors.ldap;
+package org.identityconnectors.ldap.commons;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import javax.naming.directory.Attributes;
 
-/**
- * Provides an encapsulation of the LDAP server's native schema.
- */
-public interface LdapNativeSchema {
+public class DefaultStatusManagement extends StatusManagement {
 
-    Set<String> getStructuralObjectClasses();
+    @Override
+    public void setStatus(
+            final boolean status,
+            final Attributes attributes,
+            final List<String> posixGroups,
+            final List<String> ldapGroups) {
+        // do nothing by default
+    }
 
-    Set<String> getRequiredAttributes(String ldapClass);
+    @Override
+    public Boolean getStatus(
+            final Attributes attributes,
+            final List<String> posixGroups,
+            final List<String> ldapGroups) {
+        return null;
+    }
 
-    Set<String> getOptionalAttributes(String ldapClass);
-
-    /**
-     * Returns the effective LDAP object classes that an entry of a given
-     * object class would have, that is, including any superior object classes,
-     * any superiors thereof, etc.
-     */
-    Set<String> getEffectiveObjectClasses(String ldapClass);
-
-    LdapAttributeType getAttributeDescription(String ldapAttrName);
+    @Override
+    public Set<String> getOperationalAttributes() {
+        return new HashSet<String>();
+    }
 }

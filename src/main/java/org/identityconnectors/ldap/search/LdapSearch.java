@@ -26,7 +26,7 @@ import static java.util.Collections.singletonList;
 import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
 import static org.identityconnectors.common.CollectionUtil.newSet;
 import static org.identityconnectors.common.StringUtil.isBlank;
-import static org.identityconnectors.ldap.LdapUtil.getStringAttrValues;
+import static org.identityconnectors.ldap.commons.LdapUtil.getStringAttrValues;
 
 import java.util.Arrays;
 import java.util.List;
@@ -52,13 +52,15 @@ import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.QualifiedUid;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.identityconnectors.ldap.GroupHelper;
+import org.identityconnectors.ldap.commons.GroupHelper;
 import org.identityconnectors.ldap.LdapConnection;
-import org.identityconnectors.ldap.LdapConstants;
-import org.identityconnectors.ldap.LdapEntry;
+import org.identityconnectors.ldap.commons.LdapConstants;
+import org.identityconnectors.ldap.commons.LdapEntry;
 import org.identityconnectors.ldap.schema.LdapSchemaMapping;
 
 import com.sun.jndi.ldap.ctl.VirtualListViewControl;
+import java.util.ArrayList;
+import org.identityconnectors.ldap.commons.StatusManagement;
 
 /**
  * A class to perform an LDAP search against a {@link LdapConnection}.
@@ -70,18 +72,25 @@ public class LdapSearch {
     private static final Log log = Log.getLog(LdapSearch.class);
 
     private final LdapConnection conn;
+
     private final ObjectClass oclass;
+
     private final LdapFilter filter;
+
     private final OperationOptions options;
+
     private final GroupHelper groupHelper;
+
     private final String[] baseDNs;
 
-    public static Set<String> getAttributesReturnedByDefault(LdapConnection conn, ObjectClass oclass) {
+    public static Set<String> getAttributesReturnedByDefault(
+            final LdapConnection conn, final ObjectClass oclass) {
         if (oclass.equals(LdapSchemaMapping.ANY_OBJECT_CLASS)) {
             return newSet(Name.NAME);
         }
         Set<String> result = newCaseInsensitiveSet();
-        ObjectClassInfo oci = conn.getSchemaMapping().schema().findObjectClassInfo(oclass.getObjectClassValue());
+        ObjectClassInfo oci = conn.getSchemaMapping().schema().
+                findObjectClassInfo(oclass.getObjectClassValue());
         if (oci != null) {
             for (AttributeInfo info : oci.getAttributeInfo()) {
                 if (info.isReturnedByDefault()) {
@@ -92,11 +101,22 @@ public class LdapSearch {
         return result;
     }
 
-    public LdapSearch(LdapConnection conn, ObjectClass oclass, LdapFilter filter, OperationOptions options) {
-        this(conn, oclass, filter, options, conn.getConfiguration().getBaseContexts());
+    public LdapSearch(
+            final LdapConnection conn,
+            final ObjectClass oclass,
+            final LdapFilter filter,
+            final OperationOptions options) {
+
+        this(conn, oclass, filter, options,
+                conn.getConfiguration().getBaseContexts());
     }
 
-    public LdapSearch(LdapConnection conn, ObjectClass oclass, LdapFilter filter, OperationOptions options, String... baseDNs) {
+    public LdapSearch(
+            final LdapConnection conn,
+            final ObjectClass oclass,
+            final LdapFilter filter,
+            final OperationOptions options,
+            final String... baseDNs) {
         this.conn = conn;
         this.oclass = oclass;
         this.filter = filter;
@@ -118,10 +138,16 @@ public class LdapSearch {
     public final void execute(final ResultsHandler handler) {
         final String[] attrsToGetOption = options.getAttributesToGet();
         final Set<String> attrsToGet = getAttributesToGet(attrsToGetOption);
-        LdapInternalSearch search = getInternalSearch(attrsToGet);
+
+        final LdapInternalSearch search = getInternalSearch(attrsToGet);
+
         search.execute(new SearchResultsHandler() {
-            public boolean handle(String baseDN, SearchResult result) throws NamingException {
-                return handler.handle(createConnectorObject(baseDN, result, attrsToGet, attrsToGetOption != null));
+
+            @Override
+            public boolean handle(String baseDN, SearchResult result)
+                    throws NamingException {
+                return handler.handle(createConnectorObject(
+                        baseDN, result, attrsToGet, attrsToGetOption != null));
             }
         });
     }
@@ -133,18 +159,27 @@ public class LdapSearch {
     public final ConnectorObject getSingleResult() {
         final String[] attrsToGetOption = options.getAttributesToGet();
         final Set<String> attrsToGet = getAttributesToGet(attrsToGetOption);
-        final ConnectorObject[] results = new ConnectorObject[] { null };
-        LdapInternalSearch search = getInternalSearch(attrsToGet);
+        final ConnectorObject[] results = new ConnectorObject[]{null};
+
+        final LdapInternalSearch search = getInternalSearch(attrsToGet);
+
         search.execute(new SearchResultsHandler() {
-            public boolean handle(String baseDN, SearchResult result) throws NamingException {
-                results[0] = createConnectorObject(baseDN, result, attrsToGet, attrsToGetOption != null);
+
+            @Override
+            public boolean handle(String baseDN, SearchResult result)
+                    throws NamingException {
+
+                results[0] = createConnectorObject(
+                        baseDN, result, attrsToGet, attrsToGetOption != null);
+
                 return false;
             }
         });
+
         return results[0];
     }
 
-    private LdapInternalSearch getInternalSearch(Set<String> attrsToGet) {
+    private LdapInternalSearch getInternalSearch(final Set<String> attrsToGet) {
         // This is a bit tricky. If the LdapFilter has an entry DN,
         // we only need to look at that entry and check whether it matches
         // the native filter. Moreover, when looking at the entry DN
@@ -157,7 +192,7 @@ public class LdapSearch {
         // matching the native filter.
 
         LdapSearchStrategy strategy;
-        List<String> baseDNs;
+        List<String> dns;
         int searchScope;
 
         String filterEntryDN = filter != null ? filter.getEntryDN() : null;
@@ -166,17 +201,20 @@ public class LdapSearch {
             // However, the adapter is likely to pass entries outside the base contexts,
             // so not checking in order to be on the safe side.
             strategy = new DefaultSearchStrategy(true);
-            baseDNs = singletonList(filterEntryDN);
+            dns = singletonList(filterEntryDN);
             searchScope = SearchControls.OBJECT_SCOPE;
         } else {
             strategy = getSearchStrategy();
-            baseDNs = getBaseDNs();
+            dns = getBaseDNs();
             searchScope = getLdapSearchScope();
         }
 
         SearchControls controls = LdapInternalSearch.createDefaultSearchControls();
         Set<String> ldapAttrsToGet = getLdapAttributesToGet(attrsToGet);
-        controls.setReturningAttributes(ldapAttrsToGet.toArray(new String[ldapAttrsToGet.size()]));
+
+        controls.setReturningAttributes(
+                ldapAttrsToGet.toArray(new String[ldapAttrsToGet.size()]));
+
         controls.setSearchScope(searchScope);
 
         String optionsFilter = LdapConstants.getSearchFilter(options);
@@ -185,21 +223,36 @@ public class LdapSearch {
             userFilter = conn.getConfiguration().getAccountSearchFilter();
         }
         String nativeFilter = filter != null ? filter.getNativeFilter() : null;
-        return new LdapInternalSearch(conn, getSearchFilter(optionsFilter, nativeFilter, userFilter), baseDNs, strategy, controls);
+        return new LdapInternalSearch(conn, getSearchFilter(optionsFilter,
+                nativeFilter, userFilter), dns, strategy, controls);
     }
 
-    private Set<String> getLdapAttributesToGet(Set<String> attrsToGet) {
-        Set<String> cleanAttrsToGet = newCaseInsensitiveSet();
+    private Set<String> getLdapAttributesToGet(final Set<String> attrsToGet) {
+        final Set<String> cleanAttrsToGet = newCaseInsensitiveSet();
+
         cleanAttrsToGet.addAll(attrsToGet);
         cleanAttrsToGet.remove(LdapConstants.LDAP_GROUPS_NAME);
-        boolean posixGroups = cleanAttrsToGet.remove(LdapConstants.POSIX_GROUPS_NAME);
-        Set<String> result = conn.getSchemaMapping().getLdapAttributes(oclass, cleanAttrsToGet, true);
+
+        final boolean posixGroups =
+                cleanAttrsToGet.remove(LdapConstants.POSIX_GROUPS_NAME);
+
+        final Set<String> result = conn.getSchemaMapping().getLdapAttributes(
+                oclass, cleanAttrsToGet, true);
+
         if (posixGroups) {
             result.add(GroupHelper.getPosixRefAttribute());
         }
+
+        // Add attributes needed to define the entity status.
+        // This attributes won't be attached to the connector object.
+        result.addAll(StatusManagement.getInstance(
+                conn.getConfiguration().getStatusManagementClass()).
+                getOperationalAttributes());
+
         // For compatibility with the adapter, we do not ask the server for DN attributes,
         // such as entryDN; we compute them ourselves. Some servers might not support such attributes anyway.
         result.removeAll(LdapEntry.ENTRY_DN_ATTRS);
+
         return result;
     }
 
@@ -209,31 +262,59 @@ public class LdapSearch {
      * baseDN} parameter is needed in order to create the whole entry DN, which
      * is used to compute the connector object's name attribute.
      */
-    private ConnectorObject createConnectorObject(String baseDN, SearchResult result, Set<String> attrsToGet, boolean emptyAttrWhenNotFound) {
-        LdapEntry entry = LdapEntry.create(baseDN, result);
+    private ConnectorObject createConnectorObject(
+            final String baseDN,
+            final SearchResult result,
+            final Set<String> attrsToGet,
+            final boolean emptyAttrWhenNotFound) {
 
-        ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
+        final LdapEntry entry = LdapEntry.create(baseDN, result);
+
+        final ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
         builder.setObjectClass(oclass);
         builder.setUid(conn.getSchemaMapping().createUid(oclass, entry));
         builder.setName(conn.getSchemaMapping().createName(oclass, entry));
 
+        final List<String> ldapGroups = new ArrayList<String>();
+        final List<String> posixGroups = new ArrayList<String>();
+
         for (String attrName : attrsToGet) {
             Attribute attribute = null;
             if (LdapConstants.isLdapGroups(attrName)) {
-                List<String> ldapGroups = groupHelper.getLdapGroups(entry.getDN().toString());
-                attribute = AttributeBuilder.build(LdapConstants.LDAP_GROUPS_NAME, ldapGroups);
+                ldapGroups.addAll(groupHelper.getLdapGroups(
+                        entry.getDN().toString()));
+
+                attribute = AttributeBuilder.build(
+                        LdapConstants.LDAP_GROUPS_NAME, ldapGroups);
             } else if (LdapConstants.isPosixGroups(attrName)) {
-                Set<String> posixRefAttrs = getStringAttrValues(entry.getAttributes(), GroupHelper.getPosixRefAttribute());
-                List<String> posixGroups = groupHelper.getPosixGroups(posixRefAttrs);
-                attribute = AttributeBuilder.build(LdapConstants.POSIX_GROUPS_NAME, posixGroups);
+                final Set<String> posixRefAttrs = getStringAttrValues(
+                        entry.getAttributes(),
+                        GroupHelper.getPosixRefAttribute());
+
+                posixGroups.addAll(groupHelper.getPosixGroups(posixRefAttrs));
+
+                attribute = AttributeBuilder.build(
+                        LdapConstants.POSIX_GROUPS_NAME, posixGroups);
+
             } else if (LdapConstants.PASSWORD.is(attrName)) {
                 attribute = AttributeBuilder.build(attrName, new GuardedString());
             } else {
-                attribute = conn.getSchemaMapping().createAttribute(oclass, attrName, entry, emptyAttrWhenNotFound);
+                attribute = conn.getSchemaMapping().createAttribute(
+                        oclass, attrName, entry, emptyAttrWhenNotFound);
             }
+
             if (attribute != null) {
                 builder.addAttribute(attribute);
             }
+        }
+
+        final Boolean status =
+                StatusManagement.getInstance(
+                conn.getConfiguration().getStatusManagementClass()).
+                getStatus(result.getAttributes(), posixGroups, ldapGroups);
+
+        if (status != null) {
+            builder.addAttribute(AttributeBuilder.buildEnabled(status));
         }
 
         return builder.build();
@@ -245,52 +326,65 @@ public class LdapSearch {
      * the filters for all LDAP object classes for the given {@code ObjectClass}, and
      * an optional filter to be applied before the object class filters.
      */
-    private String getSearchFilter(String... optionalFilters) {
+    private String getSearchFilter(final String... optionalFilters) {
         StringBuilder builder = new StringBuilder();
         String ocFilter = getObjectClassFilter();
         int nonBlank = isBlank(ocFilter) ? 0 : 1;
+
         for (String optionalFilter : optionalFilters) {
             nonBlank += (isBlank(optionalFilter) ? 0 : 1);
         }
+
         if (nonBlank > 1) {
             builder.append("(&");
         }
+
         appendFilter(ocFilter, builder);
+
         for (String optionalFilter : optionalFilters) {
             appendFilter(optionalFilter, builder);
         }
+
         if (nonBlank > 1) {
             builder.append(')');
         }
+
         return builder.toString();
     }
 
     private String getObjectClassFilter() {
         StringBuilder builder = new StringBuilder();
         List<String> ldapClasses = conn.getSchemaMapping().getLdapClasses(oclass);
+
         boolean and = ldapClasses.size() > 1;
         if (and) {
             builder.append("(&");
         }
+
         for (String ldapClass : ldapClasses) {
             builder.append("(objectClass=");
             builder.append(ldapClass);
             builder.append(')');
         }
+
         if (and) {
             builder.append(')');
         }
+
         return builder.toString();
     }
 
     private static void appendFilter(String filter, StringBuilder toBuilder) {
         if (!isBlank(filter)) {
-            String trimmedUserFilter = filter.trim();
-            boolean enclose = filter.charAt(0) != '(';
+            final String trimmedUserFilter = filter.trim();
+            final boolean enclose = filter.charAt(0) != '(';
+
             if (enclose) {
                 toBuilder.append('(');
             }
+
             toBuilder.append(trimmedUserFilter);
+
             if (enclose) {
                 toBuilder.append(')');
             }
@@ -299,12 +393,16 @@ public class LdapSearch {
 
     private List<String> getBaseDNs() {
         List<String> result;
-        QualifiedUid container = options.getContainer();
+
+        final QualifiedUid container = options.getContainer();
+
         if (container != null) {
-            result = singletonList(LdapSearches.findEntryDN(conn, container.getObjectClass(), container.getUid()));
+            result = singletonList(LdapSearches.findEntryDN(
+                    conn, container.getObjectClass(), container.getUid()));
         } else {
             result = Arrays.asList(baseDNs);
         }
+
         assert result != null;
         return result;
     }
@@ -315,10 +413,12 @@ public class LdapSearch {
             // Only consider paged strategies for accounts, just as the adapter does.
 
             boolean useBlocks = conn.getConfiguration().isUseBlocks();
-            boolean usePagedResultsControl = conn.getConfiguration().isUsePagedResultControl();
+            boolean usePagedResultsControl = conn.getConfiguration().
+                    isUsePagedResultControl();
             int pageSize = conn.getConfiguration().getBlockSize();
 
-            if (useBlocks && !usePagedResultsControl && conn.supportsControl(VirtualListViewControl.OID)) {
+            if (useBlocks && !usePagedResultsControl && conn.supportsControl(
+                    VirtualListViewControl.OID)) {
                 String vlvSortAttr = conn.getConfiguration().getVlvSortAttribute();
                 strategy = new VlvIndexSearchStrategy(vlvSortAttr, pageSize);
             } else if (useBlocks && conn.supportsControl(PagedResultsControl.OID)) {
@@ -332,8 +432,9 @@ public class LdapSearch {
         return strategy;
     }
 
-    private Set<String> getAttributesToGet(String[] attributesToGet) {
+    private Set<String> getAttributesToGet(final String[] attributesToGet) {
         Set<String> result;
+
         if (attributesToGet != null) {
             result = newCaseInsensitiveSet();
             result.addAll(Arrays.asList(attributesToGet));
@@ -343,26 +444,32 @@ public class LdapSearch {
             // This should include Name.NAME, so no need to include it explicitly.
             result = getAttributesReturnedByDefault(conn, oclass);
         }
+
         // Since Uid is not in the schema, but it is required to construct a ConnectorObject.
         result.add(Uid.NAME);
-        // Our password is marked as readable because of sync(). We really can't return it from search.
+
+        // Our password is marked as readable because of sync(). 
+        // We really can't return it from search.
         if (result.contains(OperationalAttributes.PASSWORD_NAME)) {
             log.warn("Reading passwords not supported");
-            // throw new ConnectorException(conn.format("readingPasswordsNotSupported", null));
         }
+
         return result;
     }
 
-    private void removeNonReadableAttributes(Set<String> attributes) {
+    private void removeNonReadableAttributes(final Set<String> attributes) {
         // Since the groups attributes are fake attributes, we don't want to
         // send them to LdapSchemaMapping. This, for example, avoid an (unlikely)
         // conflict with a custom attribute defined in the server schema.
         boolean ldapGroups = attributes.remove(LdapConstants.LDAP_GROUPS_NAME);
         boolean posixGroups = attributes.remove(LdapConstants.POSIX_GROUPS_NAME);
+
         conn.getSchemaMapping().removeNonReadableAttributes(oclass, attributes);
+
         if (ldapGroups) {
             attributes.add(LdapConstants.LDAP_GROUPS_NAME);
         }
+
         if (posixGroups) {
             attributes.add(LdapConstants.POSIX_GROUPS_NAME);
         }
@@ -370,6 +477,7 @@ public class LdapSearch {
 
     private int getLdapSearchScope() {
         String scope = options.getScope();
+
         if (OperationOptions.SCOPE_OBJECT.equals(scope)) {
             return SearchControls.OBJECT_SCOPE;
         } else if (OperationOptions.SCOPE_ONE_LEVEL.equals(scope)) {

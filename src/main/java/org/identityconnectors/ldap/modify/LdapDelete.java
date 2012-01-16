@@ -31,8 +31,8 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.ldap.LdapConnection;
-import org.identityconnectors.ldap.LdapModifyOperation;
-import org.identityconnectors.ldap.GroupHelper.GroupMembership;
+import org.identityconnectors.ldap.commons.LdapModifyOperation;
+import org.identityconnectors.ldap.commons.GroupHelper.GroupMembership;
 import org.identityconnectors.ldap.search.LdapSearches;
 
 public class LdapDelete extends LdapModifyOperation {

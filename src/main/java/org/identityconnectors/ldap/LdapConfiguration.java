@@ -22,9 +22,11 @@
  */
 package org.identityconnectors.ldap;
 
+import org.identityconnectors.ldap.commons.ObjectClassMappingConfig;
+import org.identityconnectors.ldap.commons.LdapConstants;
 import static org.identityconnectors.common.CollectionUtil.newList;
 import static org.identityconnectors.common.StringUtil.isBlank;
-import static org.identityconnectors.ldap.LdapUtil.nullAsEmpty;
+import static org.identityconnectors.ldap.commons.LdapUtil.nullAsEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,11 +60,9 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     // XXX should try to connect to the resource.
     // XXX add @ConfigurationProperty.
-
     static final int DEFAULT_PORT = 389;
 
     // Exposed configuration properties.
-
     /**
      * The LDAP host server to connect to.
      */
@@ -82,7 +82,7 @@ public class LdapConfiguration extends AbstractConfiguration {
      * LDAP URL's to connect to if the main server specified through the host and port
      * properties is not available.
      */
-    private String[] failover = { };
+    private String[] failover = {};
 
     /**
      * The bind DN for performing operations on the server.
@@ -97,7 +97,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     /**
      * The base DNs for operations on the server.
      */
-    private String[] baseContexts = { };
+    private String[] baseContexts = {};
 
     /**
      * The name of the attribute which the predefined PASSWORD attribute
@@ -169,14 +169,13 @@ public class LdapConfiguration extends AbstractConfiguration {
     private boolean readSchema = true;
 
     // Sync configuration properties.
+    private String[] baseContextsToSynchronize = {};
 
-    private String[] baseContextsToSynchronize = { };
+    private String[] objectClassesToSynchronize = {"inetOrgPerson"};
 
-    private String[] objectClassesToSynchronize = { "inetOrgPerson" };
+    private String[] attributesToSynchronize = {};
 
-    private String[] attributesToSynchronize = { };
-
-    private String[] modifiersNamesToFilterOut = { };
+    private String[] modifiersNamesToFilterOut = {};
 
     private String accountSynchronizationFilter;
 
@@ -187,26 +186,30 @@ public class LdapConfiguration extends AbstractConfiguration {
     private boolean filterWithOrInsteadOfAnd;
 
     private boolean removeLogEntryObjectClassFromFilter = true;
-    
+
     private boolean synchronizePasswords;
-    
+
     private String passwordAttributeToSynchronize;
-    
+
     private GuardedByteArray passwordDecryptionKey;
-    
+
     private GuardedByteArray passwordDecryptionInitializationVector;
 
-    // Other state.
+    private String statusManagementClass;
 
-    private final ObjectClassMappingConfig accountConfig = new ObjectClassMappingConfig(ObjectClass.ACCOUNT,
-            newList("top", "person", "organizationalPerson", "inetOrgPerson"), false, newList("uid", "cn"),
+    // Other state.
+    private final ObjectClassMappingConfig accountConfig = new ObjectClassMappingConfig(
+            ObjectClass.ACCOUNT,
+            newList("top", "person", "organizationalPerson", "inetOrgPerson"),
+            false, newList("uid", "cn"),
             LdapConstants.PASSWORD);
 
-    private final ObjectClassMappingConfig groupConfig = new ObjectClassMappingConfig(ObjectClass.GROUP,
-            newList("top", "groupOfUniqueNames"), false, Collections.<String>emptyList());
+    private final ObjectClassMappingConfig groupConfig = new ObjectClassMappingConfig(
+            ObjectClass.GROUP,
+            newList("top", "groupOfUniqueNames"), false, Collections.<String>
+            emptyList());
 
     // Other state not to be included in hashCode/equals.
-
     private List<LdapName> baseContextsAsLdapNames;
 
     private List<LdapName> baseContextsToSynchronizeAsLdapNames;
@@ -232,11 +235,15 @@ public class LdapConfiguration extends AbstractConfiguration {
 
         checkNotBlank(passwordAttribute, "passwordAttribute.notBlank");
 
-        checkNotEmpty(accountConfig.getLdapClasses(), "accountObjectClasses.notEmpty");
-        checkNoBlankValues(accountConfig.getLdapClasses(), "accountObjectClasses.noBlankValues");
+        checkNotEmpty(accountConfig.getLdapClasses(),
+                "accountObjectClasses.notEmpty");
+        checkNoBlankValues(accountConfig.getLdapClasses(),
+                "accountObjectClasses.noBlankValues");
 
-        checkNotEmpty(accountConfig.getShortNameLdapAttributes(), "accountUserNameAttributes.notEmpty");
-        checkNoBlankValues(accountConfig.getShortNameLdapAttributes(), "accountUserNameAttributes.noBlankValues");
+        checkNotEmpty(accountConfig.getShortNameLdapAttributes(),
+                "accountUserNameAttributes.notEmpty");
+        checkNoBlankValues(accountConfig.getShortNameLdapAttributes(),
+                "accountUserNameAttributes.noBlankValues");
 
         checkNotBlank(groupMemberAttribute, "groupMemberAttribute.notBlank");
 
@@ -249,20 +256,27 @@ public class LdapConfiguration extends AbstractConfiguration {
         checkNotBlank(uidAttribute, "uidAttribute.notBlank");
 
         if (baseContextsToSynchronize != null) {
-            checkNoBlankValues(baseContextsToSynchronize, "baseContextsToSynchronize.noBlankValues");
-            checkNoInvalidLdapNames(baseContextsToSynchronize, "baseContextsToSynchronize.noInvalidLdapNames");
+            checkNoBlankValues(baseContextsToSynchronize,
+                    "baseContextsToSynchronize.noBlankValues");
+            checkNoInvalidLdapNames(baseContextsToSynchronize,
+                    "baseContextsToSynchronize.noInvalidLdapNames");
         }
 
-        checkNotEmpty(objectClassesToSynchronize, "objectClassesToSynchronize.notEmpty");
-        checkNoBlankValues(objectClassesToSynchronize, "objectClassesToSynchronize.noBlankValues");
+        checkNotEmpty(objectClassesToSynchronize,
+                "objectClassesToSynchronize.notEmpty");
+        checkNoBlankValues(objectClassesToSynchronize,
+                "objectClassesToSynchronize.noBlankValues");
 
         if (attributesToSynchronize != null) {
-            checkNoBlankValues(attributesToSynchronize, "attributesToSynchronize.noBlankValues");
+            checkNoBlankValues(attributesToSynchronize,
+                    "attributesToSynchronize.noBlankValues");
         }
 
         if (modifiersNamesToFilterOut != null) {
-            checkNoBlankValues(modifiersNamesToFilterOut, "modifiersNamesToFilterOut.noBlankValues");
-            checkNoInvalidLdapNames(modifiersNamesToFilterOut, "modifiersNamesToFilterOut.noInvalidLdapNames");
+            checkNoBlankValues(modifiersNamesToFilterOut,
+                    "modifiersNamesToFilterOut.noBlankValues");
+            checkNoInvalidLdapNames(modifiersNamesToFilterOut,
+                    "modifiersNamesToFilterOut.noInvalidLdapNames");
         }
 
         checkNotBlank(changeNumberAttribute, "changeNumberAttribute.notBlank");
@@ -270,14 +284,16 @@ public class LdapConfiguration extends AbstractConfiguration {
         if (changeLogBlockSize <= 0) {
             failValidation("changeLogBlockSize.legalValue");
         }
-        
+
         if (synchronizePasswords) {
-            checkNotBlank(passwordAttributeToSynchronize, "passwordAttributeToSynchronize.notBlank");
+            checkNotBlank(passwordAttributeToSynchronize,
+                    "passwordAttributeToSynchronize.notBlank");
             checkNotBlank(passwordDecryptionKey, "decryptionKey.notBlank");
-            checkNotBlank(passwordDecryptionInitializationVector, "decryptionInitializationVector.notBlank");
+            checkNotBlank(passwordDecryptionInitializationVector,
+                    "decryptionInitializationVector.notBlank");
         }
     }
-    
+
     private void checkNotBlank(String value, String errorMessage) {
         if (isBlank(value)) {
             failValidation(errorMessage);
@@ -285,9 +301,10 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     private void checkNotBlank(GuardedByteArray array, String errorMessage) {
-        final int[] length = { 0 };
+        final int[] length = {0};
         if (array != null) {
             array.access(new Accessor() {
+
                 public void access(byte[] clearBytes) {
                     length[0] = clearBytes.length;
                 }
@@ -416,12 +433,15 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     public String[] getAccountUserNameAttributes() {
-        List<String> shortNameLdapAttributes = accountConfig.getShortNameLdapAttributes();
-        return shortNameLdapAttributes.toArray(new String[shortNameLdapAttributes.size()]);
+        List<String> shortNameLdapAttributes = accountConfig.
+                getShortNameLdapAttributes();
+        return shortNameLdapAttributes.toArray(new String[shortNameLdapAttributes.
+                size()]);
     }
 
     public void setAccountUserNameAttributes(String... accountUserNameAttributes) {
-        accountConfig.setShortNameLdapAttributes(Arrays.asList(accountUserNameAttributes));
+        accountConfig.setShortNameLdapAttributes(Arrays.asList(
+                accountUserNameAttributes));
     }
 
     public String getAccountSearchFilter() {
@@ -521,26 +541,27 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     // Sync properties getters and setters.
-
-    @ConfigurationProperty(operations = { SyncOp.class })
+    @ConfigurationProperty(operations = {SyncOp.class})
     public String[] getBaseContextsToSynchronize() {
         return baseContextsToSynchronize.clone();
     }
 
     public void setBaseContextsToSynchronize(String... baseContextsToSynchronize) {
-        this.baseContextsToSynchronize = (String[]) baseContextsToSynchronize.clone();
+        this.baseContextsToSynchronize = (String[]) baseContextsToSynchronize.
+                clone();
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class }, required = true)
+    @ConfigurationProperty(operations = {SyncOp.class}, required = true)
     public String[] getObjectClassesToSynchronize() {
         return objectClassesToSynchronize.clone();
     }
 
     public void setObjectClassesToSynchronize(String... objectClassesToSynchronize) {
-        this.objectClassesToSynchronize = (String[]) objectClassesToSynchronize.clone();
+        this.objectClassesToSynchronize = (String[]) objectClassesToSynchronize.
+                clone();
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class })
+    @ConfigurationProperty(operations = {SyncOp.class})
     public String[] getAttributesToSynchronize() {
         return attributesToSynchronize.clone();
     }
@@ -549,16 +570,17 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.attributesToSynchronize = (String[]) attributesToSynchronize.clone();
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class })
+    @ConfigurationProperty(operations = {SyncOp.class})
     public String[] getModifiersNamesToFilterOut() {
         return modifiersNamesToFilterOut.clone();
     }
 
     public void setModifiersNamesToFilterOut(String... modifiersNamesToFilterOut) {
-        this.modifiersNamesToFilterOut = (String[]) modifiersNamesToFilterOut.clone();
+        this.modifiersNamesToFilterOut = (String[]) modifiersNamesToFilterOut.
+                clone();
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class })
+    @ConfigurationProperty(operations = {SyncOp.class})
     public String getAccountSynchronizationFilter() {
         return accountSynchronizationFilter;
     }
@@ -567,7 +589,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.accountSynchronizationFilter = accountSynchronizationFilter;
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class }, required = true)
+    @ConfigurationProperty(operations = {SyncOp.class}, required = true)
     public int getChangeLogBlockSize() {
         return changeLogBlockSize;
     }
@@ -576,7 +598,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.changeLogBlockSize = changeLogBlockSize;
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class }, required = true)
+    @ConfigurationProperty(operations = {SyncOp.class}, required = true)
     public String getChangeNumberAttribute() {
         return changeNumberAttribute;
     }
@@ -585,7 +607,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.changeNumberAttribute = changeNumberAttribute;
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class })
+    @ConfigurationProperty(operations = {SyncOp.class})
     public boolean isFilterWithOrInsteadOfAnd() {
         return filterWithOrInsteadOfAnd;
     }
@@ -594,7 +616,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.filterWithOrInsteadOfAnd = filterWithOrInsteadOfAnd;
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class })
+    @ConfigurationProperty(operations = {SyncOp.class})
     public boolean isRemoveLogEntryObjectClassFromFilter() {
         return removeLogEntryObjectClassFromFilter;
     }
@@ -603,7 +625,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.removeLogEntryObjectClassFromFilter = removeLogEntryObjectClassFromFilter;
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class })
+    @ConfigurationProperty(operations = {SyncOp.class})
     public boolean isSynchronizePasswords() {
         return synchronizePasswords;
     }
@@ -612,7 +634,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.synchronizePasswords = synchronizePasswords;
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class })
+    @ConfigurationProperty(operations = {SyncOp.class})
     public String getPasswordAttributeToSynchronize() {
         return passwordAttributeToSynchronize;
     }
@@ -621,26 +643,35 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.passwordAttributeToSynchronize = passwordAttributeToSynchronize;
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class }, confidential = true)
+    @ConfigurationProperty(operations = {SyncOp.class}, confidential = true)
     public GuardedByteArray getPasswordDecryptionKey() {
         return passwordDecryptionKey;
     }
 
     public void setPasswordDecryptionKey(GuardedByteArray passwordDecryptionKey) {
-        this.passwordDecryptionKey = passwordDecryptionKey != null ? passwordDecryptionKey.copy() : null;
+        this.passwordDecryptionKey = passwordDecryptionKey != null ? passwordDecryptionKey.
+                copy() : null;
     }
 
-    @ConfigurationProperty(operations = { SyncOp.class }, confidential = true)
+    @ConfigurationProperty(operations = {SyncOp.class}, confidential = true)
     public GuardedByteArray getPasswordDecryptionInitializationVector() {
         return passwordDecryptionInitializationVector;
     }
 
     public void setPasswordDecryptionInitializationVector(GuardedByteArray passwordDecryptionInitializationVector) {
-        this.passwordDecryptionInitializationVector = passwordDecryptionInitializationVector != null ? passwordDecryptionInitializationVector.copy() : null;
+        this.passwordDecryptionInitializationVector = passwordDecryptionInitializationVector != null ? passwordDecryptionInitializationVector.
+                copy() : null;
+    }
+
+    public String getStatusManagementClass() {
+        return statusManagementClass;
+    }
+
+    public void setStatusManagementClass(String statusManagementClass) {
+        this.statusManagementClass = statusManagementClass;
     }
 
     // Getters and setters for configuration properties end here.
-
     public List<LdapName> getBaseContextsAsLdapNames() {
         if (baseContextsAsLdapNames == null) {
             List<LdapName> result = new ArrayList<LdapName>(baseContexts.length);
@@ -760,7 +791,8 @@ public class LdapConfiguration extends AbstractConfiguration {
             if (this == that) {
                 return true;
             }
-            return this.createHashCodeBuilder().equals(that.createHashCodeBuilder());
+            return this.createHashCodeBuilder().equals(that.
+                    createHashCodeBuilder());
         }
         return false;
     }

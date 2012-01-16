@@ -20,7 +20,7 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  */
-package org.identityconnectors.ldap;
+package org.identityconnectors.ldap.commons;
 
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -52,8 +52,10 @@ public abstract class AppendingAttributes implements Attributes {
 
     protected abstract Attribute getAttributeToAppend(String attrID);
 
+    @Override
     public abstract Object clone();
 
+    @Override
     public final Attribute get(String attrID) {
         String attrIDToAppend = getNormalizedAttributeIDToAppend(attrID);
         if (attrIDToAppend != null) {
@@ -78,30 +80,37 @@ public abstract class AppendingAttributes implements Attributes {
         return null;
     }
 
+    @Override
     public final NamingEnumeration<? extends Attribute> getAll() {
         return new AttributeAppendingEnumeration(delegate.getAll());
     }
 
+    @Override
     public final NamingEnumeration<String> getIDs() {
         return new AttributeIDAppendingEnumeration(delegate.getIDs());
     }
 
+    @Override
     public final boolean isCaseIgnored() {
         return delegate.isCaseIgnored();
     }
 
+    @Override
     public final Attribute put(Attribute attr) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public final Attribute put(String attrID, Object val) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public final Attribute remove(String attrID) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public final int size() {
         int size = delegate.size();
         for (String attributeIDToAppend : getAttributeIDsToAppend()) {
@@ -115,6 +124,7 @@ public abstract class AppendingAttributes implements Attributes {
     private abstract class AppendingEnumeration<T> implements NamingEnumeration<T> {
 
         private final NamingEnumeration<? extends T> delegate;
+
         private Enumeration<T> remainingValues;
 
         public AppendingEnumeration(NamingEnumeration<? extends T> delegate) {
@@ -125,15 +135,21 @@ public abstract class AppendingAttributes implements Attributes {
 
         protected abstract Enumeration<T> getRemainingValues();
 
-        public void close() throws NamingException {
+        @Override
+        public void close()
+                throws NamingException {
             delegate.close();
         }
 
-        public boolean hasMore() throws NamingException {
+        @Override
+        public boolean hasMore()
+                throws NamingException {
             return delegate.hasMore() || hasMoreRemainingValues();
         }
 
-        public T next() throws NamingException {
+        @Override
+        public T next()
+                throws NamingException {
             if (delegate.hasMore()) {
                 T next = delegate.next();
                 // Watch out for null values in the enumeration.
@@ -151,10 +167,12 @@ public abstract class AppendingAttributes implements Attributes {
             }
         }
 
+        @Override
         public boolean hasMoreElements() {
             return delegate.hasMoreElements() || hasMoreRemainingValues();
         }
 
+        @Override
         public T nextElement() {
             if (delegate.hasMoreElements()) {
                 T next = delegate.nextElement();
@@ -211,12 +229,15 @@ public abstract class AppendingAttributes implements Attributes {
             remaining.removeAll(replaced);
 
             return new Enumeration<Attribute>() {
+
                 private final Iterator<String> iterator = remaining.iterator();
 
+                @Override
                 public boolean hasMoreElements() {
                     return iterator.hasNext();
                 }
 
+                @Override
                 public Attribute nextElement() {
                     return getAttributeToAppend(iterator.next());
                 }
@@ -248,12 +269,15 @@ public abstract class AppendingAttributes implements Attributes {
             remaining.removeAll(replaced);
 
             return new Enumeration<String>() {
+
                 private final Iterator<String> iterator = remaining.iterator();
 
+                @Override
                 public boolean hasMoreElements() {
                     return iterator.hasNext();
                 }
 
+                @Override
                 public String nextElement() {
                     return iterator.next();
                 }

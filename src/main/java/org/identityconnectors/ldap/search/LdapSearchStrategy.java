@@ -32,7 +32,12 @@ import javax.naming.ldap.LdapContext;
 
 public abstract class LdapSearchStrategy {
 
-    public abstract void doSearch(LdapContext initCtx, List<String> baseDNs, String query, SearchControls searchControls, SearchResultsHandler handler)
+    public abstract void doSearch(
+            final LdapContext initCtx,
+            final List<String> baseDNs,
+            final String query,
+            final SearchControls searchControls,
+            final SearchResultsHandler handler)
             throws IOException, NamingException;
 
     static String searchControlsToString(SearchControls controls) {
@@ -42,15 +47,15 @@ public abstract class LdapSearchStrategy {
         builder.append(attrs != null ? Arrays.asList(attrs) : "null");
         builder.append(", scope=");
         switch (controls.getSearchScope()) {
-        case SearchControls.OBJECT_SCOPE:
-            builder.append("OBJECT");
-            break;
-        case SearchControls.ONELEVEL_SCOPE:
-            builder.append("ONELEVEL");
-            break;
-        case SearchControls.SUBTREE_SCOPE:
-            builder.append("SUBTREE");
-            break;
+            case SearchControls.OBJECT_SCOPE:
+                builder.append("OBJECT");
+                break;
+            case SearchControls.ONELEVEL_SCOPE:
+                builder.append("ONELEVEL");
+                break;
+            case SearchControls.SUBTREE_SCOPE:
+                builder.append("SUBTREE");
+                break;
         }
         builder.append('}');
         return builder.toString();

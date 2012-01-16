@@ -44,7 +44,7 @@ import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.ldap.LdapConfiguration;
 import org.identityconnectors.ldap.LdapConnection;
 import org.identityconnectors.ldap.LdapConnectorTestBase;
-import org.identityconnectors.ldap.LdapConstants;
+import org.identityconnectors.ldap.commons.LdapConstants;
 import org.identityconnectors.ldap.LdapConnection.ServerType;
 import org.junit.Test;
 

@@ -20,40 +20,44 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  */
-package org.identityconnectors.ldap;
+package org.identityconnectors.ldap.commons;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
+public class AttributeMappingConfig {
 
-import java.util.Set;
+    private final String fromAttribute;
 
-/**
- * A static pre-made definition of the native schema. This is needed
- * for backward compatibility with the LDAP resource adapter, which
- * does not read the schema. This class does not return any attributes
- * or object classes. For IDM, they are set during the post-processing.
- *
- * See also {@link ServerNativeSchema}.
- */
-public class StaticNativeSchema implements LdapNativeSchema {
+    private final String toAttribute;
 
-    public Set<String> getStructuralObjectClasses() {
-        return emptySet();
+    public AttributeMappingConfig(String fromAttribute, String toAttribute) {
+        this.fromAttribute = fromAttribute;
+        this.toAttribute = toAttribute;
     }
 
-    public Set<String> getRequiredAttributes(String ldapClass) {
-        return emptySet();
+    public String getFromAttribute() {
+        return fromAttribute;
     }
 
-    public Set<String> getOptionalAttributes(String ldapClass) {
-        return emptySet();
+    public String getToAttribute() {
+        return toAttribute;
     }
 
-    public Set<String> getEffectiveObjectClasses(String ldapClass) {
-        return singleton(ldapClass);
+    @Override
+    public int hashCode() {
+        return fromAttribute.hashCode() + toAttribute.hashCode();
     }
 
-    public LdapAttributeType getAttributeDescription(String ldapAttrName) {
-        return null;
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof AttributeMappingConfig) {
+            AttributeMappingConfig that = (AttributeMappingConfig) o;
+            if (!this.fromAttribute.equals(that.fromAttribute)) {
+                return false;
+            }
+            if (!this.toAttribute.equals(that.toAttribute)) {
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 }

@@ -54,11 +54,12 @@ import org.identityconnectors.ldap.search.LdapFilterTranslator;
 import org.identityconnectors.ldap.search.LdapSearch;
 import org.identityconnectors.ldap.sync.sunds.SunDSChangeLogSyncStrategy;
 
-@ConnectorClass(configurationClass = LdapConfiguration.class, displayNameKey = "LdapConnector")
-public class LdapConnector implements TestOp, PoolableConnector, SchemaOp, SearchOp<LdapFilter>, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp,
+@ConnectorClass(configurationClass = LdapConfiguration.class,
+displayNameKey = "LdapConnector")
+public class LdapConnector implements
+        TestOp, PoolableConnector, SchemaOp, SearchOp<LdapFilter>,
+        AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp,
         UpdateAttributeValuesOp, SyncOp {
-
-    // XXX groups.
 
     /**
      * The configuration for this connector instance.
@@ -73,73 +74,131 @@ public class LdapConnector implements TestOp, PoolableConnector, SchemaOp, Searc
     public LdapConnector() {
     }
 
+    @Override
     public Configuration getConfiguration() {
         return config;
     }
 
+    @Override
     public void init(Configuration cfg) {
         config = (LdapConfiguration) cfg;
         conn = new LdapConnection(config);
     }
 
+    @Override
     public void dispose() {
         conn.close();
     }
 
+    @Override
     public void test() {
         conn.test();
     }
 
+    @Override
     public void checkAlive() {
         conn.checkAlive();
     }
 
+    @Override
     public Schema schema() {
         return conn.getSchemaMapping().schema();
     }
 
-    public Uid authenticate(ObjectClass objectClass, String username, GuardedString password, OperationOptions options) {
-        return new LdapAuthenticate(conn, objectClass, username, options).authenticate(password);
+    @Override
+    public Uid authenticate(
+            final ObjectClass objectClass,
+            final String username,
+            final GuardedString password,
+            final OperationOptions options) {
+
+        return new LdapAuthenticate(conn, objectClass, username, options).
+                authenticate(password);
     }
 
-    public Uid resolveUsername(ObjectClass objectClass, String username, OperationOptions options) {
-        return new LdapAuthenticate(conn, objectClass, username, options).resolveUsername();
+    @Override
+    public Uid resolveUsername(
+            final ObjectClass objectClass,
+            final String username,
+            final OperationOptions options) {
+
+        return new LdapAuthenticate(conn, objectClass, username, options).
+                resolveUsername();
     }
 
-    public FilterTranslator<LdapFilter> createFilterTranslator(ObjectClass oclass, OperationOptions options) {
+    @Override
+    public FilterTranslator<LdapFilter> createFilterTranslator(
+            final ObjectClass oclass,
+            final OperationOptions options) {
         return new LdapFilterTranslator(conn.getSchemaMapping(), oclass);
     }
 
-    public void executeQuery(ObjectClass oclass, LdapFilter query, ResultsHandler handler, OperationOptions options) {
+    @Override
+    public void executeQuery(
+            final ObjectClass oclass,
+            final LdapFilter query,
+            final ResultsHandler handler,
+            final OperationOptions options) {
         new LdapSearch(conn, oclass, query, options).execute(handler);
     }
 
-    public Uid create(ObjectClass oclass, Set<Attribute> attrs, OperationOptions options) {
+    @Override
+    public Uid create(
+            final ObjectClass oclass,
+            final Set<Attribute> attrs,
+            final OperationOptions options) {
         return new LdapCreate(conn, oclass, attrs, options).execute();
     }
 
-    public void delete(ObjectClass oclass, Uid uid, OperationOptions options) {
+    @Override
+    public void delete(
+            final ObjectClass oclass,
+            final Uid uid,
+            final OperationOptions options) {
         new LdapDelete(conn, oclass, uid).execute();
     }
 
-    public Uid update(ObjectClass oclass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
+    @Override
+    public Uid update(
+            final ObjectClass oclass,
+            final Uid uid,
+            final Set<Attribute> replaceAttributes,
+            final OperationOptions options) {
         return new LdapUpdate(conn, oclass, uid).update(replaceAttributes);
     }
 
-    public Uid addAttributeValues(ObjectClass oclass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
+    @Override
+    public Uid addAttributeValues(
+            final ObjectClass oclass,
+            final Uid uid,
+            final Set<Attribute> valuesToAdd,
+            final OperationOptions options) {
         return new LdapUpdate(conn, oclass, uid).addAttributeValues(valuesToAdd);
     }
 
-    public Uid removeAttributeValues(ObjectClass oclass, Uid uid, Set<Attribute> valuesToRemove,
+    @Override
+    public Uid removeAttributeValues(
+            final ObjectClass oclass,
+            final Uid uid,
+            final Set<Attribute> valuesToRemove,
             OperationOptions options) {
-        return new LdapUpdate(conn, oclass, uid).removeAttributeValues(valuesToRemove);
+        return new LdapUpdate(conn, oclass, uid).removeAttributeValues(
+                valuesToRemove);
     }
 
-    public SyncToken getLatestSyncToken(ObjectClass oclass) {
+    @Override
+    public SyncToken getLatestSyncToken(
+            final ObjectClass oclass) {
         return new SunDSChangeLogSyncStrategy(conn, oclass).getLatestSyncToken();
     }
 
-    public void sync(ObjectClass oclass, SyncToken token, SyncResultsHandler handler, OperationOptions options) {
-        new SunDSChangeLogSyncStrategy(conn, oclass).sync(token, handler, options);
+    @Override
+    public void sync(
+            final ObjectClass oclass,
+            final SyncToken token,
+            final SyncResultsHandler handler,
+            final OperationOptions options) {
+        new SunDSChangeLogSyncStrategy(conn, oclass).sync(
+                token, handler, options);
     }
 }

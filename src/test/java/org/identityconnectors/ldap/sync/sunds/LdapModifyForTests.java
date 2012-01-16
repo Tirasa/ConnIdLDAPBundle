@@ -22,7 +22,7 @@
  */
 package org.identityconnectors.ldap.sync.sunds;
 
-import static org.identityconnectors.ldap.LdapUtil.quietCreateLdapName;
+import static org.identityconnectors.ldap.commons.LdapUtil.quietCreateLdapName;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,10 +55,11 @@ import org.junit.Test;
  * based on an LDIF file. 
  */
 public class LdapModifyForTests {
-    
+
     private static final Log log = Log.getLog(LdapModifyForTests.class);
 
-    public static void modify(LdapConnection conn, String ldif) throws NamingException {
+    public static void modify(LdapConnection conn, String ldif)
+            throws NamingException {
         LdifParser parser = new LdifParser(ldif);
         Iterator<Line> lines = parser.iterator();
 
@@ -75,7 +76,8 @@ public class LdapModifyForTests {
         while (lines.hasNext()) {
             Line line = lines.next();
             if (line instanceof ChangeSeparator && dn != null) {
-                performChange(conn, dn, changeType, added, deleted, newRdn, deleteOldRdn);
+                performChange(conn, dn, changeType, added, deleted, newRdn,
+                        deleteOldRdn);
                 dn = null;
                 changeType = null;
                 added.clear();
@@ -162,14 +164,16 @@ public class LdapModifyForTests {
             log.ok("Creating context {0} with attributes {1}", newName, attrs);
             String container = newName.getPrefix(newName.size() - 1).toString();
             Rdn rdn = newName.getRdn(newName.size() - 1);
-            LdapContext containerCtx = (LdapContext) conn.getInitialContext().lookup(container);
+            LdapContext containerCtx = (LdapContext) conn.getInitialContext().
+                    lookup(container);
             containerCtx.createSubcontext(rdn.toString(), attrs);
         } else if ("modify".equalsIgnoreCase(changeType)) {
             List<ModificationItem> modItems = new ArrayList<ModificationItem>();
             addModificationItems(DirContext.ADD_ATTRIBUTE, added, modItems);
             addModificationItems(DirContext.REMOVE_ATTRIBUTE, deleted, modItems);
             log.ok("Modifying context {0} with attributes {1}", dn, modItems);
-            conn.getInitialContext().modifyAttributes(dn, modItems.toArray(new ModificationItem[modItems.size()]));
+            conn.getInitialContext().modifyAttributes(dn,
+                    modItems.toArray(new ModificationItem[modItems.size()]));
         } else if ("delete".equalsIgnoreCase(changeType)) {
             log.ok("Deleting context {0}");
             conn.getInitialContext().destroySubcontext(dn);
@@ -197,7 +201,7 @@ public class LdapModifyForTests {
             toList.add(new ModificationItem(operation, attr));
         }
     }
-    
+
     @Test
     public void dummy() {
         // This is here because the class needs to end in "Tests" for it not to be

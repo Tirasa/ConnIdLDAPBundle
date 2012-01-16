@@ -20,13 +20,28 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  */
-package org.identityconnectors.ldap.search;
+package org.identityconnectors.ldap.commons;
 
-import javax.naming.NamingException;
-import javax.naming.directory.SearchResult;
+import org.identityconnectors.ldap.commons.LdapAttributeType;
+import java.util.Set;
 
-public interface SearchResultsHandler {
+/**
+ * Provides an encapsulation of the LDAP server's native schema.
+ */
+public interface LdapNativeSchema {
 
-    public boolean handle(final String baseDN, final SearchResult result)
-            throws NamingException;
+    Set<String> getStructuralObjectClasses();
+
+    Set<String> getRequiredAttributes(String ldapClass);
+
+    Set<String> getOptionalAttributes(String ldapClass);
+
+    /**
+     * Returns the effective LDAP object classes that an entry of a given
+     * object class would have, that is, including any superior object classes,
+     * any superiors thereof, etc.
+     */
+    Set<String> getEffectiveObjectClasses(String ldapClass);
+
+    LdapAttributeType getAttributeDescription(String ldapAttrName);
 }

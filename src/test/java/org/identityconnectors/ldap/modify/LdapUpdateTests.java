@@ -44,9 +44,11 @@ import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.ldap.LdapConfiguration;
 import org.identityconnectors.ldap.LdapConnectorTestBase;
+import org.identityconnectors.ldap.MyStatusManagement;
 import org.identityconnectors.test.common.TestHelpers;
 import org.junit.Test;
 
@@ -247,5 +249,55 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         ConnectorObject elmer = searchByAttribute(facade, ObjectClass.ACCOUNT,
                 new Name(ELMER_FUDD_DN));
         assertNotNull(elmer);
+    }
+
+    @Test
+    public void testEnableDisable() {
+        final LdapConfiguration config = new LdapConfiguration();
+
+        config.setHost("localhost");
+        config.setPort(PORT);
+        config.setBaseContexts(ACME_DN, BIG_COMPANY_DN);
+        config.setPrincipal(ADMIN_DN);
+        config.setCredentials(ADMIN_PASSWORD);
+        config.setReadSchema(false);
+        config.setStatusManagementClass(MyStatusManagement.class.getName());
+
+        ConnectorFacade facade = newFacade(config);
+
+        ConnectorObject bugs = searchByAttribute(
+                facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
+
+        Attribute status = AttributeBuilder.buildEnabled(false);
+        Uid uid = facade.update(
+                ObjectClass.ACCOUNT, bugs.getUid(), singleton(status), null);
+
+        assertNotNull(uid);
+
+        ConnectorObject obj = facade.getObject(ObjectClass.ACCOUNT, uid, null);
+
+        assertNotNull(obj);
+
+        status = obj.getAttributeByName(OperationalAttributes.ENABLE_NAME);
+
+        assertNotNull(status);
+        assertFalse(status.getValue().isEmpty());
+        assertFalse((Boolean) status.getValue().get(0));
+
+        status = AttributeBuilder.buildEnabled(true);
+        uid = facade.update(
+                ObjectClass.ACCOUNT, bugs.getUid(), singleton(status), null);
+
+        assertNotNull(uid);
+
+        obj = facade.getObject(ObjectClass.ACCOUNT, uid, null);
+
+        assertNotNull(obj);
+
+        status = obj.getAttributeByName(OperationalAttributes.ENABLE_NAME);
+
+        assertNotNull(status);
+        assertFalse(status.getValue().isEmpty());
+        assertTrue((Boolean) status.getValue().get(0));
     }
 }

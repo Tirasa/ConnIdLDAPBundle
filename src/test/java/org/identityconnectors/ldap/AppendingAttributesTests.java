@@ -22,6 +22,7 @@
  */
 package org.identityconnectors.ldap;
 
+import org.identityconnectors.ldap.commons.AppendingAttributes;
 import static org.junit.Assert.*;
 
 import java.util.HashSet;

@@ -1,4 +1,4 @@
-/*
+ /*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
@@ -23,7 +23,7 @@
 package org.identityconnectors.ldap.search;
 
 import static java.util.Collections.singletonList;
-import static org.identityconnectors.ldap.LdapUtil.isUnderContexts;
+import static org.identityconnectors.ldap.commons.LdapUtil.isUnderContexts;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +46,7 @@ import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.ldap.LdapConnection;
-import org.identityconnectors.ldap.LdapEntry;
+import org.identityconnectors.ldap.commons.LdapEntry;
 
 /**
  * Helper methods for searching. The "get" methods throw an exception when
@@ -60,7 +60,6 @@ public class LdapSearches {
     // some searches could be faster by searching the entry under all naming
     // contexts on the server and then checking that the entry is really under one of the
     // configured base DNs.
-
     private static final Log log = Log.getLog(LdapSearches.class);
 
     private LdapSearches() {
@@ -90,8 +89,9 @@ public class LdapSearches {
      * by the Uid does not exist.
      */
     private static String findEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid, boolean check) {
-        log.ok("Searching for object {0} of class {1}", uid.getUidValue(), oclass.getObjectClassValue());
-        
+        log.ok("Searching for object {0} of class {1}", uid.getUidValue(),
+                oclass.getObjectClassValue());
+
         LdapFilter ldapFilter = null;
 
         // If the Uid is actually the entry DN, we do not need to do a search do find the entry DN.
@@ -107,34 +107,42 @@ public class LdapSearches {
             }
         } else {
             EqualsFilter filter = (EqualsFilter) FilterBuilder.equalTo(uid);
-            ldapFilter = new LdapFilterTranslator(conn.getSchemaMapping(), oclass).createEqualsExpression(filter, false);
+            ldapFilter = new LdapFilterTranslator(conn.getSchemaMapping(),
+                    oclass).createEqualsExpression(filter, false);
         }
         assert ldapFilter != null;
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet("entryDN");
 
-        LdapSearch search = new LdapSearch(conn, oclass, ldapFilter, builder.build());
+        LdapSearch search = new LdapSearch(conn, oclass, ldapFilter, builder.
+                build());
         ConnectorObject object = search.getSingleResult();
         if (object != null) {
-            return AttributeUtil.getStringValue(object.getAttributeByName("entryDN"));
+            return AttributeUtil.getStringValue(object.getAttributeByName(
+                    "entryDN"));
         }
         throw new UnknownUidException(uid, oclass);
     }
 
     public static List<ConnectorObject> findObjects(LdapConnection conn, ObjectClass oclass, String baseDN, Attribute attr, String... attrsToGet) {
-        log.ok("Searching for object with attribute {0} of class {1} in {2}", attr, oclass.getObjectClassValue(), baseDN);
+        log.ok("Searching for object with attribute {0} of class {1} in {2}",
+                attr, oclass.getObjectClassValue(), baseDN);
 
         final List<ConnectorObject> result = new ArrayList<ConnectorObject>();
 
         EqualsFilter filter = (EqualsFilter) FilterBuilder.equalTo(attr);
-        LdapFilter ldapFilter = new LdapFilterTranslator(conn.getSchemaMapping(), oclass).createEqualsExpression(filter, false);
+        LdapFilter ldapFilter = new LdapFilterTranslator(conn.getSchemaMapping(),
+                oclass).createEqualsExpression(filter, false);
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet(attrsToGet);
 
-        LdapSearch search = new LdapSearch(conn, oclass, ldapFilter, builder.build(), baseDN);
+        LdapSearch search = new LdapSearch(conn, oclass, ldapFilter, builder.
+                build(), baseDN);
         search.execute(new ResultsHandler() {
+
+            @Override
             public boolean handle(ConnectorObject object) {
                 result.add(object);
                 return true;
@@ -143,8 +151,14 @@ public class LdapSearches {
         return result;
     }
 
-    public static ConnectorObject findObject(LdapConnection conn, ObjectClass oclass, LdapFilter filter, String... attrsToGet) {
-        log.ok("Searching for object of class {0} with filter {1}", oclass.getObjectClassValue(), filter);
+    public static ConnectorObject findObject(
+            final LdapConnection conn,
+            final ObjectClass oclass,
+            final LdapFilter filter,
+            final String... attrsToGet) {
+
+        log.ok("Searching for object of class {0} with filter {1}",
+                oclass.getObjectClassValue(), filter);
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet(attrsToGet);
@@ -157,15 +171,19 @@ public class LdapSearches {
         log.ok("Searching for entry {0}", entryDN);
 
         final List<LdapEntry> result = new ArrayList<LdapEntry>();
-        if (!isUnderContexts(entryDN, conn.getConfiguration().getBaseContextsAsLdapNames())) {
+        if (!isUnderContexts(entryDN, conn.getConfiguration().
+                getBaseContextsAsLdapNames())) {
             return null;
         }
 
         SearchControls controls = LdapInternalSearch.createDefaultSearchControls();
         controls.setSearchScope(SearchControls.OBJECT_SCOPE);
         controls.setReturningAttributes(ldapAttrsToGet);
-        LdapInternalSearch search = new LdapInternalSearch(conn, null, singletonList(entryDN.toString()), new DefaultSearchStrategy(true), controls);
+        LdapInternalSearch search = new LdapInternalSearch(conn, null,
+                singletonList(entryDN.toString()), new DefaultSearchStrategy(
+                true), controls);
         search.execute(new SearchResultsHandler() {
+
             public boolean handle(String baseDN, SearchResult searchResult) {
                 result.add(LdapEntry.create(baseDN, searchResult));
                 return false;
@@ -180,11 +198,13 @@ public class LdapSearches {
     public static void findEntries(SearchResultsHandler handler, LdapConnection conn, String filter, String... ldapAttrsToGet) {
         log.ok("Searching for entries matching {0}", filter);
 
-        List<String> baseDNs = Arrays.asList(conn.getConfiguration().getBaseContexts());
+        List<String> baseDNs = Arrays.asList(conn.getConfiguration().
+                getBaseContexts());
         SearchControls controls = LdapInternalSearch.createDefaultSearchControls();
         controls.setSearchScope(SearchControls.SUBTREE_SCOPE);
         controls.setReturningAttributes(ldapAttrsToGet);
-        LdapInternalSearch search = new LdapInternalSearch(conn, filter, baseDNs, new DefaultSearchStrategy(false), controls);
+        LdapInternalSearch search = new LdapInternalSearch(conn, filter, baseDNs,
+                new DefaultSearchStrategy(false), controls);
         search.execute(handler);
     }
 }

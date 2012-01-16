@@ -22,6 +22,7 @@
  */
 package org.identityconnectors.ldap;
 
+import org.identityconnectors.ldap.commons.LdapConstants;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 

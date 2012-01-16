@@ -22,7 +22,7 @@
  */
 package org.identityconnectors.ldap;
 
-import static org.identityconnectors.ldap.LdapUtil.getStringAttrValue;
+import static org.identityconnectors.ldap.commons.LdapUtil.getStringAttrValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -47,7 +47,8 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testSSL() throws NamingException {
+    public void testSSL()
+            throws NamingException {
         BlindTrustProvider.register();
         LdapConfiguration config = newConfiguration();
         config.setSsl(true);
@@ -56,7 +57,8 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testFailover() throws NamingException {
+    public void testFailover()
+            throws NamingException {
         LdapConfiguration config = newConfiguration();
         config.setHost("foobarbaz");
         config.setPort(65535);
@@ -76,24 +78,28 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
         testConnection(config);
     }
 
-    private void testConnection(LdapConfiguration config) throws NamingException {
+    private void testConnection(LdapConfiguration config)
+            throws NamingException {
         LdapConnection conn = new LdapConnection(config);
         Attributes attrs = conn.getInitialContext().getAttributes(BUGS_BUNNY_DN);
         assertEquals(BUGS_BUNNY_CN, getStringAttrValue(attrs, "cn"));
     }
 
     @Test
-    public void testDefaultAuthenticationMethodIsInferred() throws NamingException {
+    public void testDefaultAuthenticationMethodIsInferred()
+            throws NamingException {
         LdapConfiguration config = newConfiguration();
         config.setPrincipal(null);
         LdapConnection conn = new LdapConnection(config);
-        assertEquals("none", conn.getInitialContext().getEnvironment().get(Context.SECURITY_AUTHENTICATION));
+        assertEquals("none", conn.getInitialContext().getEnvironment().get(
+                Context.SECURITY_AUTHENTICATION));
 
         config = newConfiguration();
         config.setPrincipal(ADMIN_DN);
         config.setCredentials(ADMIN_PASSWORD);
         conn = new LdapConnection(config);
-        assertEquals("simple", conn.getInitialContext().getEnvironment().get(Context.SECURITY_AUTHENTICATION));
+        assertEquals("simple", conn.getInitialContext().getEnvironment().get(
+                Context.SECURITY_AUTHENTICATION));
     }
 
     @Test

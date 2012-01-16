@@ -20,12 +20,12 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  */
-package org.identityconnectors.ldap;
+package org.identityconnectors.ldap.commons;
 
 import static java.util.Collections.unmodifiableSet;
 import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveMap;
 import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
-import static org.identityconnectors.ldap.LdapUtil.quietCreateLdapName;
+import static org.identityconnectors.ldap.commons.LdapUtil.quietCreateLdapName;
 
 import java.util.Map;
 import java.util.Set;
@@ -101,9 +101,11 @@ public abstract class LdapEntry {
     private static final class SearchResultBased extends LdapEntry {
 
         private final String baseDN;
+
         private final SearchResult result;
 
         private Attributes attributes;
+
         private LdapName dn;
 
         public SearchResultBased(String baseDN, SearchResult result) {
@@ -150,6 +152,7 @@ public abstract class LdapEntry {
     private static final class Simple extends LdapEntry {
 
         private final String entryDN;
+
         private final Attributes attributes;
 
         private LdapName dn;
@@ -181,6 +184,7 @@ public abstract class LdapEntry {
         private static final long serialVersionUID = 1L;
 
         private final LdapEntry ldapEntry;
+
         private final Map<String, Attribute> dnAttributes = newCaseInsensitiveMap();
 
         public DNAttributes(LdapEntry ldapEntry, Attributes delegate) {
@@ -198,7 +202,8 @@ public abstract class LdapEntry {
             if (ENTRY_DN_ATTRS.contains(attrID)) {
                 Attribute result = dnAttributes.get(attrID);
                 if (result == null) {
-                    result = new BasicAttribute(attrID, ldapEntry.getDN().toString());
+                    result = new BasicAttribute(attrID, ldapEntry.getDN().
+                            toString());
                     dnAttributes.put(attrID, result);
                 }
                 return result;

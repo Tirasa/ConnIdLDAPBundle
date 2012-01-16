@@ -20,13 +20,13 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  */
-package org.identityconnectors.ldap;
+package org.identityconnectors.ldap.commons;
 
 import static java.util.Collections.min;
 import static org.identityconnectors.common.CollectionUtil.isEmpty;
 import static org.identityconnectors.common.StringUtil.isBlank;
-import static org.identityconnectors.ldap.LdapUtil.addStringAttrValues;
-import static org.identityconnectors.ldap.LdapUtil.quietCreateLdapName;
+import static org.identityconnectors.ldap.commons.LdapUtil.addStringAttrValues;
+import static org.identityconnectors.ldap.commons.LdapUtil.quietCreateLdapName;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -44,12 +44,14 @@ import javax.naming.ldap.Rdn;
 
 import org.identityconnectors.common.Base64;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
-import org.identityconnectors.ldap.GroupHelper.GroupMembership;
+import org.identityconnectors.ldap.LdapConnection;
+import org.identityconnectors.ldap.commons.GroupHelper.GroupMembership;
 import org.identityconnectors.ldap.search.LdapSearches;
 
 public abstract class LdapModifyOperation {
 
     protected final LdapConnection conn;
+
     protected final GroupHelper groupHelper;
 
     public LdapModifyOperation(LdapConnection conn) {
@@ -65,7 +67,8 @@ public abstract class LdapModifyOperation {
         try {
             byte[] password = (byte[]) passwordAttr.get();
             if (password != null) {
-                String newPassword = hashBytes(password, hashAlgorithm, entryDN != null ? entryDN.hashCode() : 0);
+                String newPassword = hashBytes(password, hashAlgorithm,
+                        entryDN != null ? entryDN.hashCode() : 0);
                 passwordAttr.clear();
                 passwordAttr.add(newPassword);
             }
@@ -77,21 +80,26 @@ public abstract class LdapModifyOperation {
     private String hashBytes(byte[] plain, String algorithm, long randSeed) {
         MessageDigest digest = null;
         try {
-            if ( algorithm.equalsIgnoreCase("SSHA") || algorithm.equalsIgnoreCase("SHA") ) {
+            if (algorithm.equalsIgnoreCase("SSHA") || algorithm.equalsIgnoreCase(
+                    "SHA")) {
                 digest = MessageDigest.getInstance("SHA-1");
-            } else if ( algorithm.equalsIgnoreCase("SMD5") || algorithm.equalsIgnoreCase("MD5") ) {
+            } else if (algorithm.equalsIgnoreCase("SMD5") || algorithm.
+                    equalsIgnoreCase("MD5")) {
                 digest = MessageDigest.getInstance("MD5");
             }
         } catch (NoSuchAlgorithmException e) {
-            throw new ConnectorException("Could not find MessageDigest algorithm (" + algorithm + ") implementation");
+            throw new ConnectorException(
+                    "Could not find MessageDigest algorithm (" + algorithm + ") implementation");
         }
-        if ( digest == null ) {
-            throw new ConnectorException("Unsupported hash algorithm: " + algorithm);
+        if (digest == null) {
+            throw new ConnectorException(
+                    "Unsupported hash algorithm: " + algorithm);
         }
 
-        byte[] salt = { };
+        byte[] salt = {};
 
-        if ( algorithm.equalsIgnoreCase("SSHA") || algorithm.equalsIgnoreCase("SMD5") ) {
+        if (algorithm.equalsIgnoreCase("SSHA") || algorithm.equalsIgnoreCase(
+                "SMD5")) {
             Random rand = new Random();
             rand.setSeed(System.currentTimeMillis() + randSeed);
             // A RSA whitepaper <http://www.rsasecurity.com/solutions/developers/whitepapers/Article3-PBE.pdf>
@@ -111,7 +119,8 @@ public abstract class LdapModifyOperation {
         System.arraycopy(hash, 0, hashPlusSalt, 0, hash.length);
         System.arraycopy(salt, 0, hashPlusSalt, hash.length, salt.length);
 
-        StringBuilder result = new StringBuilder(algorithm.length() + hashPlusSalt.length);
+        StringBuilder result = new StringBuilder(
+                algorithm.length() + hashPlusSalt.length);
         result.append('{');
         result.append(algorithm);
         result.append('}');
@@ -120,7 +129,7 @@ public abstract class LdapModifyOperation {
         return result.toString();
     }
 
-    protected final static Set<String> getAttributeValues(String attrName, LdapName entryDN, Attributes attrs) {
+    protected static Set<String> getAttributeValues(String attrName, LdapName entryDN, Attributes attrs) {
         Set<String> result = new HashSet<String>();
         if (entryDN != null && !entryDN.isEmpty()) {
             Rdn rdn = entryDN.getRdn(entryDN.size() - 1);
@@ -146,7 +155,8 @@ public abstract class LdapModifyOperation {
 
     protected final String getFirstPosixRefAttr(String entryDN, Set<String> posixRefAttrs) {
         if (isEmpty(posixRefAttrs)) {
-            throw new ConnectorException(conn.format("cannotAddToPosixGroup", null, entryDN, GroupHelper.getPosixRefAttribute()));
+            throw new ConnectorException(conn.format("cannotAddToPosixGroup",
+                    null, entryDN, GroupHelper.getPosixRefAttribute()));
         }
         return min(posixRefAttrs);
     }
@@ -161,7 +171,9 @@ public abstract class LdapModifyOperation {
         private final String entryDN;
 
         private LdapEntry entry;
+
         private Set<String> posixRefAttrs;
+
         private Set<GroupMembership> posixGroupMemberships;
 
         public PosixGroupMember(String entryDN) {
@@ -170,7 +182,8 @@ public abstract class LdapModifyOperation {
 
         public Set<GroupMembership> getPosixGroupMemberships() {
             if (posixGroupMemberships == null) {
-                posixGroupMemberships = groupHelper.getPosixGroupMemberships(getPosixRefAttributes());
+                posixGroupMemberships = groupHelper.getPosixGroupMemberships(
+                        getPosixRefAttributes());
             }
             return posixGroupMemberships;
         }
@@ -201,14 +214,17 @@ public abstract class LdapModifyOperation {
 
         public Set<String> getPosixRefAttributes() {
             if (posixRefAttrs == null) {
-                posixRefAttrs = getAttributeValues(GroupHelper.getPosixRefAttribute(), null, getLdapEntry().getAttributes());
+                posixRefAttrs = getAttributeValues(GroupHelper.
+                        getPosixRefAttribute(), null, getLdapEntry().
+                        getAttributes());
             }
             return posixRefAttrs;
         }
 
         private LdapEntry getLdapEntry() {
             if (entry == null) {
-                entry = LdapSearches.getEntry(conn, quietCreateLdapName(entryDN), GroupHelper.getPosixRefAttribute());
+                entry = LdapSearches.getEntry(conn, quietCreateLdapName(entryDN),
+                        GroupHelper.getPosixRefAttribute());
             }
             return entry;
         }

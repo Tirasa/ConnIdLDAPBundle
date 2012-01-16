@@ -20,7 +20,7 @@
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  */
-package org.identityconnectors.ldap;
+package org.identityconnectors.ldap.commons;
 
 import static java.util.Collections.unmodifiableSet;
 
@@ -34,6 +34,7 @@ import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 public class LdapAttributeType {
 
     private final Class<?> type;
+
     private final Set<Flags> flags;
 
     public LdapAttributeType(Class<?> type, Set<Flags> flags) {
@@ -42,7 +43,8 @@ public class LdapAttributeType {
     }
 
     public AttributeInfo createAttributeInfo(String realName, Set<Flags> add, Set<Flags> remove) {
-        EnumSet<Flags> realFlags = flags.isEmpty() ? EnumSet.noneOf(Flags.class) : EnumSet.copyOf(flags);
+        EnumSet<Flags> realFlags = flags.isEmpty() ? EnumSet.noneOf(Flags.class) : EnumSet.
+                copyOf(flags);
         if (add != null) {
             realFlags.addAll(add);
         }
