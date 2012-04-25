@@ -35,7 +35,7 @@
 
     <groupId>org.connid.bundles</groupId>
     <artifactId>org.connid.bundles.ldap</artifactId>
-    <version>1.4-SNAPSHOT</version>
+    <version>1.3.1-SNAPSHOT</version>
 
     <name>ConnId Bundles: LDAP</name>
 
@@ -77,9 +77,10 @@
         </dependency>
         
         <dependency>
-            <groupId>com.sun.jndi.ldap</groupId>
-            <artifactId>ldapbp</artifactId>
-            <version>1.0</version>
+            <groupId>org.glassfish.main.external</groupId>
+            <artifactId>ldapbp-repackaged</artifactId>
+            <version>3.1.2</version>
+            <scope>provided</scope>
         </dependency>
         
         <!-- TEST -->
@@ -125,7 +126,7 @@
                         <phase>process-test-classes</phase>
                         <configuration>
                             <target>
-                                <get src="http://www.opends.org/promoted-builds/1.0.0/OpenDS-1.0.0.zip" dest="${java.io.tmpdir}" skipexisting="true" />
+                                <get src="http://java.net/downloads/opends/promoted-builds/1.0.0/OpenDS-1.0.0.zip" dest="${java.io.tmpdir}" skipexisting="true" />
                                 <delete dir="${opends.setup.dir}" />
                                 <unzip dest="${opends.setup.dir}" src="${java.io.tmpdir}/OpenDS-1.0.0.zip">
                                      <!-- Remove the "OpenDS-1.x.y" prefix. -->

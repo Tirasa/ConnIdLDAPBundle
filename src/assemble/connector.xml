@@ -30,9 +30,10 @@
     <dependencySets>
         <dependencySet>
             <includes>
-                <include>com.sun.jndi.ldap:ldapbp</include>
+                <include>org.glassfish.main.external:ldapbp-repackaged</include>
             </includes>
             <outputDirectory>lib</outputDirectory>
+            <scope>provided</scope>
         </dependencySet>
     </dependencySets>
 
