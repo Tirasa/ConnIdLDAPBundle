@@ -22,29 +22,25 @@
  */
 package org.connid.bundles.ldap;
 
-import org.connid.bundles.ldap.commons.ObjectClassMappingConfig;
-import org.connid.bundles.ldap.commons.LdapConstants;
-import static org.identityconnectors.common.CollectionUtil.newList;
-import static org.identityconnectors.common.StringUtil.isBlank;
-import static org.connid.bundles.ldap.commons.LdapUtil.nullAsEmpty;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
-
+import org.connid.bundles.ldap.commons.LdapConstants;
+import static org.connid.bundles.ldap.commons.LdapUtil.nullAsEmpty;
+import org.connid.bundles.ldap.commons.ObjectClassMappingConfig;
+import static org.identityconnectors.common.CollectionUtil.newList;
 import org.identityconnectors.common.EqualsHashCodeBuilder;
+import static org.identityconnectors.common.StringUtil.isBlank;
 import org.identityconnectors.common.security.GuardedByteArray;
-import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.GuardedByteArray.Accessor;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
@@ -60,7 +56,7 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     // XXX should try to connect to the resource.
     // XXX add @ConfigurationProperty.
-    static final int DEFAULT_PORT = 389;
+    public static final int DEFAULT_PORT = 389;
 
     // Exposed configuration properties.
     /**
@@ -79,8 +75,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     private boolean ssl;
 
     /**
-     * LDAP URL's to connect to if the main server specified through the host and port
-     * properties is not available.
+     * LDAP URL's to connect to if the main server specified through the host and port properties is not available.
      */
     private String[] failover = {};
 
@@ -100,8 +95,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     private String[] baseContexts = {};
 
     /**
-     * The name of the attribute which the predefined PASSWORD attribute
-     * will be written to.
+     * The name of the attribute which the predefined PASSWORD attribute will be written to.
      */
     private String passwordAttribute = "userPassword";
 
@@ -126,14 +120,13 @@ public class LdapConfiguration extends AbstractConfiguration {
     private boolean maintainPosixGroupMembership = false;
 
     /**
-     * If the server stores passwords in clear text, we will hash them with
-     * the algorithm specified here.
+     * If the server stores passwords in clear text, we will hash them with the algorithm specified here.
      */
     private String passwordHashAlgorithm;
 
     /**
-     * If true, when binding check for the Password Expired control (and also Password Policy control)
-     * and throw exceptions (PasswordExpiredException, etc.) appropriately.
+     * If true, when binding check for the Password Expired control (and also Password Policy control) and throw
+     * exceptions (PasswordExpiredException, etc.) appropriately.
      */
     private boolean respectResourcePasswordPolicyChangeAfterReset;
 
@@ -148,8 +141,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     private int blockSize = 100;
 
     /**
-     * If true, simple paged search will be preferred over VLV index search
-     * when both are available.
+     * If true, simple paged search will be preferred over VLV index search when both are available.
      */
     private boolean usePagedResultControl = false;
 
@@ -206,8 +198,8 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     private final ObjectClassMappingConfig groupConfig = new ObjectClassMappingConfig(
             ObjectClass.GROUP,
-            newList("top", "groupOfUniqueNames"), false, Collections.<String>
-            emptyList());
+            newList("top", "groupOfUniqueNames"),
+            false, newList("cn"));
 
     // Other state not to be included in hashCode/equals.
     private List<LdapName> baseContextsAsLdapNames;
@@ -216,12 +208,10 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     private Set<LdapName> modifiersNamesToFilterOutAsLdapNames;
 
-    public LdapConfiguration() {
-    }
-
     /**
      * {@inheritDoc}
      */
+    @Override
     public void validate() {
         checkNotBlank(host, "host.notBlank");
 
@@ -235,15 +225,17 @@ public class LdapConfiguration extends AbstractConfiguration {
 
         checkNotBlank(passwordAttribute, "passwordAttribute.notBlank");
 
-        checkNotEmpty(accountConfig.getLdapClasses(),
-                "accountObjectClasses.notEmpty");
-        checkNoBlankValues(accountConfig.getLdapClasses(),
-                "accountObjectClasses.noBlankValues");
+        checkNotEmpty(accountConfig.getLdapClasses(), "accountObjectClasses.notEmpty");
+        checkNoBlankValues(accountConfig.getLdapClasses(), "accountObjectClasses.noBlankValues");
 
-        checkNotEmpty(accountConfig.getShortNameLdapAttributes(),
-                "accountUserNameAttributes.notEmpty");
-        checkNoBlankValues(accountConfig.getShortNameLdapAttributes(),
-                "accountUserNameAttributes.noBlankValues");
+        checkNotEmpty(accountConfig.getShortNameLdapAttributes(), "accountUserNameAttributes.notEmpty");
+        checkNoBlankValues(accountConfig.getShortNameLdapAttributes(), "accountUserNameAttributes.noBlankValues");
+
+        checkNotEmpty(groupConfig.getLdapClasses(), "groupObjectClasses.notEmpty");
+        checkNoBlankValues(groupConfig.getLdapClasses(), "groupObjectClasses.noBlankValues");
+
+        checkNotEmpty(groupConfig.getShortNameLdapAttributes(), "groupNameAttributes.notEmpty");
+        checkNoBlankValues(groupConfig.getShortNameLdapAttributes(), "groupNameAttributes.noBlankValues");
 
         checkNotBlank(groupMemberAttribute, "groupMemberAttribute.notBlank");
 
@@ -253,30 +245,21 @@ public class LdapConfiguration extends AbstractConfiguration {
 
         checkNotBlank(vlvSortAttribute, "vlvSortAttribute.notBlank");
 
-        checkNotBlank(uidAttribute, "uidAttribute.notBlank");
-
         if (baseContextsToSynchronize != null) {
-            checkNoBlankValues(baseContextsToSynchronize,
-                    "baseContextsToSynchronize.noBlankValues");
-            checkNoInvalidLdapNames(baseContextsToSynchronize,
-                    "baseContextsToSynchronize.noInvalidLdapNames");
+            checkNoBlankValues(baseContextsToSynchronize, "baseContextsToSynchronize.noBlankValues");
+            checkNoInvalidLdapNames(baseContextsToSynchronize, "baseContextsToSynchronize.noInvalidLdapNames");
         }
 
-        checkNotEmpty(objectClassesToSynchronize,
-                "objectClassesToSynchronize.notEmpty");
-        checkNoBlankValues(objectClassesToSynchronize,
-                "objectClassesToSynchronize.noBlankValues");
+        checkNotEmpty(objectClassesToSynchronize, "objectClassesToSynchronize.notEmpty");
+        checkNoBlankValues(objectClassesToSynchronize, "objectClassesToSynchronize.noBlankValues");
 
         if (attributesToSynchronize != null) {
-            checkNoBlankValues(attributesToSynchronize,
-                    "attributesToSynchronize.noBlankValues");
+            checkNoBlankValues(attributesToSynchronize, "attributesToSynchronize.noBlankValues");
         }
 
         if (modifiersNamesToFilterOut != null) {
-            checkNoBlankValues(modifiersNamesToFilterOut,
-                    "modifiersNamesToFilterOut.noBlankValues");
-            checkNoInvalidLdapNames(modifiersNamesToFilterOut,
-                    "modifiersNamesToFilterOut.noInvalidLdapNames");
+            checkNoBlankValues(modifiersNamesToFilterOut, "modifiersNamesToFilterOut.noBlankValues");
+            checkNoInvalidLdapNames(modifiersNamesToFilterOut, "modifiersNamesToFilterOut.noInvalidLdapNames");
         }
 
         checkNotBlank(changeNumberAttribute, "changeNumberAttribute.notBlank");
@@ -286,11 +269,9 @@ public class LdapConfiguration extends AbstractConfiguration {
         }
 
         if (synchronizePasswords) {
-            checkNotBlank(passwordAttributeToSynchronize,
-                    "passwordAttributeToSynchronize.notBlank");
+            checkNotBlank(passwordAttributeToSynchronize, "passwordAttributeToSynchronize.notBlank");
             checkNotBlank(passwordDecryptionKey, "decryptionKey.notBlank");
-            checkNotBlank(passwordDecryptionInitializationVector,
-                    "decryptionInitializationVector.notBlank");
+            checkNotBlank(passwordDecryptionInitializationVector, "decryptionInitializationVector.notBlank");
         }
     }
 
@@ -433,15 +414,12 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     public String[] getAccountUserNameAttributes() {
-        List<String> shortNameLdapAttributes = accountConfig.
-                getShortNameLdapAttributes();
-        return shortNameLdapAttributes.toArray(new String[shortNameLdapAttributes.
-                size()]);
+        List<String> shortNameLdapAttributes = accountConfig.getShortNameLdapAttributes();
+        return shortNameLdapAttributes.toArray(new String[shortNameLdapAttributes.size()]);
     }
 
     public void setAccountUserNameAttributes(String... accountUserNameAttributes) {
-        accountConfig.setShortNameLdapAttributes(Arrays.asList(
-                accountUserNameAttributes));
+        accountConfig.setShortNameLdapAttributes(Arrays.asList(accountUserNameAttributes));
     }
 
     public String getAccountSearchFilter() {
@@ -450,6 +428,24 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     public void setAccountSearchFilter(String accountSearchFilter) {
         this.accountSearchFilter = accountSearchFilter;
+    }
+
+    public String[] getGroupObjectClasses() {
+        List<String> ldapClasses = groupConfig.getLdapClasses();
+        return ldapClasses.toArray(new String[ldapClasses.size()]);
+    }
+
+    public void setGroupObjectClasses(String... accountObjectClasses) {
+        groupConfig.setLdapClasses(Arrays.asList(accountObjectClasses));
+    }
+
+    public String[] getGroupNameAttributes() {
+        List<String> shortNameLdapAttributes = groupConfig.getShortNameLdapAttributes();
+        return shortNameLdapAttributes.toArray(new String[shortNameLdapAttributes.size()]);
+    }
+
+    public void setGroupNameAttributes(String... accountUserNameAttributes) {
+        accountConfig.setShortNameLdapAttributes(Arrays.asList(accountUserNameAttributes));
     }
 
     public String getGroupMemberAttribute() {
@@ -659,7 +655,8 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     public void setPasswordDecryptionInitializationVector(GuardedByteArray passwordDecryptionInitializationVector) {
-        this.passwordDecryptionInitializationVector = passwordDecryptionInitializationVector != null ? passwordDecryptionInitializationVector.
+        this.passwordDecryptionInitializationVector = passwordDecryptionInitializationVector != null
+                ? passwordDecryptionInitializationVector.
                 copy() : null;
     }
 
@@ -749,7 +746,6 @@ public class LdapConfiguration extends AbstractConfiguration {
         builder.append(blockSize);
         builder.append(usePagedResultControl);
         builder.append(vlvSortAttribute);
-        builder.append(uidAttribute);
         builder.append(readSchema);
         // Sync configuration properties.
         for (String baseContextToSynchronize : baseContextsToSynchronize) {

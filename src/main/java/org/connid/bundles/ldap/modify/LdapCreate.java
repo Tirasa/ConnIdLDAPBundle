@@ -23,16 +23,20 @@
 package org.connid.bundles.ldap.modify;
 
 import java.util.ArrayList;
-import static org.identityconnectors.common.CollectionUtil.isEmpty;
-import static org.identityconnectors.common.CollectionUtil.nullAsEmpty;
-import static org.connid.bundles.ldap.commons.LdapUtil.checkedListByFilter;
-
 import java.util.List;
 import java.util.Set;
-
 import javax.naming.NamingException;
 import javax.naming.directory.BasicAttributes;
-
+import org.connid.bundles.ldap.LdapConnection;
+import org.connid.bundles.ldap.commons.GroupHelper;
+import org.connid.bundles.ldap.commons.LdapConstants;
+import org.connid.bundles.ldap.commons.LdapModifyOperation;
+import static org.connid.bundles.ldap.commons.LdapUtil.checkedListByFilter;
+import org.connid.bundles.ldap.commons.StatusManagement;
+import org.connid.bundles.ldap.schema.GuardedPasswordAttribute;
+import org.connid.bundles.ldap.schema.GuardedPasswordAttribute.Accessor;
+import static org.identityconnectors.common.CollectionUtil.isEmpty;
+import static org.identityconnectors.common.CollectionUtil.nullAsEmpty;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
@@ -41,13 +45,6 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.connid.bundles.ldap.commons.GroupHelper;
-import org.connid.bundles.ldap.LdapConnection;
-import org.connid.bundles.ldap.commons.LdapModifyOperation;
-import org.connid.bundles.ldap.commons.LdapConstants;
-import org.connid.bundles.ldap.commons.StatusManagement;
-import org.connid.bundles.ldap.schema.GuardedPasswordAttribute;
-import org.connid.bundles.ldap.schema.GuardedPasswordAttribute.Accessor;
 
 public class LdapCreate extends LdapModifyOperation {
 
@@ -78,10 +75,8 @@ public class LdapCreate extends LdapModifyOperation {
             throws NamingException {
 
         final Name nameAttr = AttributeUtil.getNameFromAttributes(attrs);
-
         if (nameAttr == null) {
-            throw new IllegalArgumentException(
-                    "No Name attribute provided in the attributes");
+            throw new IllegalArgumentException("No Name attribute provided in the attributes");
         }
 
         final List<String> ldapGroups = new ArrayList<String>();
@@ -96,27 +91,16 @@ public class LdapCreate extends LdapModifyOperation {
             if (attr.is(Name.NAME)) {
                 // Handled already.
             } else if (LdapConstants.isLdapGroups(attr.getName())) {
-
-                ldapGroups.addAll(checkedListByFilter(
-                        nullAsEmpty(attr.getValue()), String.class));
-
+                ldapGroups.addAll(checkedListByFilter(nullAsEmpty(attr.getValue()), String.class));
             } else if (LdapConstants.isPosixGroups(attr.getName())) {
-
-                posixGroups.addAll(checkedListByFilter(
-                        nullAsEmpty(attr.getValue()), String.class));
-
+                posixGroups.addAll(checkedListByFilter(nullAsEmpty(attr.getValue()), String.class));
             } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-
                 pwdAttr = conn.getSchemaMapping().encodePassword(oclass, attr);
-
             } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
-
                 // manage enable/disable status
                 if (attr.getValue() != null && !attr.getValue().isEmpty()) {
-                    status = Boolean.parseBoolean(
-                            attr.getValue().get(0).toString());
+                    status = Boolean.parseBoolean(attr.getValue().get(0).toString());
                 }
-
             } else {
                 ldapAttr = conn.getSchemaMapping().encodeAttribute(oclass, attr);
                 // Do not send empty attributes. 
@@ -128,9 +112,12 @@ public class LdapCreate extends LdapModifyOperation {
         }
 
         if (status != null) {
-            StatusManagement.getInstance(
-                    conn.getConfiguration().getStatusManagementClass()).
+            StatusManagement.getInstance(conn.getConfiguration().getStatusManagementClass()).
                     setStatus(status, ldapAttrs, posixGroups, ldapGroups);
+        }
+
+        if (ObjectClass.GROUP.equals(oclass)) {
+            groupHelper.addMemberAttributeIfMissing(ldapAttrs);
         }
 
         final String[] entryDN = {null};
@@ -141,13 +128,11 @@ public class LdapCreate extends LdapModifyOperation {
                 public void access(javax.naming.directory.Attribute passwordAttr) {
                     hashPassword(passwordAttr, null);
                     ldapAttrs.put(passwordAttr);
-                    entryDN[0] = conn.getSchemaMapping().create(
-                            oclass, nameAttr, ldapAttrs);
+                    entryDN[0] = conn.getSchemaMapping().create(oclass, nameAttr, ldapAttrs);
                 }
             });
         } else {
-            entryDN[0] = conn.getSchemaMapping().create(
-                    oclass, nameAttr, ldapAttrs);
+            entryDN[0] = conn.getSchemaMapping().create(oclass, nameAttr, ldapAttrs);
         }
 
         if (!isEmpty(ldapGroups)) {
@@ -155,8 +140,7 @@ public class LdapCreate extends LdapModifyOperation {
         }
 
         if (!isEmpty(posixGroups)) {
-            Set<String> posixRefAttrs = getAttributeValues(GroupHelper.
-                    getPosixRefAttribute(), null, ldapAttrs);
+            Set<String> posixRefAttrs = getAttributeValues(GroupHelper.getPosixRefAttribute(), null, ldapAttrs);
             String posixRefAttr = getFirstPosixRefAttr(entryDN[0], posixRefAttrs);
             groupHelper.addPosixGroupMemberships(posixRefAttr, posixGroups);
         }

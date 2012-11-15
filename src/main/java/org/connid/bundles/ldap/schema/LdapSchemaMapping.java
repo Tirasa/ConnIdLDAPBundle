@@ -22,28 +22,29 @@
  */
 package org.connid.bundles.ldap.schema;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableSet;
-import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveMap;
-import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
-import static org.identityconnectors.common.CollectionUtil.newReadOnlyList;
-import static org.connid.bundles.ldap.commons.LdapEntry.isDNAttribute;
-import static org.connid.bundles.ldap.commons.LdapUtil.addBinaryOption;
-import static org.connid.bundles.ldap.commons.LdapUtil.getStringAttrValue;
-import static org.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapName;
-
+import java.lang.String;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.ldap.LdapName;
-
+import org.connid.bundles.ldap.LdapConnection;
+import org.connid.bundles.ldap.commons.LdapEntry;
+import static org.connid.bundles.ldap.commons.LdapEntry.isDNAttribute;
+import static org.connid.bundles.ldap.commons.LdapUtil.addBinaryOption;
+import static org.connid.bundles.ldap.commons.LdapUtil.getStringAttrValue;
+import static org.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapName;
+import org.connid.bundles.ldap.commons.ObjectClassMappingConfig;
+import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveMap;
+import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
+import static org.identityconnectors.common.CollectionUtil.newReadOnlyList;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -58,13 +59,9 @@ import org.identityconnectors.framework.common.objects.ObjectClassUtil;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.Uid;
-import org.connid.bundles.ldap.LdapConnection;
-import org.connid.bundles.ldap.commons.LdapEntry;
-import org.connid.bundles.ldap.commons.ObjectClassMappingConfig;
 
 /**
- * The authoritative description of the mapping between the LDAP schema
- * and the connector schema.
+ * The authoritative description of the mapping between the LDAP schema and the connector schema.
  *
  * @author Andrei Badea
  */
@@ -81,8 +78,7 @@ public class LdapSchemaMapping {
     // XXX should the naming attribute be present in the schema (e.g. "cn" for account)?
     // XXX need a method like getAttributesToReturn(String[] wanted);
     // XXX need to check that (extended) naming attributes really exist.
-    public static final ObjectClass ANY_OBJECT_CLASS = new ObjectClass(ObjectClassUtil.
-            createSpecialName("ANY"));
+    public static final ObjectClass ANY_OBJECT_CLASS = new ObjectClass(ObjectClassUtil.createSpecialName("ANY"));
 
     /**
      * The LDAP attribute to map to {@link Name} by default.
@@ -117,12 +113,11 @@ public class LdapSchemaMapping {
     }
 
     /**
-     * Returns the LDAP object classes to which the given framework object
-     * class is mapped.
+     * Returns the LDAP object classes to which the given framework object class is mapped.
      */
     public List<String> getLdapClasses(ObjectClass oclass) {
         if (oclass.equals(ANY_OBJECT_CLASS)) {
-            return emptyList();
+            return Collections.<String>emptyList();
         }
         ObjectClassMappingConfig oclassConfig = conn.getConfiguration().
                 getObjectClassMappingConfigs().get(oclass);
@@ -137,25 +132,22 @@ public class LdapSchemaMapping {
     }
 
     /**
-     * Returns the LDAP object class to which the given framework object
-     * class is mapped in a transitive manner, i.e., together with any superior
-     * object classes, any superiors thereof, etc..
+     * Returns the LDAP object class to which the given framework object class is mapped in a transitive manner, i.e.,
+     * together with any superior object classes, any superiors thereof, etc..
      */
     public Set<String> getEffectiveLdapClasses(ObjectClass oclass) {
         Set<String> result = newCaseInsensitiveSet();
         for (String ldapClass : getLdapClasses(oclass)) {
             result.addAll(getEffectiveLdapClasses(ldapClass));
         }
-        return unmodifiableSet(result);
+        return Collections.<String>unmodifiableSet(result);
     }
 
     public List<String> getUserNameLdapAttributes(ObjectClass oclass) {
-        ObjectClassMappingConfig oclassConfig = conn.getConfiguration().
-                getObjectClassMappingConfigs().get(oclass);
-        if (oclassConfig != null) {
-            return oclassConfig.getShortNameLdapAttributes();
-        }
-        return emptyList();
+        ObjectClassMappingConfig oclassConfig = conn.getConfiguration().getObjectClassMappingConfigs().get(oclass);
+        return oclassConfig == null
+                ? Collections.<String>emptyList()
+                : oclassConfig.getShortNameLdapAttributes();
     }
 
     public String getLdapAttribute(ObjectClass oclass, String attrName, boolean transfer) {
@@ -183,17 +175,16 @@ public class LdapSchemaMapping {
     }
 
     /**
-     * Returns the name of the LDAP attribute which corresponds to the given
-     * attribute of the given object class, or null.
+     * Returns the name of the LDAP attribute which corresponds to the given attribute of the given object class, or
+     * null.
      */
     public String getLdapAttribute(ObjectClass oclass, Attribute attr) {
         return getLdapAttribute(oclass, attr.getName(), false);
     }
 
     /**
-     * Returns the names of the LDAP attributes which correspond to the given
-     * attribute names of the given object class. If {@code transfer} is {@code true},
-     * the binary option will be added to the attributes which need it.
+     * Returns the names of the LDAP attributes which correspond to the given attribute names of the given object class.
+     * If {@code transfer} is {@code true}, the binary option will be added to the attributes which need it.
      */
     public Set<String> getLdapAttributes(ObjectClass oclass, Set<String> attrs, boolean transfer) {
         Set<String> result = newCaseInsensitiveSet();
@@ -207,25 +198,26 @@ public class LdapSchemaMapping {
     }
 
     /**
-     * Returns the LDAP attribute which corresponds to {@link Uid}. Should
-     * never return null.
+     * Returns the LDAP attribute which corresponds to {@link Uid}. Should never return null.
      */
     public String getLdapUidAttribute(ObjectClass oclass) {
-        return conn.getConfiguration().getUidAttribute();
+        return StringUtil.isBlank(conn.getConfiguration().getUidAttribute())
+                ? conn.getConfiguration().getObjectClassMappingConfigs().get(oclass).
+                getShortNameLdapAttributes().iterator().next()
+                : conn.getConfiguration().getUidAttribute();
     }
 
     /**
-     * Returns the LDAP attribute which corresponds to {@link Name} for the
-     * given object class. Might return {@code null} if, for example, the
-     * object class was not configured explicitly in the configuration.
+     * Returns the LDAP attribute which corresponds to {@link Name} for the given object class. Might return
+     * {@code null} if, for example, the object class was not configured explicitly in the configuration.
      */
     public String getLdapNameAttribute(ObjectClass oclass) {
         return DEFAULT_LDAP_NAME_ATTR;
     }
 
     /**
-     * Creates a {@link Uid} for the given entry. It is assumed that the entry
-     * contains the attribute returned by {@link #getLdapUidAttribute}.
+     * Creates a {@link Uid} for the given entry. It is assumed that the entry contains the attribute returned by
+     * {@link #getLdapUidAttribute}.
      */
     public Uid createUid(ObjectClass oclass, LdapEntry entry) {
         return createUid(getLdapUidAttribute(oclass), entry.getAttributes());
@@ -252,13 +244,12 @@ public class LdapSchemaMapping {
         if (value != null) {
             return new Uid(value);
         }
-        throw new ConnectorException(
-                "No attribute named " + ldapUidAttr + " found in the search result");
+        throw new ConnectorException("No attribute named " + ldapUidAttr + " found in the search result");
     }
 
     /**
-     * Creates a {@link Name} for the given entry. It is assumed that the entry
-     * contains the attribute returned by {@link #getLdapNameAttribute}.
+     * Creates a {@link Name} for the given entry. It is assumed that the entry contains the attribute returned by
+     * {@link #getLdapNameAttribute}.
      */
     public Name createName(ObjectClass oclass, LdapEntry entry) {
         String ldapNameAttr = getLdapNameAttribute(oclass);
@@ -271,8 +262,10 @@ public class LdapSchemaMapping {
     }
 
     /**
-     * Returns an empty attribute instead of <code>null</code> when <code>emptyWhenNotFound</code>
-     * is <code>true</code>.
+     * Returns an empty attribute instead of
+     * <code>null</code> when
+     * <code>emptyWhenNotFound</code> is
+     * <code>true</code>.
      */
     public Attribute createAttribute(ObjectClass oclass, String attrName, LdapEntry entry, boolean emptyWhenNotFound) {
         String ldapAttrNameForTransfer = getLdapAttribute(oclass, attrName, true);
@@ -282,8 +275,7 @@ public class LdapSchemaMapping {
         }
 
         if (ldapAttr == null) {
-            return emptyWhenNotFound ? AttributeBuilder.build(attrName,
-                    emptyList()) : null;
+            return emptyWhenNotFound ? AttributeBuilder.build(attrName, Collections.emptyList()) : null;
         }
 
         AttributeBuilder builder = new AttributeBuilder();
@@ -315,11 +307,9 @@ public class LdapSchemaMapping {
         }
         ldapAttrs.put(objectClass);
 
-        log.ok("Creating LDAP subcontext {0} with attributes {1}", entryName,
-                ldapAttrs);
+        log.ok("Creating LDAP subcontext {0} with attributes {1}", entryName, ldapAttrs);
         try {
-            conn.getInitialContext().createSubcontext(entryName, ldapAttrs).
-                    close();
+            conn.getInitialContext().createSubcontext(entryName, ldapAttrs).close();
             return entryName.toString();
         } catch (NamingException e) {
             throw new ConnectorException(e);

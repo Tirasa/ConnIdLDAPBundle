@@ -54,8 +54,7 @@ import org.identityconnectors.framework.spi.operations.SyncOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
 
-@ConnectorClass(configurationClass = LdapConfiguration.class,
-displayNameKey = "LdapConnector")
+@ConnectorClass(configurationClass = LdapConfiguration.class, displayNameKey = "LdapConnector")
 public class LdapConnector implements
         TestOp, PoolableConnector, SchemaOp, SearchOp<LdapFilter>,
         AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp,
@@ -109,8 +108,7 @@ public class LdapConnector implements
             final GuardedString password,
             final OperationOptions options) {
 
-        return new LdapAuthenticate(conn, objectClass, username, options).
-                authenticate(password);
+        return new LdapAuthenticate(conn, objectClass, username, options).authenticate(password);
     }
 
     @Override
@@ -119,8 +117,7 @@ public class LdapConnector implements
             final String username,
             final OperationOptions options) {
 
-        return new LdapAuthenticate(conn, objectClass, username, options).
-                resolveUsername();
+        return new LdapAuthenticate(conn, objectClass, username, options).resolveUsername();
     }
 
     @Override
@@ -179,8 +176,7 @@ public class LdapConnector implements
             final Uid uid,
             final Set<Attribute> valuesToRemove,
             OperationOptions options) {
-        return new LdapUpdate(conn, oclass, uid).removeAttributeValues(
-                valuesToRemove);
+        return new LdapUpdate(conn, oclass, uid).removeAttributeValues(valuesToRemove);
     }
 
     @Override
@@ -195,7 +191,6 @@ public class LdapConnector implements
             final SyncToken token,
             final SyncResultsHandler handler,
             final OperationOptions options) {
-        new SunDSChangeLogSyncStrategy(conn, oclass).sync(
-                token, handler, options);
+        new SunDSChangeLogSyncStrategy(conn, oclass).sync(token, handler, options);
     }
 }

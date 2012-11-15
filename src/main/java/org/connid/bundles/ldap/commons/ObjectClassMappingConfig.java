@@ -22,12 +22,10 @@
  */
 package org.connid.bundles.ldap.commons;
 
-import static org.identityconnectors.common.CollectionUtil.newReadOnlyList;
-import static org.identityconnectors.common.CollectionUtil.newReadOnlySet;
-
 import java.util.List;
 import java.util.Set;
-
+import static org.identityconnectors.common.CollectionUtil.newReadOnlyList;
+import static org.identityconnectors.common.CollectionUtil.newReadOnlySet;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 
@@ -52,6 +50,7 @@ public class ObjectClassMappingConfig {
             final boolean container,
             final List<String> shortNameLdapAttributes,
             final AttributeInfo... operationalAttributes) {
+
         assert objectClass != null;
         this.objectClass = objectClass;
         assert ldapClasses != null;
@@ -70,7 +69,7 @@ public class ObjectClassMappingConfig {
         return ldapClasses;
     }
 
-    public void setLdapClasses(List<String> ldapClasses) {
+    public final void setLdapClasses(List<String> ldapClasses) {
         this.ldapClasses = newReadOnlyList(ldapClasses);
     }
 
