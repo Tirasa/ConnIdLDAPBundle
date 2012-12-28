@@ -42,9 +42,9 @@
   <packaging>jar</packaging>
 
   <scm>
-    <connection>scm:svn:http://connid.googlecode.com/svn/bundles/ldap/trunk/</connection>
-    <developerConnection>scm:svn:https://connid.googlecode.com/svn/bundles/ldap/trunk/</developerConnection>
-    <url>http://connid.googlecode.com/svn/bundles/ldap/trunk/</url>
+    <connection>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</connection>
+    <url>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</url>
+    <developerConnection>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</developerConnection>
   </scm>
 
   <properties>
