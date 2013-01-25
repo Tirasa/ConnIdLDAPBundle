@@ -22,22 +22,19 @@
  */
 package org.connid.bundles.ldap;
 
-import org.connid.bundles.ldap.commons.StaticNativeSchema;
-import org.connid.bundles.ldap.commons.ServerNativeSchema;
-import org.connid.bundles.ldap.commons.LdapNativeSchema;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.unmodifiableSet;
-import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
-import static org.identityconnectors.common.StringUtil.isNotBlank;
 import static org.connid.bundles.ldap.commons.LdapUtil.getStringAttrValue;
 import static org.connid.bundles.ldap.commons.LdapUtil.getStringAttrValues;
 import static org.connid.bundles.ldap.commons.LdapUtil.nullAsEmpty;
+import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
+import static org.identityconnectors.common.StringUtil.isNotBlank;
 
+import com.sun.jndi.ldap.ctl.PasswordExpiredResponseControl;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
-
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -45,7 +42,10 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
-
+import org.connid.bundles.ldap.commons.LdapNativeSchema;
+import org.connid.bundles.ldap.commons.ServerNativeSchema;
+import org.connid.bundles.ldap.commons.StaticNativeSchema;
+import org.connid.bundles.ldap.schema.LdapSchemaMapping;
 import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -53,9 +53,6 @@ import org.identityconnectors.common.security.GuardedString.Accessor;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
 import org.identityconnectors.framework.common.exceptions.PasswordExpiredException;
-import org.connid.bundles.ldap.schema.LdapSchemaMapping;
-
-import com.sun.jndi.ldap.ctl.PasswordExpiredResponseControl;
 
 public class LdapConnection {
 
@@ -101,7 +98,7 @@ public class LdapConnection {
 
     private static final String LDAP_CTX_FACTORY = "com.sun.jndi.ldap.LdapCtxFactory";
 
-    private static final Log log = Log.getLog(LdapConnection.class);
+    private static final Log LOG = Log.getLog(LdapConnection.class);
 
     private final LdapConfiguration config;
 
@@ -135,8 +132,7 @@ public class LdapConnection {
     }
 
     private LdapContext connect(String principal, GuardedString credentials) {
-        Pair<AuthenticationResult, LdapContext> pair = createContext(principal,
-                credentials);
+        Pair<AuthenticationResult, LdapContext> pair = createContext(principal, credentials);
         if (pair.first.getType().equals(AuthenticationResultType.SUCCESS)) {
             return pair.second;
         }
@@ -145,8 +141,8 @@ public class LdapConnection {
     }
 
     private Pair<AuthenticationResult, LdapContext> createContext(String principal, GuardedString credentials) {
-        final List<Pair<AuthenticationResult, LdapContext>> result = new ArrayList<Pair<AuthenticationResult, LdapContext>>(
-                1);
+        final List<Pair<AuthenticationResult, LdapContext>> result =
+                new ArrayList<Pair<AuthenticationResult, LdapContext>>(1);
 
         final Hashtable<Object, Object> env = new Hashtable<Object, Object>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_CTX_FACTORY);
@@ -165,7 +161,8 @@ public class LdapConnection {
             if (credentials != null) {
                 credentials.access(new Accessor() {
 
-                    public void access(char[] clearChars) {
+                    @Override
+                    public void access(final char[] clearChars) {
                         env.put(Context.SECURITY_CREDENTIALS, clearChars);
                         // Connect while in the accessor, otherwise clearChars will be cleared.
                         result.add(createContext(env));
@@ -182,7 +179,7 @@ public class LdapConnection {
         return result.get(0);
     }
 
-    private Pair<AuthenticationResult, LdapContext> createContext(Hashtable<?, ?> env) {
+    private Pair<AuthenticationResult, LdapContext> createContext(final Hashtable<?, ?> env) {
         AuthenticationResult authnResult = null;
         InitialLdapContext context = null;
         try {
@@ -197,23 +194,18 @@ public class LdapConnection {
         } catch (AuthenticationException e) {
             String message = e.getMessage().toLowerCase();
             if (message.contains("password expired")) { // Sun DS.
-                authnResult = new AuthenticationResult(
-                        AuthenticationResultType.PASSWORD_EXPIRED, e);
+                authnResult = new AuthenticationResult(AuthenticationResultType.PASSWORD_EXPIRED, e);
             } else if (message.contains("password has expired")) { // RACF.
-                authnResult = new AuthenticationResult(
-                        AuthenticationResultType.PASSWORD_EXPIRED, e);
+                authnResult = new AuthenticationResult(AuthenticationResultType.PASSWORD_EXPIRED, e);
             } else {
-                authnResult = new AuthenticationResult(
-                        AuthenticationResultType.FAILED, e);
+                authnResult = new AuthenticationResult(AuthenticationResultType.FAILED, e);
             }
         } catch (NamingException e) {
-            authnResult = new AuthenticationResult(
-                    AuthenticationResultType.FAILED, e);
+            authnResult = new AuthenticationResult(AuthenticationResultType.FAILED, e);
         }
         if (authnResult == null) {
             assert context != null;
-            authnResult = new AuthenticationResult(
-                    AuthenticationResultType.SUCCESS);
+            authnResult = new AuthenticationResult(AuthenticationResultType.SUCCESS);
         }
         return new Pair<AuthenticationResult, LdapContext>(authnResult, context);
     }
@@ -256,7 +248,7 @@ public class LdapConnection {
                 ctx.close();
             }
         } catch (NamingException e) {
-            log.warn(e, null);
+            LOG.warn(e, null);
         }
     }
 
@@ -278,13 +270,12 @@ public class LdapConnection {
 
     public AuthenticationResult authenticate(String entryDN, GuardedString password) {
         assert entryDN != null;
-        log.ok("Attempting to authenticate {0}", entryDN);
-        Pair<AuthenticationResult, LdapContext> pair = createContext(entryDN,
-                password);
+        LOG.ok("Attempting to authenticate {0}", entryDN);
+        Pair<AuthenticationResult, LdapContext> pair = createContext(entryDN, password);
         if (pair.second != null) {
             quietClose(pair.second);
         }
-        log.ok("Authentication result: {0}", pair.first);
+        LOG.ok("Authentication result: {0}", pair.first);
         return pair.first;
     }
 
@@ -294,8 +285,7 @@ public class LdapConnection {
 
     public void checkAlive() {
         try {
-            Attributes attrs = getInitialContext().getAttributes("",
-                    new String[]{"subschemaSubentry"});
+            Attributes attrs = getInitialContext().getAttributes("", new String[]{"subschemaSubentry"});
             attrs.get("subschemaSubentry");
         } catch (NamingException e) {
             throw new ConnectorException(e);
@@ -303,8 +293,7 @@ public class LdapConnection {
     }
 
     /**
-     * Returns {@code} true if the control with the given OID is supported by
-     * the server.
+     * Returns {@code} true if the control with the given OID is supported by the server.
      */
     public boolean supportsControl(String oid) {
         return getSupportedControls().contains(oid);
@@ -313,12 +302,11 @@ public class LdapConnection {
     private Set<String> getSupportedControls() {
         if (supportedControls == null) {
             try {
-                Attributes attrs = getInitialContext().getAttributes("",
-                        new String[]{"supportedControl"});
+                Attributes attrs = getInitialContext().getAttributes("", new String[]{"supportedControl"});
                 supportedControls = unmodifiableSet(getStringAttrValues(attrs,
                         "supportedControl"));
             } catch (NamingException e) {
-                log.warn(e, "Exception while retrieving the supported controls");
+                LOG.warn(e, "Exception while retrieving the supported controls");
                 supportedControls = emptySet();
             }
         }
@@ -334,8 +322,7 @@ public class LdapConnection {
 
     private ServerType detectServerType() {
         try {
-            Attributes attrs = getInitialContext().getAttributes("",
-                    new String[]{"vendorVersion"});
+            Attributes attrs = getInitialContext().getAttributes("", new String[]{"vendorVersion"});
             String vendorVersion = getStringAttrValue(attrs, "vendorVersion");
             if (vendorVersion != null) {
                 vendorVersion = vendorVersion.toLowerCase();
@@ -348,7 +335,7 @@ public class LdapConnection {
                 }
             }
         } catch (NamingException e) {
-            log.warn(e, "Exception while detecting the server type");
+            LOG.warn(e, "Exception while detecting the server type");
         }
         return ServerType.UNKNOWN;
     }
@@ -425,6 +412,9 @@ public class LdapConnection {
 
     public enum ServerType {
 
-        SUN_DSEE, OPENDS, UNKNOWN
+        SUN_DSEE,
+        OPENDS,
+        UNKNOWN
+
     }
 }

@@ -22,6 +22,10 @@
  */
 package org.connid.bundles.ldap.modify;
 
+import static org.connid.bundles.ldap.commons.LdapUtil.checkedListByFilter;
+import static org.identityconnectors.common.CollectionUtil.isEmpty;
+import static org.identityconnectors.common.CollectionUtil.nullAsEmpty;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -31,12 +35,9 @@ import org.connid.bundles.ldap.LdapConnection;
 import org.connid.bundles.ldap.commons.GroupHelper;
 import org.connid.bundles.ldap.commons.LdapConstants;
 import org.connid.bundles.ldap.commons.LdapModifyOperation;
-import static org.connid.bundles.ldap.commons.LdapUtil.checkedListByFilter;
 import org.connid.bundles.ldap.commons.StatusManagement;
 import org.connid.bundles.ldap.schema.GuardedPasswordAttribute;
 import org.connid.bundles.ldap.schema.GuardedPasswordAttribute.Accessor;
-import static org.identityconnectors.common.CollectionUtil.isEmpty;
-import static org.identityconnectors.common.CollectionUtil.nullAsEmpty;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
@@ -58,6 +59,7 @@ public class LdapCreate extends LdapModifyOperation {
             final ObjectClass oclass,
             final Set<Attribute> attrs,
             final OperationOptions options) {
+
         super(conn);
         this.oclass = oclass;
         this.attrs = attrs;

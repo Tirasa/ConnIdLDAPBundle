@@ -22,7 +22,14 @@
  */
 package org.connid.bundles.ldap.schema;
 
-import java.lang.String;
+import static org.connid.bundles.ldap.commons.LdapEntry.isDNAttribute;
+import static org.connid.bundles.ldap.commons.LdapUtil.addBinaryOption;
+import static org.connid.bundles.ldap.commons.LdapUtil.getStringAttrValue;
+import static org.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapName;
+import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveMap;
+import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
+import static org.identityconnectors.common.CollectionUtil.newReadOnlyList;
+
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -36,14 +43,7 @@ import javax.naming.directory.BasicAttributes;
 import javax.naming.ldap.LdapName;
 import org.connid.bundles.ldap.LdapConnection;
 import org.connid.bundles.ldap.commons.LdapEntry;
-import static org.connid.bundles.ldap.commons.LdapEntry.isDNAttribute;
-import static org.connid.bundles.ldap.commons.LdapUtil.addBinaryOption;
-import static org.connid.bundles.ldap.commons.LdapUtil.getStringAttrValue;
-import static org.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapName;
 import org.connid.bundles.ldap.commons.ObjectClassMappingConfig;
-import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveMap;
-import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
-import static org.identityconnectors.common.CollectionUtil.newReadOnlyList;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -67,7 +67,7 @@ import org.identityconnectors.framework.common.objects.Uid;
  */
 public class LdapSchemaMapping {
 
-    private static final Log log = Log.getLog(LdapSchemaMapping.class);
+    private static final Log LOG = Log.getLog(LdapSchemaMapping.class);
 
     // XXX
     // - which attrs returned by default? Currently only userApplications.
@@ -167,7 +167,7 @@ public class LdapSchemaMapping {
         }
 
         if (result == null && !oclass.equals(ANY_OBJECT_CLASS)) {
-            log.warn(
+            LOG.warn(
                     "Attribute {0} of object class {1} is not mapped to an LDAP attribute",
                     attrName, oclass.getObjectClassValue());
         }
@@ -307,7 +307,7 @@ public class LdapSchemaMapping {
         }
         ldapAttrs.put(objectClass);
 
-        log.ok("Creating LDAP subcontext {0} with attributes {1}", entryName, ldapAttrs);
+        LOG.ok("Creating LDAP subcontext {0} with attributes {1}", entryName, ldapAttrs);
         try {
             conn.getInitialContext().createSubcontext(entryName, ldapAttrs).close();
             return entryName.toString();

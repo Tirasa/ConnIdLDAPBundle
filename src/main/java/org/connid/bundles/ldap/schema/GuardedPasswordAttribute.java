@@ -25,20 +25,18 @@ package org.connid.bundles.ldap.schema;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
-
 import javax.naming.directory.Attribute;
 import javax.naming.directory.BasicAttribute;
-
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.SecurityUtil;
 
 public abstract class GuardedPasswordAttribute {
 
-    public static GuardedPasswordAttribute create(String attrName, GuardedString password) {
+    public static GuardedPasswordAttribute create(final String attrName, final GuardedString password) {
         return new Simple(attrName, password);
     }
 
-    public static GuardedPasswordAttribute create(String attrName) {
+    public static GuardedPasswordAttribute create(final String attrName) {
         return new Empty(attrName);
     }
 
@@ -52,16 +50,22 @@ public abstract class GuardedPasswordAttribute {
     private static final class Simple extends GuardedPasswordAttribute {
 
         private final String attrName;
+
         private final GuardedString password;
 
-        private Simple(String attrName, GuardedString password) {
+        private Simple(final String attrName, final GuardedString password) {
+            super();
+
             this.attrName = attrName;
             this.password = password;
         }
 
+        @Override
         public void access(final Accessor accessor) {
             password.access(new GuardedString.Accessor() {
-                public void access(char[] clearChars) {
+
+                @Override
+                public void access(final char[] clearChars) {
                     // TODO this is still not good enough. Need a simple and reliable
                     // way to convert UTF-16 to UTF-8 bytes.
                     CharBuffer charBuf = CharBuffer.wrap(clearChars);
@@ -91,12 +95,14 @@ public abstract class GuardedPasswordAttribute {
 
         private final String attrName;
 
-        private Empty(String attrName) {
+        private Empty(final String attrName) {
+            super();
+
             this.attrName = attrName;
         }
 
         @Override
-        public void access(Accessor accessor) {
+        public void access(final Accessor accessor) {
             accessor.access(new BasicAttribute(attrName));
         }
     }
