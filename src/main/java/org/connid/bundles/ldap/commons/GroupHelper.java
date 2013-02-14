@@ -48,7 +48,8 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
 
 public class GroupHelper {
 
-    private static final String[] OBJECT_CLASSES_WITH_MANDATORY_MEMB_ATTR = {"groupOfUniqueNames", "groupOfNames"};
+    // This must be sorted in ascending order for Arrays.binarySearch to work properly!
+    private static final String[] OBJECT_CLASSES_WITH_MANDATORY_MEMB_ATTR = {"groupOfNames", "groupOfUniqueNames"};
 
     private static final Log log = Log.getLog(GroupHelper.class);
 
@@ -167,8 +168,11 @@ public class GroupHelper {
     public void addMemberAttributeIfMissing(final BasicAttributes ldapAttrs) {
         String[] groupObjectClasses = conn.getConfiguration().getGroupObjectClasses();
         boolean found = false;
-        for (int i = 0; i < groupObjectClasses.length || !found; i++) {
+        for (int i = 0; i < groupObjectClasses.length; i++) {
             found = Arrays.binarySearch(OBJECT_CLASSES_WITH_MANDATORY_MEMB_ATTR, groupObjectClasses[i]) >= 0;
+            if (found) {
+                break;
+            }
         }
         if (!found) {
             return;
