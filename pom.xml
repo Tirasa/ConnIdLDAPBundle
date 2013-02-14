@@ -28,8 +28,8 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>connid</artifactId>
     <groupId>org.connid</groupId>
+    <artifactId>connid</artifactId>
     <version>1.3.3-SNAPSHOT</version>
   </parent>
 
@@ -63,8 +63,8 @@
   </issueManagement>
 
   <ciManagement>
-    <system>Jenkins</system>
-    <url>http://jenkins.tirasa.net/job/ConnId%20bundle%20LDAP%20(master)/</url>
+    <system>Travis CI</system>
+    <url>https://travis-ci.org/Tirasa/ConnIdLDAPBundle</url>
   </ciManagement>
 
   <mailingLists>
@@ -97,23 +97,20 @@
   <dependencies>
     <dependency>
       <groupId>org.connid</groupId>
-      <artifactId>framework</artifactId>
+      <artifactId>connid-framework</artifactId>
       <version>${base.version}</version>
-      <scope>compile</scope>
     </dependency>
 
     <dependency>
       <groupId>org.connid</groupId>
-      <artifactId>framework-internal</artifactId>
+      <artifactId>connid-framework-internal</artifactId>
       <version>${base.version}</version>
-      <scope>runtime</scope>
     </dependency>
         
     <dependency>
       <groupId>org.glassfish.main.external</groupId>
       <artifactId>ldapbp-repackaged</artifactId>
-      <version>3.1.2</version>
-      <scope>provided</scope>
+      <version>3.1.2.2</version>
     </dependency>
         
     <!-- TEST -->
@@ -133,7 +130,7 @@
         
     <dependency>
       <groupId>org.connid</groupId>
-      <artifactId>test-common</artifactId>
+      <artifactId>connid-test-common</artifactId>
       <version>${base.version}</version>
       <scope>test</scope>
     </dependency>
@@ -335,18 +332,26 @@
   </build>
 
   <repositories>
-     <repository>
-        <id>sonatype</id>
-        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        <releases><enabled>false</enabled></releases>
-        <snapshots><enabled>true</enabled></snapshots>
-     </repository>
-     <repository>
-        <id>jboss</id>
-        <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-        <releases><enabled>true</enabled></releases>
-        <snapshots><enabled>false</enabled></snapshots>
-     </repository>
+    <repository>
+      <id>sonatype</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>jboss</id>
+      <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
   </repositories>
 
 </project>
