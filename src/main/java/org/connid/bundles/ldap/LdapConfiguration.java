@@ -55,7 +55,6 @@ import org.identityconnectors.framework.spi.operations.SyncOp;
 public class LdapConfiguration extends AbstractConfiguration {
 
     // XXX should try to connect to the resource.
-    // XXX add @ConfigurationProperty.
     public static final int DEFAULT_PORT = 389;
 
     // Exposed configuration properties.
@@ -339,7 +338,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         throw new ConfigurationException(message);
     }
 
-    @ConfigurationProperty(
+    @ConfigurationProperty(required = true,
     displayMessageKey = "host.display",
     helpMessageKey = "host.help")
     public String getHost() {
@@ -405,7 +404,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.credentials = credentials != null ? credentials.copy() : null;
     }
 
-    @ConfigurationProperty(
+    @ConfigurationProperty(required = true,
     displayMessageKey = "baseContexts.display",
     helpMessageKey = "baseContexts.help")
     public String[] getBaseContexts() {
@@ -620,7 +619,7 @@ public class LdapConfiguration extends AbstractConfiguration {
                 clone();
     }
 
-    @ConfigurationProperty(operations = {SyncOp.class}, required = true,
+    @ConfigurationProperty(operations = {SyncOp.class},
     displayMessageKey = "objectClassesToSynchronize.display",
     helpMessageKey = "objectClassesToSynchronize.help")
     public String[] getObjectClassesToSynchronize() {
@@ -666,7 +665,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.accountSynchronizationFilter = accountSynchronizationFilter;
     }
 
-    @ConfigurationProperty(operations = {SyncOp.class}, required = true,
+    @ConfigurationProperty(operations = {SyncOp.class},
     displayMessageKey = "changeLogBlockSize.display",
     helpMessageKey = "changeLogBlockSize.help")
     public int getChangeLogBlockSize() {
@@ -677,7 +676,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.changeLogBlockSize = changeLogBlockSize;
     }
 
-    @ConfigurationProperty(operations = {SyncOp.class}, required = true,
+    @ConfigurationProperty(operations = {SyncOp.class},
     displayMessageKey = "changeNumberAttribute.display",
     helpMessageKey = "changeNumberAttribute.help")
     public String getChangeNumberAttribute() {
