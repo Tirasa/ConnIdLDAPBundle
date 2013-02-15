@@ -482,7 +482,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     public void setGroupNameAttributes(String... accountUserNameAttributes) {
-        accountConfig.setShortNameLdapAttributes(Arrays.asList(accountUserNameAttributes));
+        groupConfig.setShortNameLdapAttributes(Arrays.asList(accountUserNameAttributes));
     }
 
     @ConfigurationProperty(
