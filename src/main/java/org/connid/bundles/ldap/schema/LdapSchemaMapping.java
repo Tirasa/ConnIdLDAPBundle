@@ -156,12 +156,14 @@ public class LdapSchemaMapping {
             result = getLdapUidAttribute(oclass);
         } else if (AttributeUtil.namesEqual(Name.NAME, attrName)) {
             result = getLdapNameAttribute(oclass);
+        } else if (OperationalAttributes.PASSWORD_NAME.equals(attrName)) {
+            result = getLdapPasswordAttribute(oclass);
         }
 
         if (result == null && !AttributeUtil.isSpecialName(attrName)) {
             result = attrName;
         }
-
+        
         if (result != null && transfer && conn.needsBinaryOption(result)) {
             result = addBinaryOption(result);
         }
@@ -205,6 +207,13 @@ public class LdapSchemaMapping {
                 ? conn.getConfiguration().getObjectClassMappingConfigs().get(oclass).
                 getShortNameLdapAttributes().iterator().next()
                 : conn.getConfiguration().getUidAttribute();
+    }
+    
+    /**
+     * Returns the LDAP attribute which corresponds to the password.
+     */
+    public String getLdapPasswordAttribute(ObjectClass oclass) {
+        return conn.getConfiguration().getPasswordAttribute();
     }
 
     /**
@@ -273,17 +282,21 @@ public class LdapSchemaMapping {
         if (ldapAttrNameForTransfer != null) {
             ldapAttr = entry.getAttributes().get(ldapAttrNameForTransfer);
         }
-
         if (ldapAttr == null) {
             return emptyWhenNotFound ? AttributeBuilder.build(attrName, Collections.emptyList()) : null;
         }
-
+        
         AttributeBuilder builder = new AttributeBuilder();
         builder.setName(attrName);
         try {
-            NamingEnumeration<?> valEnum = ldapAttr.getAll();
-            while (valEnum.hasMore()) {
-                builder.addValue(valEnum.next());
+            if (OperationalAttributes.PASSWORD_NAME.equals(attrName)) {
+                String password = new String((byte[])ldapAttr.get());
+                builder.addValue(new GuardedString(password.toCharArray()));
+            } else {
+                NamingEnumeration<?> valEnum = ldapAttr.getAll();
+                while (valEnum.hasMore()) {
+                    builder.addValue(valEnum.next());
+                }
             }
         } catch (NamingException e) {
             throw new ConnectorException(e);

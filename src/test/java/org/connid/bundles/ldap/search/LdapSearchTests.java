@@ -394,7 +394,21 @@ public class LdapSearchTests extends LdapConnectorTestBase {
             }
         });
     }
-
+    
+    @Test
+    public void testReturnPasswordFromSearch() {
+        LdapConfiguration config = newConfiguration();
+        config.setRetrievePasswordsWithSearch(true);
+        ConnectorFacade facade = newFacade(config);
+        ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN), OperationalAttributes.PASSWORD_NAME);
+        GuardedString password = (GuardedString) bunny.getAttributeByName(OperationalAttributes.PASSWORD_NAME).getValue().get(0);
+        password.access(new Accessor() {
+            public void access(char[] clearChars) {
+                assertTrue(clearChars.length > 0);
+            }
+        });
+    }
+    
     private static ConnectorObject getObjectByName(List<ConnectorObject> objects, String name) {
         for (ConnectorObject object : objects) {
             if (name.equals(object.getName().getNameValue())) {

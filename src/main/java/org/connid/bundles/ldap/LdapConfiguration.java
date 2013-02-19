@@ -187,6 +187,11 @@ public class LdapConfiguration extends AbstractConfiguration {
     private GuardedByteArray passwordDecryptionInitializationVector;
 
     private String statusManagementClass;
+    
+    /**
+     * Whether to retrieve passwords when searching. The default is "false".
+     */
+    private boolean retrievePasswordsWithSearch;
 
     // Other state.
     private final ObjectClassMappingConfig accountConfig = new ObjectClassMappingConfig(
@@ -766,6 +771,17 @@ public class LdapConfiguration extends AbstractConfiguration {
     public void setStatusManagementClass(String statusManagementClass) {
         this.statusManagementClass = statusManagementClass;
     }
+    
+    @ConfigurationProperty(order = 39,
+    displayMessageKey = "retrievePasswordsWithSearch.display",
+    helpMessageKey = "retrievePasswordsWithSearch.help")
+    public boolean getRetrievePasswordsWithSearch() {
+        return retrievePasswordsWithSearch;
+    }
+
+    public void setRetrievePasswordsWithSearch(boolean retrievePasswordsWithSearch) {
+        this.retrievePasswordsWithSearch = retrievePasswordsWithSearch;
+    }
 
     // Getters and setters for configuration properties end here.
     public List<LdapName> getBaseContextsAsLdapNames() {
@@ -871,6 +887,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         // Other state.
         builder.append(accountConfig);
         builder.append(groupConfig);
+        builder.append(retrievePasswordsWithSearch);
         return builder;
     }
 

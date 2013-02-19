@@ -281,7 +281,8 @@ public class LdapSearch {
                 posixGroups.addAll(groupHelper.getPosixGroups(posixRefAttrs));
 
                 attribute = AttributeBuilder.build(LdapConstants.POSIX_GROUPS_NAME, posixGroups);
-            } else if (LdapConstants.PASSWORD.is(attrName)) {
+            } else if (LdapConstants.PASSWORD.is(attrName)
+                && !conn.getConfiguration().getRetrievePasswordsWithSearch()) {
                 attribute = AttributeBuilder.build(attrName, new GuardedString());
             } else {
                 attribute = conn.getSchemaMapping().createAttribute(oclass, attrName, entry, emptyAttrWhenNotFound);
@@ -429,7 +430,8 @@ public class LdapSearch {
 
         // Our password is marked as readable because of sync(). 
         // We really can't return it from search.
-        if (result.contains(OperationalAttributes.PASSWORD_NAME)) {
+        if (!conn.getConfiguration().getRetrievePasswordsWithSearch()
+            && result.contains(OperationalAttributes.PASSWORD_NAME)) {
             LOG.warn("Reading passwords not supported");
         }
 
