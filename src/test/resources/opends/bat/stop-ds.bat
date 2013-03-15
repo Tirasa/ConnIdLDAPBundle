@@ -1,3 +1,26 @@
+@REM
+@REM ====================
+@REM DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+@REM
+@REM Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
+@REM Copyright 2011-2013 Tirasa. All rights reserved.
+@REM
+@REM The contents of this file are subject to the terms of the Common Development
+@REM and Distribution License("CDDL") (the "License"). You may not use this file
+@REM except in compliance with the License.
+@REM
+@REM You can obtain a copy of the License at https://oss.oracle.com/licenses/CDDL
+@REM See the License for the specific language governing permissions and limitations
+@REM under the License.
+@REM
+@REM When distributing the Covered Code, include this CDDL Header Notice in each file
+@REM and include the License file at https://oss.oracle.com/licenses/CDDL.
+@REM If applicable, add the following below this CDDL Header, with the fields
+@REM enclosed by brackets [] replaced by your own identifying information:
+@REM "Portions Copyrighted [year] [name of copyright owner]"
+@REM ====================
+@REM
+
 
 @echo off
 rem CDDL HEADER START
