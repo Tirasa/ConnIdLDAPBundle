@@ -187,7 +187,9 @@ public class LdapConfiguration extends AbstractConfiguration {
     private GuardedByteArray passwordDecryptionInitializationVector;
 
     private String statusManagementClass;
-    
+
+    private String dnAttribute = "entryDN";
+
     /**
      * Whether to retrieve passwords when searching. The default is "false".
      */
@@ -771,7 +773,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     public void setStatusManagementClass(String statusManagementClass) {
         this.statusManagementClass = statusManagementClass;
     }
-    
+
     @ConfigurationProperty(order = 39,
     displayMessageKey = "retrievePasswordsWithSearch.display",
     helpMessageKey = "retrievePasswordsWithSearch.help")
@@ -781,6 +783,17 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     public void setRetrievePasswordsWithSearch(boolean retrievePasswordsWithSearch) {
         this.retrievePasswordsWithSearch = retrievePasswordsWithSearch;
+    }
+
+    @ConfigurationProperty(order = 40,
+    displayMessageKey = "dnAttribute.display",
+    helpMessageKey = "dnAttribute.help")
+    public String getDnAttribute() {
+        return dnAttribute;
+    }
+
+    public void setDnAttribute(String dnAttribute) {
+        this.dnAttribute = dnAttribute;
     }
 
     // Getters and setters for configuration properties end here.

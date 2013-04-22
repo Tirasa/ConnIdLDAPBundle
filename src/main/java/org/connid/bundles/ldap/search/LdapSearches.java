@@ -28,11 +28,11 @@ import static org.connid.bundles.ldap.commons.LdapUtil.isUnderContexts;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapName;
-
+import org.connid.bundles.ldap.LdapConnection;
+import org.connid.bundles.ldap.commons.LdapEntry;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
@@ -45,8 +45,6 @@ import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
-import org.connid.bundles.ldap.LdapConnection;
-import org.connid.bundles.ldap.commons.LdapEntry;
 
 /**
  * Helper methods for searching. The "get" methods throw an exception when
@@ -113,19 +111,19 @@ public class LdapSearches {
         assert ldapFilter != null;
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
-        builder.setAttributesToGet("entryDN");
+        builder.setAttributesToGet(conn.getConfiguration().getDnAttribute());
 
         LdapSearch search = new LdapSearch(conn, oclass, ldapFilter, builder.
                 build());
         ConnectorObject object = search.getSingleResult();
         if (object != null) {
-            return AttributeUtil.getStringValue(object.getAttributeByName(
-                    "entryDN"));
+            return AttributeUtil.getStringValue(object.getAttributeByName(conn.getConfiguration().getDnAttribute()));
         }
         throw new UnknownUidException(uid, oclass);
     }
 
-    public static List<ConnectorObject> findObjects(LdapConnection conn, ObjectClass oclass, String baseDN, Attribute attr, String... attrsToGet) {
+    public static List<ConnectorObject> findObjects(
+            LdapConnection conn, ObjectClass oclass, String baseDN, Attribute attr, String... attrsToGet) {
         log.ok("Searching for object with attribute {0} of class {1} in {2}",
                 attr, oclass.getObjectClassValue(), baseDN);
 

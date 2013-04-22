@@ -45,8 +45,11 @@ import org.connid.bundles.ldap.search.LdapSearches;
 public class LdapAuthenticate {
 
     private final LdapConnection conn;
+
     private final ObjectClass oclass;
+
     private final String username;
+
     private final OperationOptions options;
 
     public LdapAuthenticate(LdapConnection conn, ObjectClass oclass, String username, OperationOptions options) {
@@ -60,7 +63,8 @@ public class LdapAuthenticate {
         ConnectorObject authnObject = getObjectToAuthenticate();
         AuthenticationResult authnResult = null;
         if (authnObject != null) {
-            String entryDN = authnObject.getAttributeByName("entryDN").getValue().get(0).toString();
+            String entryDN = authnObject.getAttributeByName(
+                    this.conn.getConfiguration().getDnAttribute()).getValue().get(0).toString();
             authnResult = conn.authenticate(entryDN, password);
         }
 
@@ -88,11 +92,12 @@ public class LdapAuthenticate {
     private ConnectorObject getObjectToAuthenticate() {
         List<String> userNameAttrs = getUserNameAttributes();
         Map<String, ConnectorObject> entryDN2Object = new HashMap<String, ConnectorObject>();
+        final String dnAttributeName = conn.getConfiguration().getDnAttribute();
         for (String baseContext : conn.getConfiguration().getBaseContexts()) {
             for (String userNameAttr : userNameAttrs) {
                 Attribute attr = AttributeBuilder.build(userNameAttr, username);
-                for (ConnectorObject object : LdapSearches.findObjects(conn, oclass, baseContext, attr, "entryDN")) {
-                    String entryDN = object.getAttributeByName("entryDN").getValue().get(0).toString();
+                for (ConnectorObject object : LdapSearches.findObjects(conn, oclass, baseContext, attr, dnAttributeName)) {
+                    String entryDN = object.getAttributeByName(dnAttributeName).getValue().get(0).toString();
                     entryDN2Object.put(entryDN, object);
                 }
                 // If we found more than one authentication candidates, no need to continue

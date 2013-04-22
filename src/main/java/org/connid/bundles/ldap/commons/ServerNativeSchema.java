@@ -75,12 +75,12 @@ public class ServerNativeSchema implements LdapNativeSchema {
         LDAP_DIRECTORY_ATTRS.add("modifyTimestamp");
         LDAP_DIRECTORY_ATTRS.add("creatorsName");
         LDAP_DIRECTORY_ATTRS.add("modifiersName");
-        LDAP_DIRECTORY_ATTRS.add("entryDN");
     }
 
     public ServerNativeSchema(LdapConnection conn)
             throws NamingException {
         this.conn = conn;
+        LDAP_DIRECTORY_ATTRS.add(this.conn.getConfiguration().getDnAttribute());
         schemaCtx = conn.getInitialContext().getSchema("");
         try {
             initObjectClasses();
