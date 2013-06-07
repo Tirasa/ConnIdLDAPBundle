@@ -38,6 +38,7 @@ import static org.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapName;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +81,7 @@ import org.connid.bundles.ldap.sync.sunds.LdifParser.ChangeSeparator;
 import org.connid.bundles.ldap.sync.sunds.LdifParser.Line;
 import org.connid.bundles.ldap.sync.sunds.LdifParser.NameValue;
 import org.connid.bundles.ldap.sync.sunds.LdifParser.Separator;
+import org.identityconnectors.framework.common.objects.Uid;
 
 /**
  * An implementation of the sync operation based on the retro change log
@@ -150,8 +152,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         do {
             results[0] = false;
 
-            String filter = getChangeLogSearchFilter(
-                    changeNumberAttr, currentChangeNumber[0]);
+            String filter = getChangeLogSearchFilter(changeNumberAttr, currentChangeNumber[0]);
 
             LdapInternalSearch search = new LdapInternalSearch(
                     conn,
@@ -165,18 +166,17 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                 @Override
                 public boolean handle(String baseDN, SearchResult result)
                         throws NamingException {
+
                     results[0] = true;
                     final LdapEntry entry = LdapEntry.create(baseDN, result);
 
-                    int changeNumber = convertToInt(getStringAttrValue(
-                            entry.getAttributes(), changeNumberAttr), -1);
+                    int changeNumber = convertToInt(getStringAttrValue(entry.getAttributes(), changeNumberAttr), -1);
 
                     if (changeNumber > currentChangeNumber[0]) {
                         currentChangeNumber[0] = changeNumber;
                     }
 
-                    final SyncDelta delta = createSyncDelta(
-                            entry, changeNumber, options.getAttributesToGet());
+                    final SyncDelta delta = createSyncDelta(entry, changeNumber, options.getAttributesToGet());
 
                     if (delta != null) {
                         return handler.handle(delta);
@@ -234,7 +234,17 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                 throw new ConnectorException("Unsupported Uid attribute " + uidAttr);
             }
 
-            syncDeltaBuilder.setUid(conn.getSchemaMapping().createUid(oclass, targetDN));
+            Uid deletedUid = conn.getSchemaMapping().createUid(oclass, targetDN);
+
+            // Build an empty connector object, with minimal information - LDAP-8
+            ConnectorObjectBuilder objectBuilder = new ConnectorObjectBuilder();
+            objectBuilder.setObjectClass(oclass);
+            objectBuilder.setUid(deletedUid);
+            objectBuilder.setName("fake-dn");
+            objectBuilder.addAttributes(Collections.<Attribute>emptySet());
+
+            syncDeltaBuilder.setUid(deletedUid);
+            syncDeltaBuilder.setObject(objectBuilder.build());
 
             return syncDeltaBuilder.build();
         }
