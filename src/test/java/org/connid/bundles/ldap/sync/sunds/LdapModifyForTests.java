@@ -22,7 +22,6 @@
  */
 package org.connid.bundles.ldap.sync.sunds;
 
-import org.connid.bundles.ldap.sync.sunds.LdifParser;
 import static org.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapName;
 
 import java.util.ArrayList;
@@ -53,14 +52,15 @@ import org.junit.Test;
 
 /**
  * A simple, and in no way complete, way to modify an LDAP server
- * based on an LDIF file. 
+ * based on an LDIF file.
  */
 public class LdapModifyForTests {
 
-    private static final Log log = Log.getLog(LdapModifyForTests.class);
+    private static final Log LOG = Log.getLog(LdapModifyForTests.class);
 
     public static void modify(LdapConnection conn, String ldif)
             throws NamingException {
+
         LdifParser parser = new LdifParser(ldif);
         Iterator<Line> lines = parser.iterator();
 
@@ -128,8 +128,7 @@ public class LdapModifyForTests {
                         throw new IllegalArgumentException();
                     }
                     continue;
-                }
-                if (modifyMap != null) {
+                } else {
                     NameValue nameValue = (NameValue) line;
                     List<String> values = modifyMap.get(nameValue.getName());
                     if (values == null) {
@@ -162,7 +161,7 @@ public class LdapModifyForTests {
                 attrs.put(attr);
             }
             LdapName newName = quietCreateLdapName(dn);
-            log.ok("Creating context {0} with attributes {1}", newName, attrs);
+            LOG.ok("Creating context {0} with attributes {1}", newName, attrs);
             String container = newName.getPrefix(newName.size() - 1).toString();
             Rdn rdn = newName.getRdn(newName.size() - 1);
             LdapContext containerCtx = (LdapContext) conn.getInitialContext().
@@ -172,17 +171,17 @@ public class LdapModifyForTests {
             List<ModificationItem> modItems = new ArrayList<ModificationItem>();
             addModificationItems(DirContext.ADD_ATTRIBUTE, added, modItems);
             addModificationItems(DirContext.REMOVE_ATTRIBUTE, deleted, modItems);
-            log.ok("Modifying context {0} with attributes {1}", dn, modItems);
+            LOG.ok("Modifying context {0} with attributes {1}", dn, modItems);
             conn.getInitialContext().modifyAttributes(dn,
                     modItems.toArray(new ModificationItem[modItems.size()]));
         } else if ("delete".equalsIgnoreCase(changeType)) {
-            log.ok("Deleting context {0}");
+            LOG.ok("Deleting context {0}");
             conn.getInitialContext().destroySubcontext(dn);
         } else if ("modrdn".equalsIgnoreCase(changeType)) {
             LdapName oldName = quietCreateLdapName(dn);
             LdapName newName = (LdapName) oldName.getPrefix(oldName.size() - 1);
             newName.add(newRdn);
-            log.ok("Renaming context {0} to {1}", oldName, newName);
+            LOG.ok("Renaming context {0} to {1}", oldName, newName);
             LdapContext ctx = conn.getInitialContext().newInstance(null);
             try {
                 ctx.addToEnvironment("java.naming.ldap.deleteRDN", deleteOldRdn);
@@ -193,7 +192,9 @@ public class LdapModifyForTests {
         }
     }
 
-    private static void addModificationItems(int operation, Map<String, List<String>> map, List<ModificationItem> toList) {
+    private static void addModificationItems(int operation, Map<String, List<String>> map,
+            List<ModificationItem> toList) {
+
         for (Entry<String, List<String>> entry : map.entrySet()) {
             Attribute attr = new BasicAttribute(entry.getKey());
             for (String each : entry.getValue()) {

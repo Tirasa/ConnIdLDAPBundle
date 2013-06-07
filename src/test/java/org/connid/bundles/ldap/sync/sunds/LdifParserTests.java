@@ -22,7 +22,6 @@
  */
 package org.connid.bundles.ldap.sync.sunds;
 
-import org.connid.bundles.ldap.sync.sunds.LdifParser;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -39,25 +38,9 @@ public class LdifParserTests {
     @Test
     public void testSimple() {
         String ldif =
-                "changeType: mo\n" +
-        		" dify\n" +
-        		"rep\n" +
-        		" lace: cn\n" +
-        		"cn: Na\n" +
-        		" me 1\n" +
-        		"cn: Name 2\n" +
-        		"-\n" +
-        		"\n" +
-        		"\n" +
-        		"c\n" +
-        		" hang\n" +
-        		" eType: add\n" +
-        		"add: \n" +
-        		" uid\n" +
-        		"uid: \n" +
-        		" 1\n" +
-        		"\n" +
-        		"changeType: delete\n";
+                "changeType: mo\n" + " dify\n" + "rep\n" + " lace: cn\n" + "cn: Na\n" + " me 1\n" + "cn: Name 2\n"
+                + "-\n" + "\n" + "\n" + "c\n" + " hang\n" + " eType: add\n" + "add: \n" + " uid\n" + "uid: \n" + " 1\n"
+                + "\n" + "changeType: delete\n";
 
         LdifParser parser = new LdifParser(ldif);
         Iterator<Line> lines = parser.iterator();
@@ -79,7 +62,7 @@ public class LdifParserTests {
     @Test
     public void testChangeSeparatorAsLastLine() {
         String ldif =
-            "changeType: modify";
+                "changeType: modify";
 
         LdifParser parser = new LdifParser(ldif);
         Iterator<Line> lines = parser.iterator();
