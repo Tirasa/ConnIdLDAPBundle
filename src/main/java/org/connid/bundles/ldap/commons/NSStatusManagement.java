@@ -22,32 +22,35 @@
  */
 package org.connid.bundles.ldap.commons;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
-import javax.naming.directory.BasicAttribute;
 import org.identityconnectors.common.logging.Log;
 
 /**
- * Simple attribute-based status management implementation, meant for easy override.
+ * Uses the <tt>nsAccountLock</tt> attribute to implement enable/disable.
+ *
+ * Setting the attribute nsAccountLock to true will disable a users account and prevent
+ * them from binding to the directory.
  */
-public class AttributeStatusManagement extends StatusManagement {
+public class NSStatusManagement extends AttributeStatusManagement {
 
-    private static final Log LOG = Log.getLog(AttributeStatusManagement.class);
+    private static final Log LOG = Log.getLog(NSStatusManagement.class);
 
+    @Override
     protected String getStatusAttrName() {
-        return "description";
+        return "nsAccountLock";
     }
 
+    @Override
     protected String getStatusAttrActiveValue() {
-        return "Active";
+        return null;
     }
 
+    @Override
     protected String getStatusAttrInactiveValue() {
-        return "Inactive";
+        return "true";
     }
 
     @Override
@@ -56,39 +59,33 @@ public class AttributeStatusManagement extends StatusManagement {
 
         LOG.ok("Calling setStatus {0}", status);
 
-        Attribute statusAttrr = attributes.get(getStatusAttrName());
-        if (statusAttrr == null) {
-            statusAttrr = new BasicAttribute(getStatusAttrName());
-            attributes.put(statusAttrr);
+        final Object value = status ? getStatusAttrActiveValue() : getStatusAttrInactiveValue();
+        if (value == null) {
+            attributes.remove(getStatusAttrName());
+        } else {
+            attributes.put(getStatusAttrName(), value);
         }
-
-        statusAttrr.add(status ? getStatusAttrActiveValue() : getStatusAttrInactiveValue());
     }
 
     @Override
     public Boolean getStatus(final Attributes attributes,
             final List<String> posixGroups, final List<String> ldapGroups) {
 
-        Boolean status = null;
+        Boolean status = Boolean.TRUE;
 
-        final Attribute description = attributes.get(getStatusAttrName());
-        if (description != null) {
+        final Attribute attr = attributes.get(getStatusAttrName());
+        if (attr != null) {
             try {
-                final Object value = description.get();
+                final Object value = attr.get();
                 if (value != null) {
-                    status = getStatusAttrActiveValue().equals(value.toString());
+                    status ^= getStatusAttrInactiveValue().equalsIgnoreCase(value.toString());
                 }
             } catch (NamingException ignore) {
                 status = null;
             }
         }
 
+        LOG.ok("Returning getStatus {0}", status);
         return status;
-    }
-
-    @Override
-    public Set<String> getOperationalAttributes() {
-        return Collections.singleton(getStatusAttrName());
-
     }
 }
