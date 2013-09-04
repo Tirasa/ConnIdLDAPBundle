@@ -60,11 +60,7 @@ public class NSStatusManagement extends AttributeStatusManagement {
         LOG.ok("Calling setStatus {0}", status);
 
         final Object value = status ? getStatusAttrActiveValue() : getStatusAttrInactiveValue();
-        if (value == null) {
-            attributes.remove(getStatusAttrName());
-        } else {
-            attributes.put(getStatusAttrName(), value);
-        }
+        attributes.put(getStatusAttrName(), value);
     }
 
     @Override
