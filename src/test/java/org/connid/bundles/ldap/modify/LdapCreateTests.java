@@ -22,6 +22,9 @@
  */
 package org.connid.bundles.ldap.modify;
 
+import static org.connid.bundles.ldap.LdapConnectorTestBase.SMALL_COMPANY_DN;
+import static org.connid.bundles.ldap.LdapConnectorTestBase.newConfiguration;
+import static org.connid.bundles.ldap.LdapConnectorTestBase.newFacade;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -43,6 +46,7 @@ import org.identityconnectors.framework.common.objects.Uid;
 import org.connid.bundles.ldap.LdapConfiguration;
 import org.connid.bundles.ldap.LdapConnectorTestBase;
 import org.connid.bundles.ldap.MyStatusManagement;
+import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.junit.Test;
 
 public class LdapCreateTests extends LdapConnectorTestBase {
@@ -86,18 +90,22 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         doCreateAccount(facade);
     }
 
-    private void doCreateAccount(ConnectorFacade facade) {
-        Set<Attribute> attributes = new HashSet<Attribute>();
+    private void doCreateAccount(final ConnectorFacade facade) {
+        doCreateAccount(facade, null);
+    }
+
+    private void doCreateAccount(final ConnectorFacade facade, final OperationOptions options) {
+        final Set<Attribute> attributes = new HashSet<Attribute>();
         Name name = new Name("uid=another.worker," + SMALL_COMPANY_DN);
         attributes.add(name);
         attributes.add(AttributeBuilder.build("uid", "another.worker"));
         attributes.add(AttributeBuilder.build("cn", "Another Worker"));
         attributes.add(AttributeBuilder.build("givenName", "Another"));
         attributes.add(AttributeBuilder.build("sn", "Worker"));
-        Uid uid = facade.create(ObjectClass.ACCOUNT, attributes, null);
 
-        ConnectorObject newAccount = facade.getObject(ObjectClass.ACCOUNT, uid,
-                null);
+        final Uid uid = facade.create(ObjectClass.ACCOUNT, attributes, options);
+
+        ConnectorObject newAccount = facade.getObject(ObjectClass.ACCOUNT, uid, options);
         assertEquals(name, newAccount.getName());
     }
 
@@ -269,7 +277,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet(Arrays.asList(
-                new String[]{"description", OperationalAttributes.ENABLE_NAME}));
+                new String[] {"description", OperationalAttributes.ENABLE_NAME}));
 
         final ConnectorObject obj =
                 facade.getObject(ObjectClass.ACCOUNT, uid, builder.build());
@@ -282,5 +290,13 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         assertNotNull(status);
         assertFalse(status.getValue().isEmpty());
         assertFalse((Boolean) status.getValue().get(0));
+    }
+
+    @Test
+    public void issueLDAP12() {
+        final LdapConfiguration config = newConfiguration();
+        config.setBaseContexts(SMALL_COMPANY_DN);
+        config.setUidAttribute("sn");
+        doCreateAccount(newFacade(config), new OperationOptionsBuilder().setAttributesToGet("givenName").build());
     }
 }
