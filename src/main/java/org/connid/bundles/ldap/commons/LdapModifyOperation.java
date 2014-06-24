@@ -76,6 +76,14 @@ public abstract class LdapModifyOperation {
     }
 
     private String hashBytes(final byte[] plain, final String algorithm, final long randSeed) {
+        String plainPassword = new String(plain);
+        if (plainPassword != null && plainPassword.startsWith("{")) {
+            String digest = plainPassword.substring(1, plainPassword.indexOf('}'));
+            if (digest != null && algorithm.equalsIgnoreCase(digest)) {
+                return plainPassword;
+            }
+        }
+        
         MessageDigest digest = null;
         try {
             if (algorithm.equalsIgnoreCase("SSHA") || algorithm.equalsIgnoreCase("SHA")) {
