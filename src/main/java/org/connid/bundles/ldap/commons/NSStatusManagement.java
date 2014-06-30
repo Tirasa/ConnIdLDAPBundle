@@ -45,7 +45,7 @@ public class NSStatusManagement extends AttributeStatusManagement {
 
     @Override
     protected String getStatusAttrActiveValue() {
-        return null;
+        return "false";
     }
 
     @Override
