@@ -46,7 +46,7 @@
   <licenses>
     <license>
       <name>CDDL 1.0</name>
-      <url>https://raw.github.com/Tirasa/ConnId/master/legal/license.txt</url>
+      <url>http://opensource.org/licenses/CDDL-1.0</url>
       <distribution>repo</distribution>
     </license>
   </licenses>
