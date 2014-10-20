@@ -154,10 +154,12 @@
           <header>https://raw.githubusercontent.com/Tirasa/ConnId/connid-${connid.version}/java/src/main/resources/header.txt</header>
           <headerDefinitions>
             <headerDefinition>https://raw.githubusercontent.com/Tirasa/ConnId/connid-${connid.version}/java/src/main/resources/java-single-star.xml</headerDefinition>
-          </headerDefinitions>          
+          </headerDefinitions>    
+          <mapping>
+            <ldif>SCRIPT_STYLE</ldif>
+          </mapping>                
           <excludes>
             <exclude>**/LICENSE*</exclude>
-            <exclude>**/*.ldif</exclude>
             <exclude>**/*.bat</exclude>
             <exclude>**/*.pin</exclude>
             <exclude>**/*.cert</exclude>
@@ -325,8 +327,7 @@
               <ConnectorBundle-Version>${project.version}</ConnectorBundle-Version>
             </manifestEntries>
           </archive>                    
-        </configuration>
-                
+        </configuration>                
         <executions>
           <execution>
             <id>make-assembly</id>
