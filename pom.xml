@@ -35,7 +35,7 @@
 
   <groupId>net.tirasa.connid.bundles</groupId>
   <artifactId>net.tirasa.connid.bundles.ldap</artifactId>
-  <version>1.4.0-SNAPSHOT</version>
+  <version>1.4.0</version>
 
   <name>ConnId Bundles: LDAP</name>
 
@@ -180,8 +180,7 @@
             <phase>process-test-classes</phase>
             <configuration>
               <target>
-                <get src="http://java.net/downloads/opends/promoted-builds/1.0.0/OpenDS-1.0.0.zip" 
-                     dest="${java.io.tmpdir}" skipexisting="true" />
+                <get src="http://java.net/downloads/opends/promoted-builds/1.0.0/OpenDS-1.0.0.zip" dest="${java.io.tmpdir}" skipexisting="true" />
                 <delete dir="${opends.setup.dir}" />
                 <unzip dest="${opends.setup.dir}" src="${java.io.tmpdir}/OpenDS-1.0.0.zip">
                   <!-- Remove the "OpenDS-1.x.y" prefix. -->
