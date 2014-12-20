@@ -159,6 +159,7 @@
             <ldif>SCRIPT_STYLE</ldif>
           </mapping>                
           <excludes>
+            <exclude>README.md</exclude>
             <exclude>**/LICENSE*</exclude>
             <exclude>**/*.bat</exclude>
             <exclude>**/*.pin</exclude>
