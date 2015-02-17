@@ -225,6 +225,16 @@ public class LdapConfiguration extends AbstractConfiguration {
     private List<LdapName> baseContextsToSynchronizeAsLdapNames;
 
     private Set<LdapName> modifiersNamesToFilterOutAsLdapNames;
+    
+    /**
+     * Used to specify the read timeout for an LDAP operation in milliseconds
+     */
+    private long readTimeout = 0;
+    
+    /**
+     * Used to specify the connect timeout for connecting to the ldap server in milliseconds
+     */
+    private long connectTimeout = 0;
 
     /**
      * {@inheritDoc}
@@ -815,6 +825,32 @@ public class LdapConfiguration extends AbstractConfiguration {
     public void setGroupSearchFilter(String groupSearchFilter) {
         this.groupSearchFilter = groupSearchFilter;
     }
+    
+    @ConfigurationProperty(order = 42, 
+    		displayMessageKey = "readTimeout.display",
+    		helpMessageKey = "readTimeout.help")
+    public long getReadTimeout()
+    {
+    	return readTimeout;
+    }
+    
+    public void setReadTimeout(long readTimeout)
+    {
+    	this.readTimeout = readTimeout;
+    }
+    
+    @ConfigurationProperty(order = 43, 
+    		displayMessageKey = "connectTimeout.display",
+    		helpMessageKey = "connectTimeout.help")
+    public long getConnectTimeout()
+    {
+    	return connectTimeout;
+    }
+    
+    public void setConnectTimeout(long connectTimeout)
+    {
+    	this.connectTimeout = connectTimeout;
+    }
 
     // Getters and setters for configuration properties end here.
     public List<LdapName> getBaseContextsAsLdapNames() {
@@ -922,7 +958,8 @@ public class LdapConfiguration extends AbstractConfiguration {
         builder.append(groupConfig);
         builder.append(retrievePasswordsWithSearch);
         builder.append(groupSearchFilter);
-
+        builder.append(connectTimeout);
+        builder.append(readTimeout);
         return builder;
     }
 

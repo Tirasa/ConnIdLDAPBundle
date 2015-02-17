@@ -43,7 +43,11 @@ public class LdapConstants {
     public static final String SEARCH_FILTER_NAME = "searchFilter";
 
     public static final String OP_SEARCH_FILTER = "searchFilter";
-
+    
+    public static final String CONNECT_TIMEOUT_ENV_PROP = "com.sun.jndi.ldap.connect.timeout";
+    
+    public static final String READ_TIMEOUT_ENV_PROP = "com.sun.jndi.ldap.read.timeout";
+    
     /**
      * Overrides the framework-defined password because ours is readable:
      * we can return the password from <code>sync()</code> when doing

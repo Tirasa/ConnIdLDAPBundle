@@ -32,10 +32,12 @@ import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet
 import static org.identityconnectors.common.StringUtil.isNotBlank;
 
 import com.sun.jndi.ldap.ctl.PasswordExpiredResponseControl;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
+
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -43,10 +45,13 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
+
+import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapNativeSchema;
 import net.tirasa.connid.bundles.ldap.commons.ServerNativeSchema;
 import net.tirasa.connid.bundles.ldap.commons.StaticNativeSchema;
 import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+
 import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -149,7 +154,9 @@ public class LdapConnection {
         env.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_CTX_FACTORY);
         env.put(Context.PROVIDER_URL, getLdapUrls());
         env.put(Context.REFERRAL, "follow");
-
+        env.put(LdapConstants.CONNECT_TIMEOUT_ENV_PROP, Long.toString(config.getConnectTimeout()));
+        env.put(LdapConstants.READ_TIMEOUT_ENV_PROP, Long.toString(config.getReadTimeout()));
+        
         if (config.isSsl()) {
             env.put(Context.SECURITY_PROTOCOL, "ssl");
         }
