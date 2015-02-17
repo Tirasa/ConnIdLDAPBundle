@@ -212,12 +212,15 @@ public class LdapSearch {
         controls.setSearchScope(searchScope);
 
         String optionsFilter = LdapConstants.getSearchFilter(options);
-        String userFilter = null;
+        String searchFilter = null;
         if (oclass.equals(ObjectClass.ACCOUNT)) {
-            userFilter = conn.getConfiguration().getAccountSearchFilter();
+            searchFilter = conn.getConfiguration().getAccountSearchFilter();
+        }
+        else if(oclass.equals(ObjectClass.GROUP)) {
+        	searchFilter = conn.getConfiguration().getGroupSearchFilter();
         }
         String nativeFilter = filter != null ? filter.getNativeFilter() : null;
-        return new LdapInternalSearch(conn, getSearchFilter(optionsFilter, nativeFilter, userFilter),
+        return new LdapInternalSearch(conn, getSearchFilter(optionsFilter, nativeFilter, searchFilter),
                 dns, strategy, controls);
     }
 

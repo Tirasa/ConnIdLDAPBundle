@@ -109,6 +109,11 @@ public class LdapConfiguration extends AbstractConfiguration {
      * A search filter that any account needs to match in order to be returned.
      */
     private String accountSearchFilter = null;
+    
+    /**
+     * A search filter that any group needs to match in order to be returned
+     */
+    private String groupSearchFilter = null;
 
     /**
      * The LDAP attribute holding the member for non-POSIX static groups.
@@ -799,6 +804,17 @@ public class LdapConfiguration extends AbstractConfiguration {
     public void setDnAttribute(String dnAttribute) {
         this.dnAttribute = dnAttribute;
     }
+    
+    @ConfigurationProperty(order = 41,
+            displayMessageKey = "groupSearchFilter.display",
+            helpMessageKey = "groupSearchFilter.help")
+    public String getGroupSearchFilter() {
+        return groupSearchFilter;
+    }
+
+    public void setGroupSearchFilter(String groupSearchFilter) {
+        this.groupSearchFilter = groupSearchFilter;
+    }
 
     // Getters and setters for configuration properties end here.
     public List<LdapName> getBaseContextsAsLdapNames() {
@@ -905,6 +921,8 @@ public class LdapConfiguration extends AbstractConfiguration {
         builder.append(accountConfig);
         builder.append(groupConfig);
         builder.append(retrievePasswordsWithSearch);
+        builder.append(groupSearchFilter);
+
         return builder;
     }
 

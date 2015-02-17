@@ -319,6 +319,7 @@ public class LdapConfigurationTests {
         assertNull(config.getPasswordAttributeToSynchronize());
         assertNull(config.getPasswordDecryptionKey());
         assertNull(config.getPasswordDecryptionInitializationVector());
+        assertNull(config.getGroupSearchFilter());
     }
 
     private static void assertCanValidate(LdapConfiguration config) {
