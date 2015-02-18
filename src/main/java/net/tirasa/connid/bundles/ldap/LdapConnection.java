@@ -23,21 +23,12 @@
  */
 package net.tirasa.connid.bundles.ldap;
 
-import static java.util.Collections.emptySet;
-import static java.util.Collections.unmodifiableSet;
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.getStringAttrValue;
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.getStringAttrValues;
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.nullAsEmpty;
-import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
-import static org.identityconnectors.common.StringUtil.isNotBlank;
-
 import com.sun.jndi.ldap.ctl.PasswordExpiredResponseControl;
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Set;
-
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
 import javax.naming.NamingException;
@@ -45,14 +36,15 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
-
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapNativeSchema;
+import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.ServerNativeSchema;
 import net.tirasa.connid.bundles.ldap.commons.StaticNativeSchema;
 import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
-
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.Pair;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.GuardedString.Accessor;
@@ -71,7 +63,7 @@ public class LdapConnection {
 
     static {
         // Cf. http://java.sun.com/products/jndi/tutorial/ldap/misc/attrs.html.
-        LDAP_BINARY_SYNTAX_ATTRS = newCaseInsensitiveSet();
+        LDAP_BINARY_SYNTAX_ATTRS = CollectionUtil.newCaseInsensitiveSet();
         LDAP_BINARY_SYNTAX_ATTRS.add("audio");
         LDAP_BINARY_SYNTAX_ATTRS.add("jpegPhoto");
         LDAP_BINARY_SYNTAX_ATTRS.add("photo");
@@ -92,7 +84,7 @@ public class LdapConnection {
         LDAP_BINARY_SYNTAX_ATTRS.add("thumbnailLogo");
 
         // Cf. RFC 4522 and RFC 4523.
-        LDAP_BINARY_OPTION_ATTRS = newCaseInsensitiveSet();
+        LDAP_BINARY_OPTION_ATTRS = CollectionUtil.newCaseInsensitiveSet();
         LDAP_BINARY_OPTION_ATTRS.add("userCertificate");
         LDAP_BINARY_OPTION_ATTRS.add("caCertificate");
         LDAP_BINARY_OPTION_ATTRS.add("authorityRevocationList");
@@ -156,15 +148,15 @@ public class LdapConnection {
         env.put(Context.REFERRAL, "follow");
         env.put(LdapConstants.CONNECT_TIMEOUT_ENV_PROP, Long.toString(config.getConnectTimeout()));
         env.put(LdapConstants.READ_TIMEOUT_ENV_PROP, Long.toString(config.getReadTimeout()));
-        
+
         if (config.isSsl()) {
             env.put(Context.SECURITY_PROTOCOL, "ssl");
         }
 
-        String authentication = isNotBlank(principal) ? "simple" : "none";
+        String authentication = StringUtil.isNotBlank(principal) ? "simple" : "none";
         env.put(Context.SECURITY_AUTHENTICATION, authentication);
 
-        if (isNotBlank(principal)) {
+        if (StringUtil.isNotBlank(principal)) {
             env.put(Context.SECURITY_PRINCIPAL, principal);
             if (credentials != null) {
                 credentials.access(new Accessor() {
@@ -176,7 +168,7 @@ public class LdapConnection {
                         result.add(createContext(env));
                     }
                 });
-                assert result.size() > 0;
+                assert !result.isEmpty();
             } else {
                 result.add(createContext(env));
             }
@@ -235,7 +227,7 @@ public class LdapConnection {
         builder.append(config.getHost());
         builder.append(':');
         builder.append(config.getPort());
-        for (String failover : nullAsEmpty(config.getFailover())) {
+        for (String failover : LdapUtil.nullAsEmpty(config.getFailover())) {
             builder.append(' ');
             builder.append(failover);
         }
@@ -311,11 +303,11 @@ public class LdapConnection {
         if (supportedControls == null) {
             try {
                 Attributes attrs = getInitialContext().getAttributes("", new String[] { "supportedControl" });
-                supportedControls = unmodifiableSet(getStringAttrValues(attrs,
-                        "supportedControl"));
+                supportedControls =
+                        Collections.unmodifiableSet(LdapUtil.getStringAttrValues(attrs, "supportedControl"));
             } catch (NamingException e) {
                 LOG.warn(e, "Exception while retrieving the supported controls");
-                supportedControls = emptySet();
+                supportedControls = Collections.emptySet();
             }
         }
         return supportedControls;
@@ -331,7 +323,7 @@ public class LdapConnection {
     private ServerType detectServerType() {
         try {
             Attributes attrs = getInitialContext().getAttributes("", new String[] { "vendorVersion" });
-            String vendorVersion = getStringAttrValue(attrs, "vendorVersion");
+            String vendorVersion = LdapUtil.getStringAttrValue(attrs, "vendorVersion");
             if (vendorVersion != null) {
                 vendorVersion = vendorVersion.toLowerCase();
                 if (vendorVersion.contains("opends")) {

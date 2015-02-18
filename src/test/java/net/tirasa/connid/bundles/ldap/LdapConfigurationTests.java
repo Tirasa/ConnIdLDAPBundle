@@ -23,21 +23,17 @@
  */
 package net.tirasa.connid.bundles.ldap;
 
-import net.tirasa.connid.bundles.ldap.LdapConfiguration;
-import java.util.Arrays;
-
-import static org.identityconnectors.common.CollectionUtil.newList;
-
-import org.identityconnectors.common.security.GuardedByteArray;
-import org.identityconnectors.framework.common.exceptions.ConfigurationException;
-import org.identityconnectors.test.common.TestHelpers;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.Arrays;
+import org.identityconnectors.common.CollectionUtil;
+import org.identityconnectors.common.security.GuardedByteArray;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
+import org.identityconnectors.test.common.TestHelpers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -291,9 +287,9 @@ public class LdapConfigurationTests {
         assertNull(config.getCredentials());
         assertEquals(0, config.getBaseContexts().length);
         assertEquals("userPassword", config.getPasswordAttribute());
-        assertEquals(newList("top", "person", "organizationalPerson", "inetOrgPerson"), Arrays.asList(config.
-                getAccountObjectClasses()));
-        assertEquals(newList("uid", "cn"), Arrays.asList(config.getAccountUserNameAttributes()));
+        assertEquals(CollectionUtil.newList("top", "person", "organizationalPerson", "inetOrgPerson"),
+                Arrays.asList(config.getAccountObjectClasses()));
+        assertEquals(CollectionUtil.newList("uid", "cn"), Arrays.asList(config.getAccountUserNameAttributes()));
         assertNull(config.getAccountSearchFilter());
         assertEquals("uniqueMember", config.getGroupMemberAttribute());
         assertFalse(config.isMaintainLdapGroupMembership());
@@ -307,7 +303,7 @@ public class LdapConfigurationTests {
         assertEquals("entryUUID", config.getUidAttribute());
         assertTrue(config.isReadSchema());
         assertEquals(0, config.getBaseContextsToSynchronize().length);
-        assertTrue(Arrays.equals(new String[]{"inetOrgPerson"}, config.getObjectClassesToSynchronize()));
+        assertTrue(Arrays.equals(new String[] { "inetOrgPerson" }, config.getObjectClassesToSynchronize()));
         assertEquals(0, config.getAttributesToSynchronize().length);
         assertEquals(0, config.getModifiersNamesToFilterOut().length);
         assertNull(config.getAccountSynchronizationFilter());

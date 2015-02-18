@@ -23,15 +23,10 @@
  */
 package net.tirasa.connid.bundles.ldap.search;
 
-import static java.util.Collections.singletonList;
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.getStringAttrValues;
-import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
-import static org.identityconnectors.common.CollectionUtil.newSet;
-import static org.identityconnectors.common.StringUtil.isBlank;
-
 import com.sun.jndi.ldap.ctl.VirtualListViewControl;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import javax.naming.NamingException;
@@ -42,8 +37,11 @@ import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.commons.GroupHelper;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapEntry;
+import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.StatusManagement;
 import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+import org.identityconnectors.common.CollectionUtil;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -84,9 +82,9 @@ public class LdapSearch {
     public static Set<String> getAttributesReturnedByDefault(
             final LdapConnection conn, final ObjectClass oclass) {
         if (oclass.equals(LdapSchemaMapping.ANY_OBJECT_CLASS)) {
-            return newSet(Name.NAME);
+            return CollectionUtil.newSet(Name.NAME);
         }
-        Set<String> result = newCaseInsensitiveSet();
+        Set<String> result = CollectionUtil.newCaseInsensitiveSet();
         ObjectClassInfo oci = conn.getSchemaMapping().schema().
                 findObjectClassInfo(oclass.getObjectClassValue());
         if (oci != null) {
@@ -153,7 +151,7 @@ public class LdapSearch {
     public final ConnectorObject getSingleResult() {
         final String[] attrsToGetOption = options.getAttributesToGet();
         final Set<String> attrsToGet = getAttributesToGet(attrsToGetOption);
-        final ConnectorObject[] results = new ConnectorObject[]{null};
+        final ConnectorObject[] results = new ConnectorObject[] { null };
 
         final LdapInternalSearch search = getInternalSearch(attrsToGet);
 
@@ -195,7 +193,7 @@ public class LdapSearch {
             // However, the adapter is likely to pass entries outside the base contexts,
             // so not checking in order to be on the safe side.
             strategy = new DefaultSearchStrategy(true);
-            dns = singletonList(filterEntryDN);
+            dns = Collections.singletonList(filterEntryDN);
             searchScope = SearchControls.OBJECT_SCOPE;
         } else {
             strategy = getSearchStrategy();
@@ -215,9 +213,8 @@ public class LdapSearch {
         String searchFilter = null;
         if (oclass.equals(ObjectClass.ACCOUNT)) {
             searchFilter = conn.getConfiguration().getAccountSearchFilter();
-        }
-        else if(oclass.equals(ObjectClass.GROUP)) {
-        	searchFilter = conn.getConfiguration().getGroupSearchFilter();
+        } else if (oclass.equals(ObjectClass.GROUP)) {
+            searchFilter = conn.getConfiguration().getGroupSearchFilter();
         }
         String nativeFilter = filter != null ? filter.getNativeFilter() : null;
         return new LdapInternalSearch(conn, getSearchFilter(optionsFilter, nativeFilter, searchFilter),
@@ -225,7 +222,7 @@ public class LdapSearch {
     }
 
     private Set<String> getLdapAttributesToGet(final Set<String> attrsToGet) {
-        final Set<String> cleanAttrsToGet = newCaseInsensitiveSet();
+        final Set<String> cleanAttrsToGet = CollectionUtil.newCaseInsensitiveSet();
 
         cleanAttrsToGet.addAll(attrsToGet);
         cleanAttrsToGet.remove(LdapConstants.LDAP_GROUPS_NAME);
@@ -280,13 +277,13 @@ public class LdapSearch {
                 attribute = AttributeBuilder.build(LdapConstants.LDAP_GROUPS_NAME, ldapGroups);
             } else if (LdapConstants.isPosixGroups(attrName)) {
                 final Set<String> posixRefAttrs =
-                        getStringAttrValues(entry.getAttributes(), GroupHelper.getPosixRefAttribute());
+                        LdapUtil.getStringAttrValues(entry.getAttributes(), GroupHelper.getPosixRefAttribute());
 
                 posixGroups.addAll(groupHelper.getPosixGroups(posixRefAttrs));
 
                 attribute = AttributeBuilder.build(LdapConstants.POSIX_GROUPS_NAME, posixGroups);
             } else if (LdapConstants.PASSWORD.is(attrName)
-                && !conn.getConfiguration().getRetrievePasswordsWithSearch()) {
+                    && !conn.getConfiguration().getRetrievePasswordsWithSearch()) {
                 attribute = AttributeBuilder.build(attrName, new GuardedString());
             } else {
                 attribute = conn.getSchemaMapping().createAttribute(oclass, attrName, entry, emptyAttrWhenNotFound);
@@ -316,10 +313,10 @@ public class LdapSearch {
     private String getSearchFilter(final String... optionalFilters) {
         StringBuilder builder = new StringBuilder();
         String ocFilter = getObjectClassFilter();
-        int nonBlank = isBlank(ocFilter) ? 0 : 1;
+        int nonBlank = StringUtil.isBlank(ocFilter) ? 0 : 1;
 
         for (String optionalFilter : optionalFilters) {
-            nonBlank += (isBlank(optionalFilter) ? 0 : 1);
+            nonBlank += (StringUtil.isBlank(optionalFilter) ? 0 : 1);
         }
 
         if (nonBlank > 1) {
@@ -362,7 +359,7 @@ public class LdapSearch {
     }
 
     private static void appendFilter(String filter, StringBuilder toBuilder) {
-        if (!isBlank(filter)) {
+        if (!StringUtil.isBlank(filter)) {
             final String trimmedUserFilter = filter.trim();
             final boolean enclose = filter.charAt(0) != '(';
 
@@ -384,7 +381,8 @@ public class LdapSearch {
         final QualifiedUid container = options.getContainer();
 
         if (container != null) {
-            result = singletonList(LdapSearches.findEntryDN(conn, container.getObjectClass(), container.getUid()));
+            result = Collections.singletonList(
+                    LdapSearches.findEntryDN(conn, container.getObjectClass(), container.getUid()));
         } else {
             result = Arrays.asList(baseDNs);
         }
@@ -420,7 +418,7 @@ public class LdapSearch {
         Set<String> result;
 
         if (attributesToGet != null) {
-            result = newCaseInsensitiveSet();
+            result = CollectionUtil.newCaseInsensitiveSet();
             result.addAll(Arrays.asList(attributesToGet));
             removeNonReadableAttributes(result);
             result.add(Name.NAME);
@@ -435,7 +433,7 @@ public class LdapSearch {
         // Our password is marked as readable because of sync(). 
         // We really can't return it from search.
         if (!conn.getConfiguration().getRetrievePasswordsWithSearch()
-            && result.contains(OperationalAttributes.PASSWORD_NAME)) {
+                && result.contains(OperationalAttributes.PASSWORD_NAME)) {
             LOG.warn("Reading passwords not supported");
         }
 

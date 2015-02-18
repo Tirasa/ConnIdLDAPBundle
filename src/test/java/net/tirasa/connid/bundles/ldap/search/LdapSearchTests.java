@@ -23,11 +23,6 @@
  */
 package net.tirasa.connid.bundles.ldap.search;
 
-import net.tirasa.connid.bundles.ldap.search.LdapFilter;
-import net.tirasa.connid.bundles.ldap.search.LdapSearch;
-
-import static java.util.Collections.singleton;
-import static org.identityconnectors.common.CollectionUtil.newSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -35,9 +30,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.GuardedString.Accessor;
 import org.identityconnectors.framework.api.ConnectorFacade;
@@ -61,6 +56,7 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.test.common.TestHelpers;
 import org.identityconnectors.test.common.ToListResultsHandler;
 import org.junit.Test;
@@ -69,7 +65,6 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
     // TODO operational attributes.
     // TODO LDAP directory attributes (entryDN, etc.).
-
     @Override
     protected boolean restartServerAfterEachTest() {
         return false;
@@ -111,7 +106,6 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         config.setUseBlocks(false);
         searchExpectingNoResult(config, filter);
     }
-
 
     @Test
     public void testLdapFilterWithInvalidEntryDN() {
@@ -206,7 +200,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         builder.setAttributesToGet("debugsearchindex");
         FirstOnlyResultsHandler handler = new FirstOnlyResultsHandler();
         facade.search(ObjectClass.ACCOUNT, null, handler, builder.build());
-        String debugsearch = handler.getSingleResult().getAttributeByName("debugsearchindex").getValue().get(0).toString();
+        String debugsearch = handler.getSingleResult().getAttributeByName("debugsearchindex").getValue().get(0).
+                toString();
         assertTrue(debugsearch.contains("vlv"));
     }
 
@@ -234,7 +229,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         byte[] photo = { -4, -3, -2, -1, 0, 1, 2, 3, 63, 127 };
         Attribute photoAttr = AttributeBuilder.build("jpegPhoto", photo);
-        Uid newUid = facade.addAttributeValues(ObjectClass.ACCOUNT, bunny.getUid(), singleton(photoAttr), null);
+        Uid newUid = facade.addAttributeValues(
+                ObjectClass.ACCOUNT, bunny.getUid(), Collections.singleton(photoAttr), null);
 
         ConnectorObject bunnyWithPhoto = searchByAttribute(facade, ObjectClass.ACCOUNT, photoAttr, "jpegPhoto");
         assertEquals(newUid, bunnyWithPhoto.getUid());
@@ -243,9 +239,10 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     @Test
     public void testAttributesToGet() {
         ConnectorFacade facade = newFacade();
-        ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(USER_0_DN), "employeeNumber", "telephoneNumber");
+        ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(USER_0_DN), "employeeNumber",
+                "telephoneNumber");
 
-        Set<Attribute> attrs = newSet(object.getAttributes());
+        Set<Attribute> attrs = CollectionUtil.newSet(object.getAttributes());
         assertTrue(attrs.remove(AttributeUtil.find(Uid.NAME, attrs)));
         assertTrue(attrs.remove(AttributeUtil.find(Name.NAME, attrs)));
         assertTrue(attrs.remove(AttributeUtil.find("employeeNumber", attrs)));
@@ -258,7 +255,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     public void testAttributesReturnedByDefaultWithNoValueAreNotReturned() {
         LdapConfiguration config = newConfiguration(true);
         ConnectorFacade facade = newFacade(config);
-        AttributeInfo attr = AttributeInfoUtil.find("givenName", facade.schema().findObjectClassInfo(ObjectClass.ACCOUNT_NAME).getAttributeInfo());
+        AttributeInfo attr = AttributeInfoUtil.find("givenName", facade.schema().findObjectClassInfo(
+                ObjectClass.ACCOUNT_NAME).getAttributeInfo());
         assertTrue(attr.isReturnedByDefault());
 
         ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
@@ -268,7 +266,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     @Test
     public void testAttributesToGetNotPresentInEntryAreEmpty() {
         ConnectorFacade facade = newFacade();
-        ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN), "employeeNumber");
+        ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN),
+                "employeeNumber");
 
         assertTrue(object.getAttributeByName("employeeNumber").getValue().isEmpty());
     }
@@ -284,7 +283,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setScope(OperationOptions.SCOPE_ONE_LEVEL);
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
-        List<ConnectorObject> objects = TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null, optionsBuilder.build());
+        List<ConnectorObject> objects = TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null, optionsBuilder.
+                build());
         assertTrue(objects.isEmpty());
 
         // ... but there are some in the organization subtree.
@@ -304,7 +304,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setScope(OperationOptions.SCOPE_SUBTREE);
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
-        List<ConnectorObject> objects = TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null, optionsBuilder.build());
+        List<ConnectorObject> objects = TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null, optionsBuilder.
+                build());
         assertNotNull(getObjectByName(objects, BUGS_BUNNY_DN));
         assertNotNull(getObjectByName(objects, ELMER_FUDD_DN));
 
@@ -335,11 +336,10 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         // If parentheses were not added, the search would fail.
         assertNotNull(searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN)));
     }
-    
+
     @Test
-    public void testGroupSearchFilter()
-    {
-    	ConnectorFacade facade = newFacade();
+    public void testGroupSearchFilter() {
+        ConnectorFacade facade = newFacade();
         // Find an organization to pass in OP_CONTAINER.
         ObjectClass oclass = new ObjectClass("organization");
         ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
@@ -348,7 +348,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setScope(OperationOptions.SCOPE_SUBTREE);
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
-        List<ConnectorObject> objects = TestHelpers.searchToList(facade, ObjectClass.GROUP, null, optionsBuilder.build());
+        List<ConnectorObject> objects =
+                TestHelpers.searchToList(facade, ObjectClass.GROUP, null, optionsBuilder.build());
         assertNotNull(getObjectByName(objects, UNIQUE_BUGS_AND_FRIENDS_DN));
         assertNotNull(getObjectByName(objects, UNIQUE_EMPTY_GROUP_DN));
         assertNotNull(getObjectByName(objects, UNIQUE_EXTERNAL_PEERS_DN));
@@ -360,7 +361,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         assertEquals(1, objects.size());
         assertNotNull(getObjectByName(objects, UNIQUE_BUGS_AND_FRIENDS_DN));
     }
-    
+
     @Test
     public void testGroupsSearchFilterOnlyAppliesToGroups() {
         LdapConfiguration config = newConfiguration();
@@ -433,29 +434,35 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     @Test
     public void testCannotReturnPasswordFromSearch() {
         ConnectorFacade facade = newFacade();
-        ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN), OperationalAttributes.PASSWORD_NAME);
-        GuardedString password = (GuardedString) bunny.getAttributeByName(OperationalAttributes.PASSWORD_NAME).getValue().get(0);
+        ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN),
+                OperationalAttributes.PASSWORD_NAME);
+        GuardedString password = (GuardedString) bunny.getAttributeByName(OperationalAttributes.PASSWORD_NAME).
+                getValue().get(0);
         password.access(new Accessor() {
+
             public void access(char[] clearChars) {
                 assertEquals(0, clearChars.length);
             }
         });
     }
-    
+
     @Test
     public void testReturnPasswordFromSearch() {
         LdapConfiguration config = newConfiguration();
         config.setRetrievePasswordsWithSearch(true);
         ConnectorFacade facade = newFacade(config);
-        ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN), OperationalAttributes.PASSWORD_NAME);
-        GuardedString password = (GuardedString) bunny.getAttributeByName(OperationalAttributes.PASSWORD_NAME).getValue().get(0);
+        ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN),
+                OperationalAttributes.PASSWORD_NAME);
+        GuardedString password = (GuardedString) bunny.getAttributeByName(OperationalAttributes.PASSWORD_NAME).
+                getValue().get(0);
         password.access(new Accessor() {
+
             public void access(char[] clearChars) {
                 assertTrue(clearChars.length > 0);
             }
         });
     }
-    
+
     private static ConnectorObject getObjectByName(List<ConnectorObject> objects, String name) {
         for (ConnectorObject object : objects) {
             if (name.equals(object.getName().getNameValue())) {

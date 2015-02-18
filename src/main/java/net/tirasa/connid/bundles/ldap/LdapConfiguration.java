@@ -34,17 +34,11 @@ import java.util.Set;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
-
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.nullAsEmpty;
-
+import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.ObjectClassMappingConfig;
-
-import static org.identityconnectors.common.CollectionUtil.newList;
-
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.EqualsHashCodeBuilder;
-
-import static org.identityconnectors.common.StringUtil.isBlank;
-
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedByteArray.Accessor;
 import org.identityconnectors.common.security.GuardedString;
@@ -109,7 +103,7 @@ public class LdapConfiguration extends AbstractConfiguration {
      * A search filter that any account needs to match in order to be returned.
      */
     private String accountSearchFilter = null;
-    
+
     /**
      * A search filter that any group needs to match in order to be returned
      */
@@ -210,14 +204,14 @@ public class LdapConfiguration extends AbstractConfiguration {
     // Other state.
     private final ObjectClassMappingConfig accountConfig = new ObjectClassMappingConfig(
             ObjectClass.ACCOUNT,
-            newList("top", "person", "organizationalPerson", "inetOrgPerson"),
-            false, newList("uid", "cn"),
+            CollectionUtil.newList("top", "person", "organizationalPerson", "inetOrgPerson"),
+            false, CollectionUtil.newList("uid", "cn"),
             LdapConstants.PASSWORD);
 
     private final ObjectClassMappingConfig groupConfig = new ObjectClassMappingConfig(
             ObjectClass.GROUP,
-            newList("top", "groupOfUniqueNames"),
-            false, newList("cn"));
+            CollectionUtil.newList("top", "groupOfUniqueNames"),
+            false, CollectionUtil.newList("cn"));
 
     // Other state not to be included in hashCode/equals.
     private List<LdapName> baseContextsAsLdapNames;
@@ -225,12 +219,12 @@ public class LdapConfiguration extends AbstractConfiguration {
     private List<LdapName> baseContextsToSynchronizeAsLdapNames;
 
     private Set<LdapName> modifiersNamesToFilterOutAsLdapNames;
-    
+
     /**
      * Used to specify the read timeout for an LDAP operation in milliseconds
      */
     private long readTimeout = 0;
-    
+
     /**
      * Used to specify the connect timeout for connecting to the ldap server in milliseconds
      */
@@ -304,7 +298,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     private void checkNotBlank(String value, String errorMessage) {
-        if (isBlank(value)) {
+        if (StringUtil.isBlank(value)) {
             failValidation(errorMessage);
         }
     }
@@ -338,7 +332,7 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     private void checkNoBlankValues(Collection<String> collection, String errorMessage) {
         for (String each : collection) {
-            if (isBlank(each)) {
+            if (StringUtil.isBlank(each)) {
                 failValidation(errorMessage);
             }
         }
@@ -346,7 +340,7 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     private void checkNoBlankValues(String[] array, String errorMessage) {
         for (String each : array) {
-            if (isBlank(each)) {
+            if (StringUtil.isBlank(each)) {
                 failValidation(errorMessage);
             }
         }
@@ -814,7 +808,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     public void setDnAttribute(String dnAttribute) {
         this.dnAttribute = dnAttribute;
     }
-    
+
     @ConfigurationProperty(order = 41,
             displayMessageKey = "groupSearchFilter.display",
             helpMessageKey = "groupSearchFilter.help")
@@ -825,31 +819,27 @@ public class LdapConfiguration extends AbstractConfiguration {
     public void setGroupSearchFilter(String groupSearchFilter) {
         this.groupSearchFilter = groupSearchFilter;
     }
-    
-    @ConfigurationProperty(order = 42, 
-    		displayMessageKey = "readTimeout.display",
-    		helpMessageKey = "readTimeout.help")
-    public long getReadTimeout()
-    {
-    	return readTimeout;
+
+    @ConfigurationProperty(order = 42,
+            displayMessageKey = "readTimeout.display",
+            helpMessageKey = "readTimeout.help")
+    public long getReadTimeout() {
+        return readTimeout;
     }
-    
-    public void setReadTimeout(long readTimeout)
-    {
-    	this.readTimeout = readTimeout;
+
+    public void setReadTimeout(long readTimeout) {
+        this.readTimeout = readTimeout;
     }
-    
-    @ConfigurationProperty(order = 43, 
-    		displayMessageKey = "connectTimeout.display",
-    		helpMessageKey = "connectTimeout.help")
-    public long getConnectTimeout()
-    {
-    	return connectTimeout;
+
+    @ConfigurationProperty(order = 43,
+            displayMessageKey = "connectTimeout.display",
+            helpMessageKey = "connectTimeout.help")
+    public long getConnectTimeout() {
+        return connectTimeout;
     }
-    
-    public void setConnectTimeout(long connectTimeout)
-    {
-    	this.connectTimeout = connectTimeout;
+
+    public void setConnectTimeout(long connectTimeout) {
+        this.connectTimeout = connectTimeout;
     }
 
     // Getters and setters for configuration properties end here.
@@ -870,7 +860,7 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     public List<LdapName> getBaseContextsToSynchronizeAsLdapNames() {
         if (baseContextsToSynchronizeAsLdapNames == null) {
-            String[] source = nullAsEmpty(baseContextsToSynchronize);
+            String[] source = LdapUtil.nullAsEmpty(baseContextsToSynchronize);
             List<LdapName> result = new ArrayList<LdapName>(source.length);
             try {
                 for (String each : source) {
@@ -886,7 +876,7 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     public Set<LdapName> getModifiersNamesToFilterOutAsLdapNames() {
         if (modifiersNamesToFilterOutAsLdapNames == null) {
-            String[] source = nullAsEmpty(modifiersNamesToFilterOut);
+            String[] source = LdapUtil.nullAsEmpty(modifiersNamesToFilterOut);
             Set<LdapName> result = new HashSet<LdapName>(source.length);
             try {
                 for (String each : source) {
