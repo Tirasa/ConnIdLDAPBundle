@@ -335,6 +335,51 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         // If parentheses were not added, the search would fail.
         assertNotNull(searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN)));
     }
+    
+    @Test
+    public void testGroupSearchFilter()
+    {
+    	ConnectorFacade facade = newFacade();
+        // Find an organization to pass in OP_CONTAINER.
+        ObjectClass oclass = new ObjectClass("organization");
+        ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
+
+        // First just check that there really are some users.
+        OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+        optionsBuilder.setScope(OperationOptions.SCOPE_SUBTREE);
+        optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
+        List<ConnectorObject> objects = TestHelpers.searchToList(facade, ObjectClass.GROUP, null, optionsBuilder.build());
+        assertNotNull(getObjectByName(objects, UNIQUE_BUGS_AND_FRIENDS_DN));
+        assertNotNull(getObjectByName(objects, UNIQUE_EMPTY_GROUP_DN));
+        assertNotNull(getObjectByName(objects, UNIQUE_EXTERNAL_PEERS_DN));
+
+        LdapConfiguration config = newConfiguration();
+        config.setGroupSearchFilter("(cn=" + UNIQUE_BUGS_AND_FRIENDS_CN + ")");
+        facade = newFacade(config);
+        objects = TestHelpers.searchToList(facade, ObjectClass.GROUP, null, optionsBuilder.build());
+        assertEquals(1, objects.size());
+        assertNotNull(getObjectByName(objects, UNIQUE_BUGS_AND_FRIENDS_DN));
+    }
+    
+    @Test
+    public void testGroupsSearchFilterOnlyAppliesToGroups() {
+        LdapConfiguration config = newConfiguration();
+        config.setGroupSearchFilter("(cn=foobarbaz)");
+        ConnectorFacade facade = newFacade(config);
+
+        // If the (cn=foobarbaz) filter above applied, the search would return nothing.
+        assertNotNull(searchByAttribute(facade, new ObjectClass("organization"), new Name(ACME_DN)));
+    }
+
+    @Test
+    public void testMissingParenthesesAddedToGroupSearchFilter() {
+        LdapConfiguration config = newConfiguration();
+        config.setGroupSearchFilter("cn=" + UNIQUE_BUGS_AND_FRIENDS_CN); // No parentheses enclosing the filter.
+        ConnectorFacade facade = newFacade(config);
+
+        // If parentheses were not added, the search would fail.
+        assertNotNull(searchByAttribute(facade, ObjectClass.GROUP, new Name(UNIQUE_BUGS_AND_FRIENDS_DN)));
+    }
 
     @Test
     public void testMultipleBaseDNs() {
