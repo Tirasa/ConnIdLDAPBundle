@@ -301,7 +301,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         doCreateAccount(newFacade(config), new OperationOptionsBuilder().setAttributesToGet("givenName").build());
     }
     
-    @Test(expected = ConnectorException.class)
+    @Test(expected = UnsupportedOperationException.class)
     public void testUserRDNWithNameAsNotDN()
     {
     	LdapConfiguration configuration = newConfiguration();
@@ -359,7 +359,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     	assertEquals(created.getUidValue(), obj.getUid().getUidValue());    	 
     }
     
-    @Test(expected = ConnectorException.class)
+    @Test(expected = UnsupportedOperationException.class)
     public void testGroupRDNWithNameAsNotDN()
     {
 		LdapConfiguration configuration = newConfiguration();
