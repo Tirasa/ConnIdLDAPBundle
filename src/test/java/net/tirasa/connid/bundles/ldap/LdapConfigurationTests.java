@@ -298,7 +298,7 @@ public class LdapConfigurationTests {
     	config.validate();
     }
     
-    @Test
+    @Test(expected=ConfigurationException.class)
     public void testValidUserContainerDNSpecialChar()
     {
     	config.setUserCreateContainerDN(ACME_USERS_DN_SPECIAL);

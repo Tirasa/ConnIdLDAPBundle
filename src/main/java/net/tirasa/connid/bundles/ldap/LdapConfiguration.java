@@ -324,10 +324,10 @@ public class LdapConfiguration extends AbstractConfiguration {
             checkNotBlank(passwordDecryptionInitializationVector, "decryptionInitializationVector.notBlank");
         }
         
-        if(userCreateContainerDN != null && userCreateContainerDN.trim().length() == 0)
+        if(userCreateContainerDN != null && userCreateContainerDN.trim().length() != 0)
         	checkNoInvalidLdapNames(new String[]{userCreateContainerDN}, "userCreateContainerDN.noInvalidLdapName");
         
-        if(groupCreateContainerDN != null && groupCreateContainerDN.trim().length() == 0)
+        if(groupCreateContainerDN != null && groupCreateContainerDN.trim().length() != 0)
         	checkNoInvalidLdapNames(new String[]{groupCreateContainerDN}, "groupCreateContainerDN.noInvalidLdapName");      
         
     }
