@@ -75,6 +75,8 @@ public abstract class LdapConnectorTestBase {
     public static final String CZECH_REPUBLIC_C = "Czech Republic";
 
     public static final String ACME_USERS_DN = "ou=Users,o=Acme,dc=example,dc=com";
+    
+    public static final String ACME_GROUPS_DN = "ou=groups,o=Acme,dc=example,dc=com";
 
     public static final String BUGS_BUNNY_DN = "uid=bugs.bunny,ou=Users,o=Acme,dc=example,dc=com";
 
@@ -139,6 +141,8 @@ public abstract class LdapConnectorTestBase {
     public static final String USER_0_SN = "Amar";
 
     public static final String USER_0_GIVEN_NAME = "Aaccf";
+    
+    public static final String NAME_WITH_COMMA = "Pavan, Kumar";
 
     // Cf. test/opends/config/config.ldif and setup-test-opends.xml.
     private static final String[] FILES = {

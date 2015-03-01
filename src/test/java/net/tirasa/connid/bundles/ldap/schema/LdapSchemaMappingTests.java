@@ -32,22 +32,29 @@ import static org.junit.Assert.assertTrue;
 import java.util.EnumSet;
 import java.util.Set;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
+
 import org.identityconnectors.framework.api.operations.AuthenticationApiOp;
 import org.identityconnectors.framework.api.operations.SyncApiOp;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfoBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfoUtil;
+import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
+
 import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.LdapConnection.ServerType;
-import org.identityconnectors.framework.api.ConnectorFacade;
+
 import org.junit.Test;
 
 public class LdapSchemaMappingTests extends LdapConnectorTestBase {
@@ -177,4 +184,150 @@ public class LdapSchemaMappingTests extends LdapConnectorTestBase {
         Schema schema = newFacade(config).schema();
         assertTrue(schema.getSupportedObjectClassesByOperation().get(SyncApiOp.class).isEmpty());
     }
+    
+    @Test
+    public void testGeneratedUserDN() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	config.setUserRDNAttribute("uid");
+    	config.setUserCreateContainerDN(ACME_USERS_DN);
+    	LdapConnection connection = new LdapConnection(config);
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_UID));
+    	LdapName actualName = new LdapName("uid="+BUGS_BUNNY_UID+","+ACME_USERS_DN);
+		assertEquals(generatedName, actualName);		   	
+    }
+    
+    @Test(expected=UnsupportedOperationException.class)
+    public void testCreateUserDNWhenNoContainerDN() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	config.setUserRDNAttribute("uid");
+    	LdapConnection connection = new LdapConnection(config);
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_UID));
+    	LdapName actualName = new LdapName("uid="+BUGS_BUNNY_UID+","+ACME_USERS_DN);
+		assertEquals(generatedName, actualName);		   	
+    }
+    
+    @Test
+    public void testCreateUserDNSingleBase() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	config.setUserRDNAttribute("uid");
+    	config.setBaseContexts(ACME_DN);
+    	LdapConnection connection = new LdapConnection(config);
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_UID));
+    	LdapName actualName = new LdapName("uid="+BUGS_BUNNY_UID+","+ACME_DN);
+		assertEquals(generatedName, actualName);		   	
+    }
+    
+    @Test(expected=ConnectorException.class)
+    public void testCreateUserDNWhenNoRDN() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	config.setUserCreateContainerDN(ACME_USERS_DN);
+    	LdapConnection connection = new LdapConnection(config);
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_UID));
+    	LdapName actualName = new LdapName("uid="+BUGS_BUNNY_UID+","+ACME_USERS_DN);
+		assertEquals(generatedName, actualName);		   	
+    }
+    
+    @Test(expected=ConnectorException.class)
+    public void testCreateUserDNWhenNoCreateConfig() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	LdapConnection connection = new LdapConnection(config);
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_UID));
+    	LdapName actualName = new LdapName("uid="+BUGS_BUNNY_UID+","+ACME_USERS_DN);
+		assertEquals(generatedName, actualName);		   	
+    }
+    
+    @Test
+    public void testCreateUserDNSpecialChars() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	config.setUserRDNAttribute("uid");
+    	config.setUserCreateContainerDN(ACME_USERS_DN);
+    	LdapConnection connection = new LdapConnection(config);    	
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.ACCOUNT, new Name(NAME_WITH_COMMA));
+    	LdapName actualName = new LdapName("uid="+Rdn.escapeValue(NAME_WITH_COMMA)+","+ACME_USERS_DN);
+		assertEquals(generatedName, actualName);		   	
+    }
+    
+    @Test
+    public void testGeneratedGroupDN() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	config.setGroupRDNAttribute("cn");
+    	config.setGroupCreateContainerDN(ACME_GROUPS_DN);
+    	LdapConnection connection = new LdapConnection(config);
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.GROUP, new Name(BUGS_BUNNY_UID));
+    	LdapName actualName = new LdapName("cn="+BUGS_BUNNY_UID+","+ACME_GROUPS_DN);
+		assertEquals(generatedName, actualName);		   	
+    }
+    
+    @Test(expected=UnsupportedOperationException.class)
+    public void testCreateGroupDNWhenNoContainerDN() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	config.setGroupRDNAttribute("cn");
+    	LdapConnection connection = new LdapConnection(config);
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.GROUP, new Name(BUGS_BUNNY_UID));
+    	LdapName actualName = new LdapName("cn="+BUGS_BUNNY_UID+","+ACME_GROUPS_DN);
+		assertEquals(generatedName, actualName);		   	
+    }    
+    
+    @Test
+    public void testCreateGroupDNSingleBase() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	config.setGroupRDNAttribute("cn");
+    	config.setBaseContexts(ACME_DN);
+    	LdapConnection connection = new LdapConnection(config);
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.GROUP, new Name(BUGS_BUNNY_UID));
+    	LdapName actualName = new LdapName("cn="+BUGS_BUNNY_UID+","+ACME_DN);
+		assertEquals(generatedName, actualName);		   	
+    }
+    
+    @Test(expected=ConnectorException.class)
+    public void testCreateGroupDNWhenNoRDN() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	config.setGroupCreateContainerDN(ACME_GROUPS_DN);
+    	LdapConnection connection = new LdapConnection(config);
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.GROUP, new Name(BUGS_BUNNY_UID));
+    	LdapName actualName = new LdapName("cn="+BUGS_BUNNY_UID+","+ACME_GROUPS_DN);
+		assertEquals(generatedName, actualName);		   	
+    }
+    
+    @Test(expected=ConnectorException.class)
+    public void testCreateGroupDNWhenNoCreateConfig() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	LdapConnection connection = new LdapConnection(config);
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.GROUP, new Name(BUGS_BUNNY_UID));
+    	LdapName actualName = new LdapName("cn="+BUGS_BUNNY_UID+","+ACME_GROUPS_DN);
+		assertEquals(generatedName, actualName);		   	
+    }
+    
+    @Test
+    public void testCreateGroupDNSpecialChars() throws InvalidNameException
+    {
+    	LdapConfiguration config = newConfiguration();
+    	config.setGroupRDNAttribute("cn");
+    	config.setGroupCreateContainerDN(ACME_GROUPS_DN);
+    	LdapConnection connection = new LdapConnection(config);    	
+    	LdapName generatedName = connection.getSchemaMapping().createLDAPName(ObjectClass.GROUP, new Name(NAME_WITH_COMMA));
+    	LdapName actualName = new LdapName("cn="+Rdn.escapeValue(NAME_WITH_COMMA)+","+ACME_GROUPS_DN);
+		assertEquals(generatedName, actualName);		   	
+    }
+    
+    @Test(expected = ConnectorException.class)
+    public void testCreateObjectDN()
+    {
+    	LdapConfiguration config = newConfiguration();
+    	LdapConnection connection = new LdapConnection(config);    	
+    	connection.getSchemaMapping().createLDAPName(ObjectClass.ALL, new Name(NAME_WITH_COMMA));    	
+    }
+
+
 }

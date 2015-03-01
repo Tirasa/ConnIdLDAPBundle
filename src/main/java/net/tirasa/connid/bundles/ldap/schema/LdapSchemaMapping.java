@@ -26,7 +26,6 @@ package net.tirasa.connid.bundles.ldap.schema;
 import static net.tirasa.connid.bundles.ldap.commons.LdapEntry.isDNAttribute;
 import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.addBinaryOption;
 import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.getStringAttrValue;
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapName;
 import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveMap;
 import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
 import static org.identityconnectors.common.CollectionUtil.newReadOnlyList;
@@ -36,15 +35,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
+
+import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.commons.LdapEntry;
 import net.tirasa.connid.bundles.ldap.commons.ObjectClassMappingConfig;
+
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -306,7 +311,7 @@ public class LdapSchemaMapping {
     }
 
     public String create(ObjectClass oclass, Name name, javax.naming.directory.Attributes initialAttrs) {
-        LdapName entryName = quietCreateLdapName(getEntryDN(oclass, name));
+        LdapName entryName = createLDAPName(oclass, name);
 
         BasicAttributes ldapAttrs = new BasicAttributes();
         NamingEnumeration<? extends javax.naming.directory.Attribute> initialAttrEnum = initialAttrs.
@@ -328,6 +333,57 @@ public class LdapSchemaMapping {
         } catch (NamingException e) {
             throw new ConnectorException(e);
         }
+    }
+    
+    public LdapName createLDAPName(ObjectClass oclass, Name name)
+    {
+    	String nameValue = getEntryDN(oclass, name);
+    	try
+    	{
+    		// If the entry DN is already specified use it.
+    		return new LdapName(nameValue);
+    	}
+    	catch(InvalidNameException e){
+    		// Generate entry DN
+    		LdapConfiguration config = conn.getConfiguration();
+    		String rdnAttr = null;
+			String containerDN = null;
+			if(ObjectClass.ACCOUNT.equals(oclass))
+			{
+				rdnAttr = config.getUserRDNAttribute();
+				containerDN = config.getUserCreateContainerDN();
+			}
+			else if(ObjectClass.GROUP.equals(oclass))
+			{
+				rdnAttr = config.getGroupRDNAttribute();
+				containerDN = config.getGroupCreateContainerDN();
+			}
+    		if(rdnAttr != null)
+    		{	
+    			if(containerDN == null)
+    			{
+					if (config.getBaseContexts().length > 1)
+						throw new UnsupportedOperationException("To create users/groups using friendly name must require "
+								+ "userCreateContainerDN/groupCreateContainerDN or single base context should be given");
+					containerDN = config.getBaseContexts()[0];
+    			}
+    			try{
+    				return getLDAPName(containerDN, rdnAttr, nameValue);
+    			}catch(InvalidNameException ex){
+    				throw new ConnectorException(ex);
+    			}    			
+    		}
+    		throw new ConnectorException(e);
+    	}
+    	
+    }
+    
+    private LdapName getLDAPName(String containerBaseDN, String rdnAttr, String value) throws InvalidNameException
+    {
+    	Rdn nameRdn = new Rdn(rdnAttr, value);
+		LdapName ldapName = new LdapName(containerBaseDN);
+		ldapName.add(nameRdn);
+		return ldapName;
     }
 
     public javax.naming.directory.Attribute encodeAttribute(ObjectClass oclass, Attribute attr) {

@@ -31,14 +31,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
+
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
-
 import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.nullAsEmpty;
-
 import net.tirasa.connid.bundles.ldap.commons.ObjectClassMappingConfig;
-
 import static org.identityconnectors.common.CollectionUtil.newList;
 
 import org.identityconnectors.common.EqualsHashCodeBuilder;
@@ -52,6 +51,7 @@ import org.identityconnectors.framework.common.exceptions.ConfigurationException
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
+import org.identityconnectors.framework.spi.operations.CreateOp;
 import org.identityconnectors.framework.spi.operations.SyncOp;
 
 /**
@@ -206,6 +206,28 @@ public class LdapConfiguration extends AbstractConfiguration {
      * Whether to retrieve passwords when searching. The default is "false".
      */
     private boolean retrievePasswordsWithSearch;
+    
+    /**
+     * The RDN to use while generating new user account DN.
+     */
+    private String userRDNAttribute;
+    
+    /**
+     * The User Container DN will be appended to the user RDN attribute to construct the DN while creating an account.
+     * During create if the username is not a valid DN this attribute value will be used to construct the DN.
+     */
+    private String userCreateContainerDN;
+    
+    /**
+     * The RDN to use while generating new group DN.
+     */
+    private String groupRDNAttribute;
+    
+    /**
+     * The Group Container DN will be appended to the group RDN attribute to construct the DN while creating an group. 
+     * During create if the groupname is not a valid DN this attribute value will be used to construct the DN.
+     */
+    private String groupCreateContainerDN;
 
     // Other state.
     private final ObjectClassMappingConfig accountConfig = new ObjectClassMappingConfig(
@@ -301,6 +323,13 @@ public class LdapConfiguration extends AbstractConfiguration {
             checkNotBlank(passwordDecryptionKey, "decryptionKey.notBlank");
             checkNotBlank(passwordDecryptionInitializationVector, "decryptionInitializationVector.notBlank");
         }
+        
+        if(userCreateContainerDN != null && userCreateContainerDN.trim().length() == 0)
+        	checkNoInvalidLdapNames(new String[]{userCreateContainerDN}, "userCreateContainerDN.noInvalidLdapName");
+        
+        if(groupCreateContainerDN != null && groupCreateContainerDN.trim().length() == 0)
+        	checkNoInvalidLdapNames(new String[]{groupCreateContainerDN}, "groupCreateContainerDN.noInvalidLdapName");      
+        
     }
 
     private void checkNotBlank(String value, String errorMessage) {
@@ -851,6 +880,46 @@ public class LdapConfiguration extends AbstractConfiguration {
     {
     	this.connectTimeout = connectTimeout;
     }
+    
+    @ConfigurationProperty(order = 44, displayMessageKey = "userRDNAttribute.display",
+            helpMessageKey = "userRDNAttribute.help", operations ={CreateOp.class})
+	public String getUserRDNAttribute() {
+		return userRDNAttribute;
+	}
+
+	public void setUserRDNAttribute(String userRDNAttribute) {
+		this.userRDNAttribute = userRDNAttribute;
+	}
+	
+	@ConfigurationProperty(order = 45, displayMessageKey = "groupRDNAttribute.display",
+            helpMessageKey = "groupRDNAttribute.help", operations ={CreateOp.class})
+	public String getGroupRDNAttribute() {
+		return groupRDNAttribute;
+	}
+
+	public void setGroupRDNAttribute(String groupRDNAttribute) {
+		this.groupRDNAttribute = groupRDNAttribute;
+	}
+
+    @ConfigurationProperty(order = 46, displayMessageKey = "userCreateContainerDN.display",
+            helpMessageKey = "userCreateContainerDN.help", operations ={CreateOp.class})
+	public String getUserCreateContainerDN() {
+		return userCreateContainerDN;
+	}
+
+	public void setUserCreateContainerDN(String userCreateContainerDN) {
+		this.userCreateContainerDN = userCreateContainerDN;
+	}
+
+    @ConfigurationProperty(order = 47, displayMessageKey = "groupCreateContainerDN.display",
+            helpMessageKey = "groupCreateContainerDN.help", operations ={CreateOp.class})
+	public String getGroupCreateContainerDN() {
+		return groupCreateContainerDN;
+	}
+
+	public void setGroupCreateContainerDN(String groupCreateContainerDN) {
+		this.groupCreateContainerDN = groupCreateContainerDN;
+	}
 
     // Getters and setters for configuration properties end here.
     public List<LdapName> getBaseContextsAsLdapNames() {
@@ -960,6 +1029,10 @@ public class LdapConfiguration extends AbstractConfiguration {
         builder.append(groupSearchFilter);
         builder.append(connectTimeout);
         builder.append(readTimeout);
+        builder.append(userRDNAttribute);
+        builder.append(groupRDNAttribute);
+        builder.append(userCreateContainerDN);
+        builder.append(groupCreateContainerDN);
         return builder;
     }
 

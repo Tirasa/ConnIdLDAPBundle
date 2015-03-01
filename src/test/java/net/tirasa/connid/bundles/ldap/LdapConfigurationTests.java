@@ -24,6 +24,7 @@
 package net.tirasa.connid.bundles.ldap;
 
 import net.tirasa.connid.bundles.ldap.LdapConfiguration;
+
 import java.util.Arrays;
 
 import static org.identityconnectors.common.CollectionUtil.newList;
@@ -44,6 +45,9 @@ import org.junit.Test;
 public class LdapConfigurationTests {
 
     private static final String INVALID_DN = "dc=a,,";
+    private static final String VALID_USER_DN = "ou=users, dc=example,dc=com";
+    private static final String VALID_GROUP_DN = "ou=groups, dc=example,dc=com";
+    public static final String ACME_USERS_DN_SPECIAL = "ou=Users,hola,o=Acme,dc=example,dc=com";
 
     private LdapConfiguration config;
 
@@ -279,6 +283,41 @@ public class LdapConfigurationTests {
         config.setPasswordDecryptionInitializationVector(new GuardedByteArray(new byte[0]));
         config.validate();
     }
+    
+    @Test(expected = ConfigurationException.class)
+    public void testInvalidUserContainerDN()
+    {
+    	config.setUserCreateContainerDN(INVALID_DN);
+    	config.validate();
+    }
+    
+    @Test
+    public void testValidUserContainerDN()
+    {
+    	config.setUserCreateContainerDN(VALID_USER_DN);
+    	config.validate();
+    }
+    
+    @Test
+    public void testValidUserContainerDNSpecialChar()
+    {
+    	config.setUserCreateContainerDN(ACME_USERS_DN_SPECIAL);
+    	config.validate();
+    }
+    
+    @Test(expected = ConfigurationException.class)
+    public void testInvalidGroupContainerDN()
+    {
+    	config.setGroupCreateContainerDN(INVALID_DN);
+    	config.validate();
+    } 
+    
+    @Test
+    public void testValidGroupContainerDN()
+    {
+    	config.setGroupCreateContainerDN(VALID_GROUP_DN);
+    	config.validate();
+    }
 
     @Test
     public void testDefaultValues() {
@@ -322,6 +361,10 @@ public class LdapConfigurationTests {
         assertNull(config.getGroupSearchFilter());
         assertEquals(0, config.getReadTimeout());
         assertEquals(0, config.getConnectTimeout());
+        assertNull(config.getUserRDNAttribute());
+        assertNull(config.getGroupRDNAttribute());
+        assertNull(config.getUserCreateContainerDN());
+        assertNull(config.getGroupCreateContainerDN());
     }
 
     private static void assertCanValidate(LdapConfiguration config) {

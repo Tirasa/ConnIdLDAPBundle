@@ -23,9 +23,6 @@
  */
 package net.tirasa.connid.bundles.ldap.modify;
 
-import static net.tirasa.connid.bundles.ldap.LdapConnectorTestBase.SMALL_COMPANY_DN;
-import static net.tirasa.connid.bundles.ldap.LdapConnectorTestBase.newConfiguration;
-import static net.tirasa.connid.bundles.ldap.LdapConnectorTestBase.newFacade;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -36,6 +33,7 @@ import java.util.Set;
 import org.identityconnectors.common.IOUtil;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorFacade;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -44,9 +42,11 @@ import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
+
 import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
 import net.tirasa.connid.bundles.ldap.MyStatusManagement;
+
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.junit.Test;
 
@@ -300,4 +300,101 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setUidAttribute("sn");
         doCreateAccount(newFacade(config), new OperationOptionsBuilder().setAttributesToGet("givenName").build());
     }
+    
+    @Test(expected = ConnectorException.class)
+    public void testUserRDNWithNameAsNotDN()
+    {
+    	LdapConfiguration configuration = newConfiguration();
+    	configuration.setBaseContexts(ACME_DN);
+    	configuration.setUserRDNAttribute("uid");
+    	ConnectorFacade facade = newFacade(configuration);
+    	 Set<Attribute> attributes = new HashSet<Attribute>();
+         attributes.add(new Name("taffy"));
+         attributes.add(AttributeBuilder.build("cn", "Daffy Duck 2"));
+         attributes.add(AttributeBuilder.build("givenName", "Daffy"));
+         attributes.add(AttributeBuilder.build("sn", "Duck"));
+         GuardedString password = new GuardedString(
+                 "I.hate.rabbits".toCharArray());
+         attributes.add(AttributeBuilder.buildPassword(password));
+         attributes.add(AttributeBuilder.buildEnabled(false));
+    	facade.create(ObjectClass.ACCOUNT, attributes, null);
+    }
+    
+    @Test(expected = ConnectorException.class)
+    public void testUserContainerDNWithNameAsNotDN()
+    {
+    	LdapConfiguration configuration = newConfiguration();
+    	configuration.setBaseContexts(ACME_DN);
+    	configuration.setUserCreateContainerDN(ACME_USERS_DN);
+    	ConnectorFacade facade = newFacade(configuration);
+    	 Set<Attribute> attributes = new HashSet<Attribute>();
+         attributes.add(new Name("taffy"));
+         attributes.add(AttributeBuilder.build("cn", "Daffy Duck 2"));
+         attributes.add(AttributeBuilder.build("givenName", "Daffy"));
+         attributes.add(AttributeBuilder.build("sn", "Duck"));
+         GuardedString password = new GuardedString(
+                 "I.hate.rabbits".toCharArray());
+         attributes.add(AttributeBuilder.buildPassword(password));
+         attributes.add(AttributeBuilder.buildEnabled(false));
+    	facade.create(ObjectClass.ACCOUNT, attributes, null);
+    }
+    
+    @Test
+    public void testUserCreateWithFriendlyName()
+    {
+    	LdapConfiguration configuration = newConfiguration();
+    	configuration.setUserCreateContainerDN(ACME_USERS_DN);
+    	configuration.setUserRDNAttribute("uid");
+    	ConnectorFacade facade = newFacade(configuration);
+    	Set<Attribute> attributes = new HashSet<Attribute>();
+        attributes.add(new Name("taffy"));
+        attributes.add(AttributeBuilder.build("cn", "Daffy Duck 2"));
+        attributes.add(AttributeBuilder.build("givenName", "Daffy"));
+        attributes.add(AttributeBuilder.build("sn", "Duck"));
+        GuardedString password = new GuardedString("I.hate.rabbits".toCharArray());
+        attributes.add(AttributeBuilder.buildPassword(password));
+        attributes.add(AttributeBuilder.buildEnabled(false));
+    	Uid created = facade.create(ObjectClass.ACCOUNT, attributes, null);
+    	ConnectorObject obj = facade.getObject(ObjectClass.ACCOUNT, created, null);
+    	assertEquals(created.getUidValue(), obj.getUid().getUidValue());    	 
+    }
+    
+    @Test(expected = ConnectorException.class)
+    public void testGroupRDNWithNameAsNotDN()
+    {
+		LdapConfiguration configuration = newConfiguration();
+		configuration.setGroupRDNAttribute("cn");
+		ConnectorFacade facade = newFacade(configuration);
+		Set<Attribute> attributes = new HashSet<Attribute>();
+		attributes.add(new Name("samplegroup"));
+		attributes.add(AttributeBuilder.build("description", "Another Group"));
+		facade.create(ObjectClass.GROUP, attributes, null);
+	}
+    
+    @Test(expected = ConnectorException.class)
+    public void testGroupContainerDNWithNameAsNotDN()
+    {
+		LdapConfiguration configuration = newConfiguration();
+		configuration.setGroupCreateContainerDN(ACME_DN);
+		ConnectorFacade facade = newFacade(configuration);
+		Set<Attribute> attributes = new HashSet<Attribute>();
+		attributes.add(new Name("samplegroup"));
+		attributes.add(AttributeBuilder.build("description", "Another Group"));
+		facade.create(ObjectClass.GROUP, attributes, null);
+	}
+    
+    @Test
+    public void testGroupCreateWithFriendlyName()
+    {
+		LdapConfiguration configuration = newConfiguration();
+		configuration.setGroupCreateContainerDN(ACME_DN);
+		configuration.setGroupRDNAttribute("cn");
+		ConnectorFacade facade = newFacade(configuration);
+		Set<Attribute> attributes = new HashSet<Attribute>();
+		attributes.add(new Name("samplegroup"));
+		attributes.add(AttributeBuilder.build("description", "Another Group"));
+		Uid created = facade.create(ObjectClass.GROUP, attributes, null);
+		ConnectorObject obj = facade.getObject(ObjectClass.GROUP, created, null);
+		assertEquals(created.getUidValue(), obj.getUid().getUidValue());
+	}
 }
