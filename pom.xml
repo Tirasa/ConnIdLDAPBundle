@@ -30,12 +30,12 @@
   <parent>
     <groupId>net.tirasa.connid</groupId>
     <artifactId>connid</artifactId>
-    <version>1.4.0.0</version>
+    <version>1.4.1.0</version>
   </parent>
 
   <groupId>net.tirasa.connid.bundles</groupId>
   <artifactId>net.tirasa.connid.bundles.ldap</artifactId>
-  <version>1.4.1-SNAPSHOT</version>
+  <version>1.5.0-SNAPSHOT</version>
 
   <name>ConnId Bundles: LDAP</name>
 
@@ -81,7 +81,7 @@
   </mailingLists>
 
   <properties>
-    <connid.version>1.4.0.0</connid.version>
+    <connid.version>1.4.1.0</connid.version>
         
     <opends.setup.dir>${java.io.tmpdir}/opends-setup</opends.setup.dir>
     <opends.dest.dir>${project.build.directory}/test-classes/net/tirasa/connid/bundles/ldap/opends</opends.dest.dir>
