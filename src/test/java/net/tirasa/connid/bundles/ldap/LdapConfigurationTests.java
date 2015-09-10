@@ -125,12 +125,6 @@ public class LdapConfigurationTests {
     }
 
     @Test(expected = ConfigurationException.class)
-    public void testBlockCountGreatherThanZero() {
-        config.setBlockSize(0);
-        config.validate();
-    }
-
-    @Test(expected = ConfigurationException.class)
     public void testVlvSortAttributeNotNull() {
         config.setVlvSortAttribute(null);
         config.validate();
@@ -296,9 +290,7 @@ public class LdapConfigurationTests {
         assertFalse(config.isMaintainPosixGroupMembership());
         assertFalse(config.isRespectResourcePasswordPolicyChangeAfterReset());
         assertNull(config.getPasswordHashAlgorithm());
-        assertTrue(config.isUseBlocks());
-        assertEquals(100, config.getBlockSize());
-        assertFalse(config.isUsePagedResultControl());
+        assertFalse(config.isUseVlvControls());
         assertEquals("uid", config.getVlvSortAttribute());
         assertEquals("entryUUID", config.getUidAttribute());
         assertTrue(config.isReadSchema());

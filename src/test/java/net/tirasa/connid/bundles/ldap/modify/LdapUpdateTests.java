@@ -154,8 +154,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
                 new Name(BUGS_BUNNY_DN));
 
         Attribute number = AttributeBuilder.build("telephoneNumber", NUMBER1);
-        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(),
-                singleton(number), null);
+        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), singleton(number), null);
 
         Attribute noNumber = AttributeBuilder.build("telephoneNumber");
         assertNull(noNumber.getValue());
@@ -195,35 +194,29 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         builder.setAttributesToGet("userCertificate", "jpegPhoto");
 
         bugs = facade.getObject(ObjectClass.ACCOUNT, newUid, builder.build());
-        byte[] storedCertificate = (byte[]) bugs.getAttributeByName(
-                "userCertificate").getValue().get(0);
+        byte[] storedCertificate = (byte[]) bugs.getAttributeByName("userCertificate").getValue().get(0);
         assertTrue(Arrays.equals(certificate, storedCertificate));
-        byte[] storedPhoto = (byte[]) bugs.getAttributeByName("jpegPhoto").
-                getValue().get(0);
+        byte[] storedPhoto = (byte[]) bugs.getAttributeByName("jpegPhoto").getValue().get(0);
         assertTrue(Arrays.equals(photo, storedPhoto));
     }
 
     @Test
     public void testAdminCanChangePassword() {
         ConnectorFacade facade = newFacade();
-        ConnectorObject elmer = searchByAttribute(facade, ObjectClass.ACCOUNT,
-                new Name(ELMER_FUDD_DN));
+        ConnectorObject elmer = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(ELMER_FUDD_DN));
 
         GuardedString password = new GuardedString("shotgun".toCharArray());
         Attribute pwdAttr = AttributeBuilder.buildPassword(password);
-        facade.update(ObjectClass.ACCOUNT, elmer.getUid(), singleton(pwdAttr),
-                null);
+        facade.update(ObjectClass.ACCOUNT, elmer.getUid(), singleton(pwdAttr), null);
 
         // Now test that the user can login with the new password and execute an
         // operation.
         LdapConfiguration config = newConfiguration();
         config.setPrincipal(ELMER_FUDD_DN);
         config.setCredentials(password);
-        config.setUseBlocks(false); // Do not use block (paged, VLV) search, 
         // since the user doesn't have the privilege.
         facade = newFacade(config);
-        List<ConnectorObject> objects = TestHelpers.searchToList(facade,
-                new ObjectClass("organization"), null);
+        List<ConnectorObject> objects = TestHelpers.searchToList(facade, new ObjectClass("organization"), null);
         assertNotNull(findByAttribute(objects, Name.NAME, ACME_DN));
     }
 
@@ -232,30 +225,24 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         LdapConfiguration config = newConfiguration();
         config.setPrincipal(BUGS_BUNNY_DN);
         config.setCredentials(new GuardedString("carrot".toCharArray()));
-        config.setUseBlocks(false); // Do not use paged search, since the user 
-        // doesn't have the privilege.
         ConnectorFacade facade = newFacade(config);
-        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT,
-                new Name(BUGS_BUNNY_DN));
+        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
         GuardedString password = new GuardedString("cabbage".toCharArray());
         Attribute pwdAttr = AttributeBuilder.buildPassword(password);
-        facade.update(ObjectClass.ACCOUNT, bugs.getUid(), singleton(pwdAttr),
-                null);
+        facade.update(ObjectClass.ACCOUNT, bugs.getUid(), singleton(pwdAttr), null);
 
         // Now test that the user can login with the new password and execute 
         // an operation.
         config.setCredentials(password);
         facade = newFacade(config);
-        ConnectorObject elmer = searchByAttribute(facade, ObjectClass.ACCOUNT,
-                new Name(ELMER_FUDD_DN));
+        ConnectorObject elmer = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(ELMER_FUDD_DN));
         assertNotNull(elmer);
     }
 
     @Test
     public void testEnableDisable() {
         final LdapConfiguration config = new LdapConfiguration();
-
         config.setHost("localhost");
         config.setPort(PORT);
         config.setBaseContexts(ACME_DN, BIG_COMPANY_DN);
@@ -266,37 +253,28 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
 
         ConnectorFacade facade = newFacade(config);
 
-        ConnectorObject bugs = searchByAttribute(
-                facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
+        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
         Attribute status = AttributeBuilder.buildEnabled(false);
-        Uid uid = facade.update(
-                ObjectClass.ACCOUNT, bugs.getUid(), singleton(status), null);
-
+        Uid uid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), singleton(status), null);
         assertNotNull(uid);
 
         ConnectorObject obj = facade.getObject(ObjectClass.ACCOUNT, uid, null);
-
         assertNotNull(obj);
 
         status = obj.getAttributeByName(OperationalAttributes.ENABLE_NAME);
-
         assertNotNull(status);
         assertFalse(status.getValue().isEmpty());
         assertFalse((Boolean) status.getValue().get(0));
 
         status = AttributeBuilder.buildEnabled(true);
-        uid = facade.update(
-                ObjectClass.ACCOUNT, bugs.getUid(), singleton(status), null);
-
+        uid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), singleton(status), null);
         assertNotNull(uid);
 
         obj = facade.getObject(ObjectClass.ACCOUNT, uid, null);
-
         assertNotNull(obj);
 
         status = obj.getAttributeByName(OperationalAttributes.ENABLE_NAME);
-
         assertNotNull(status);
         assertFalse(status.getValue().isEmpty());
         assertTrue((Boolean) status.getValue().get(0));

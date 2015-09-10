@@ -133,7 +133,7 @@ public class LdapConnector implements
             final LdapFilter query,
             final ResultsHandler handler,
             final OperationOptions options) {
-        new LdapSearch(conn, oclass, query, options).execute(handler);
+        new LdapSearch(conn, oclass, query, handler, options).execute();
     }
 
     @Override

@@ -57,6 +57,7 @@ import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.QualifiedUid;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.spi.SearchResultsHandler;
 
 /**
  * A class to perform an LDAP search against a {@link LdapConnection}.
@@ -79,14 +80,14 @@ public class LdapSearch {
 
     private final String[] baseDNs;
 
-    public static Set<String> getAttributesReturnedByDefault(
-            final LdapConnection conn, final ObjectClass oclass) {
+    private final ResultsHandler handler;
+
+    public static Set<String> getAttributesReturnedByDefault(final LdapConnection conn, final ObjectClass oclass) {
         if (oclass.equals(LdapSchemaMapping.ANY_OBJECT_CLASS)) {
             return CollectionUtil.newSet(Name.NAME);
         }
         Set<String> result = CollectionUtil.newCaseInsensitiveSet();
-        ObjectClassInfo oci = conn.getSchemaMapping().schema().
-                findObjectClassInfo(oclass.getObjectClassValue());
+        ObjectClassInfo oci = conn.getSchemaMapping().schema().findObjectClassInfo(oclass.getObjectClassValue());
         if (oci != null) {
             for (AttributeInfo info : oci.getAttributeInfo()) {
                 if (info.isReturnedByDefault()) {
@@ -101,15 +102,17 @@ public class LdapSearch {
             final LdapConnection conn,
             final ObjectClass oclass,
             final LdapFilter filter,
+            final ResultsHandler handler,
             final OperationOptions options) {
 
-        this(conn, oclass, filter, options, conn.getConfiguration().getBaseContexts());
+        this(conn, oclass, filter, handler, options, conn.getConfiguration().getBaseContexts());
     }
 
     public LdapSearch(
             final LdapConnection conn,
             final ObjectClass oclass,
             final LdapFilter filter,
+            final ResultsHandler handler,
             final OperationOptions options,
             final String... baseDNs) {
 
@@ -118,35 +121,32 @@ public class LdapSearch {
         this.filter = filter;
         this.options = options;
         this.baseDNs = baseDNs;
-
-        groupHelper = new GroupHelper(conn);
+        this.groupHelper = new GroupHelper(conn);
+        this.handler = handler;
     }
 
     /**
      * Performs the search and passes the resulting {@link ConnectorObject}s to the given handler.
-     *
-     * @param handler the handler.
-     * @throws NamingException if a JNDI exception occurs.
      */
-    public final void execute(final ResultsHandler handler) {
+    public final void execute() {
         final String[] attrsToGetOption = options.getAttributesToGet();
         final Set<String> attrsToGet = getAttributesToGet(attrsToGetOption);
 
         final LdapInternalSearch search = getInternalSearch(attrsToGet);
 
-        search.execute(new SearchResultsHandler() {
+        search.execute(new LdapSearchResultsHandler() {
 
             @Override
-            public boolean handle(String baseDN, SearchResult result)
-                    throws NamingException {
-                return handler.handle(createConnectorObject(
-                        baseDN, result, attrsToGet, attrsToGetOption != null));
+            public boolean handle(final String baseDN, final SearchResult result) throws NamingException {
+                return handler.handle(createConnectorObject(baseDN, result, attrsToGet, attrsToGetOption != null));
             }
         });
     }
 
     /**
      * Executes the query against all configured base DNs and returns the first {@link ConnectorObject} or {@code null}.
+     *
+     * @return the first {@link ConnectorObject} or {@code null}
      */
     public final ConnectorObject getSingleResult() {
         final String[] attrsToGetOption = options.getAttributesToGet();
@@ -155,15 +155,11 @@ public class LdapSearch {
 
         final LdapInternalSearch search = getInternalSearch(attrsToGet);
 
-        search.execute(new SearchResultsHandler() {
+        search.execute(new LdapSearchResultsHandler() {
 
             @Override
-            public boolean handle(String baseDN, SearchResult result)
-                    throws NamingException {
-
-                results[0] = createConnectorObject(
-                        baseDN, result, attrsToGet, attrsToGetOption != null);
-
+            public boolean handle(final String baseDN, final SearchResult result) throws NamingException {
+                results[0] = createConnectorObject(baseDN, result, attrsToGet, attrsToGetOption != null);
                 return false;
             }
         });
@@ -182,30 +178,28 @@ public class LdapSearch {
         // In the simple case when the LdapFilter has no entryDN, we
         // will just search over our base DNs looking for entries
         // matching the native filter.
-
         LdapSearchStrategy strategy;
         List<String> dns;
         int searchScope;
 
-        String filterEntryDN = filter != null ? filter.getEntryDN() : null;
-        if (filterEntryDN != null) {
+        String filterEntryDN = filter == null ? null : filter.getEntryDN();
+        if (filterEntryDN == null) {
+            strategy = getSearchStrategy();
+            dns = getBaseDNs();
+            searchScope = getLdapSearchScope();
+        } else {
             // Would be good to check that filterEntryDN is under the configured base contexts.
             // However, the adapter is likely to pass entries outside the base contexts,
             // so not checking in order to be on the safe side.
             strategy = new DefaultSearchStrategy(true);
             dns = Collections.singletonList(filterEntryDN);
             searchScope = SearchControls.OBJECT_SCOPE;
-        } else {
-            strategy = getSearchStrategy();
-            dns = getBaseDNs();
-            searchScope = getLdapSearchScope();
         }
 
         SearchControls controls = LdapInternalSearch.createDefaultSearchControls();
         Set<String> ldapAttrsToGet = getLdapAttributesToGet(attrsToGet);
 
-        controls.setReturningAttributes(
-                ldapAttrsToGet.toArray(new String[ldapAttrsToGet.size()]));
+        controls.setReturningAttributes(ldapAttrsToGet.toArray(new String[ldapAttrsToGet.size()]));
 
         controls.setSearchScope(searchScope);
 
@@ -216,8 +210,9 @@ public class LdapSearch {
         } else if (oclass.equals(ObjectClass.GROUP)) {
             searchFilter = conn.getConfiguration().getGroupSearchFilter();
         }
-        String nativeFilter = filter != null ? filter.getNativeFilter() : null;
-        return new LdapInternalSearch(conn, getSearchFilter(optionsFilter, nativeFilter, searchFilter),
+        String nativeFilter = filter == null ? null : filter.getNativeFilter();
+        return new LdapInternalSearch(conn,
+                getSearchFilter(optionsFilter, nativeFilter, searchFilter),
                 dns, strategy, controls);
     }
 
@@ -270,7 +265,7 @@ public class LdapSearch {
         final List<String> posixGroups = new ArrayList<String>();
 
         for (String attrName : attrsToGet) {
-            Attribute attribute = null;
+            Attribute attribute;
             if (LdapConstants.isLdapGroups(attrName)) {
                 ldapGroups.addAll(groupHelper.getLdapGroups(entry.getDN().toString()));
 
@@ -284,6 +279,7 @@ public class LdapSearch {
                 attribute = AttributeBuilder.build(LdapConstants.POSIX_GROUPS_NAME, posixGroups);
             } else if (LdapConstants.PASSWORD.is(attrName)
                     && !conn.getConfiguration().getRetrievePasswordsWithSearch()) {
+
                 attribute = AttributeBuilder.build(attrName, new GuardedString());
             } else {
                 attribute = conn.getSchemaMapping().createAttribute(oclass, attrName, entry, emptyAttrWhenNotFound);
@@ -294,8 +290,7 @@ public class LdapSearch {
             }
         }
 
-        final Boolean status = StatusManagement.getInstance(
-                conn.getConfiguration().getStatusManagementClass()).
+        final Boolean status = StatusManagement.getInstance(conn.getConfiguration().getStatusManagementClass()).
                 getStatus(result.getAttributes(), posixGroups, ldapGroups);
 
         if (status != null) {
@@ -392,26 +387,23 @@ public class LdapSearch {
     }
 
     private LdapSearchStrategy getSearchStrategy() {
-        LdapSearchStrategy strategy;
-        if (ObjectClass.ACCOUNT.equals(oclass)) {
-            // Only consider paged strategies for accounts, just as the adapter does.
-
-            boolean useBlocks = conn.getConfiguration().isUseBlocks();
-            boolean usePagedResultsControl = conn.getConfiguration().isUsePagedResultControl();
-            int pageSize = conn.getConfiguration().getBlockSize();
-
-            if (useBlocks && !usePagedResultsControl && conn.supportsControl(VirtualListViewControl.OID)) {
+        LdapSearchStrategy result = new DefaultSearchStrategy(false);
+        if (options.getPageSize() != null) {
+            if (conn.getConfiguration().isUseVlvControls() && conn.supportsControl(VirtualListViewControl.OID)) {
                 String vlvSortAttr = conn.getConfiguration().getVlvSortAttribute();
-                strategy = new VlvIndexSearchStrategy(vlvSortAttr, pageSize);
-            } else if (useBlocks && conn.supportsControl(PagedResultsControl.OID)) {
-                strategy = new SimplePagedSearchStrategy(pageSize);
-            } else {
-                strategy = new DefaultSearchStrategy(false);
+                result = new VlvIndexSearchStrategy(vlvSortAttr, options.getPageSize());
+            } else if (conn.supportsControl(PagedResultsControl.OID)) {
+                result = new PagedSearchStrategy(
+                        options.getPageSize(),
+                        options.getPagedResultsCookie(),
+                        options.getPagedResultsOffset(),
+                        handler instanceof SearchResultsHandler ? (SearchResultsHandler) handler : null,
+                        options.getSortKeys()
+                );
             }
-        } else {
-            strategy = new DefaultSearchStrategy(false);
         }
-        return strategy;
+
+        return result;
     }
 
     private Set<String> getAttributesToGet(final String[] attributesToGet) {

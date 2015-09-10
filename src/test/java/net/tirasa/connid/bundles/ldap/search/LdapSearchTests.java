@@ -36,7 +36,6 @@ import java.util.Set;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.GuardedString.Accessor;
 import org.identityconnectors.framework.api.ConnectorFacade;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
@@ -57,6 +56,8 @@ import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
 import org.identityconnectors.common.CollectionUtil;
+import org.identityconnectors.framework.common.objects.SearchResult;
+import org.identityconnectors.framework.spi.SearchResultsHandler;
 import org.identityconnectors.test.common.TestHelpers;
 import org.identityconnectors.test.common.ToListResultsHandler;
 import org.junit.Test;
@@ -76,12 +77,12 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         LdapFilter filter = LdapFilter.forEntryDN(BUGS_BUNNY_DN);
         ToListResultsHandler handler = new ToListResultsHandler();
-        new LdapSearch(conn, ObjectClass.ACCOUNT, filter, new OperationOptionsBuilder().build()).execute(handler);
+        new LdapSearch(conn, ObjectClass.ACCOUNT, filter, handler, new OperationOptionsBuilder().build()).execute();
         assertEquals(1, handler.getObjects().size());
 
         filter = filter.withNativeFilter("(foo=bar)");
         handler = new ToListResultsHandler();
-        new LdapSearch(conn, ObjectClass.ACCOUNT, filter, new OperationOptionsBuilder().build()).execute(handler);
+        new LdapSearch(conn, ObjectClass.ACCOUNT, filter, handler, new OperationOptionsBuilder().build()).execute();
         assertTrue(handler.getObjects().isEmpty());
     }
 
@@ -91,20 +92,16 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         // VLV index.
         LdapConfiguration config = newConfiguration();
-        config.setUseBlocks(true);
-        config.setUsePagedResultControl(false);
-        searchExpectingNoResult(config, filter);
+        config.setUseVlvControls(true);
+        searchExpectingNoResult(config, filter, new OperationOptionsBuilder().build());
 
         // Simple paged results.
         config = newConfiguration();
-        config.setUseBlocks(true);
-        config.setUsePagedResultControl(true);
-        searchExpectingNoResult(config, filter);
+        searchExpectingNoResult(config, filter, new OperationOptionsBuilder().setPageSize(25).build());
 
         // No paging.
         config = newConfiguration();
-        config.setUseBlocks(false);
-        searchExpectingNoResult(config, filter);
+        searchExpectingNoResult(config, filter, new OperationOptionsBuilder().build());
     }
 
     @Test
@@ -113,27 +110,25 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         // VLV index.
         LdapConfiguration config = newConfiguration();
-        config.setUseBlocks(true);
-        config.setUsePagedResultControl(false);
-        searchExpectingNoResult(config, filter);
+        config.setUseVlvControls(true);
+        searchExpectingNoResult(config, filter, new OperationOptionsBuilder().build());
 
         // Simple paged results.
         config = newConfiguration();
-        config.setUseBlocks(true);
-        config.setUsePagedResultControl(true);
-        searchExpectingNoResult(config, filter);
+        searchExpectingNoResult(config, filter, new OperationOptionsBuilder().setPageSize(25).build());
 
         // No paging.
         config = newConfiguration();
-        config.setUseBlocks(false);
-        searchExpectingNoResult(config, filter);
+        searchExpectingNoResult(config, filter, new OperationOptionsBuilder().build());
     }
 
-    private void searchExpectingNoResult(LdapConfiguration config, LdapFilter filter) {
+    private void searchExpectingNoResult(
+            final LdapConfiguration config, final LdapFilter filter, final OperationOptions options) {
+
         LdapConnection conn = new LdapConnection(config);
         ToListResultsHandler handler = new ToListResultsHandler();
         // Should not fail with NameNotFoundException or InvalidNameException.
-        new LdapSearch(conn, ObjectClass.ACCOUNT, filter, new OperationOptionsBuilder().build()).execute(handler);
+        new LdapSearch(conn, ObjectClass.ACCOUNT, filter, handler, options).execute();
         assertTrue(handler.getObjects().isEmpty());
     }
 
@@ -142,55 +137,87 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         // VLV Index.
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(ACME_DN, BIG_COMPANY_DN);
-        config.setUseBlocks(true);
-        config.setUsePagedResultControl(false);
-        searchExpectingSingleResult(config);
+        config.setUseVlvControls(true);
+        searchExpectingSingleResult(config, new OperationOptionsBuilder().build());
 
         // Simple paged results.
         config = newConfiguration();
         config.setBaseContexts(ACME_DN, BIG_COMPANY_DN);
-        config.setUseBlocks(true);
-        config.setUsePagedResultControl(true);
-        searchExpectingSingleResult(config);
+        searchExpectingSingleResult(config, new OperationOptionsBuilder().setPageSize(25).build());
 
         // No paging.
         config = newConfiguration();
         config.setBaseContexts(ACME_DN, BIG_COMPANY_DN);
-        config.setUseBlocks(false);
-        searchExpectingSingleResult(config);
+        searchExpectingSingleResult(config, new OperationOptionsBuilder().build());
     }
 
-    private void searchExpectingSingleResult(LdapConfiguration config) {
+    private void searchExpectingSingleResult(final LdapConfiguration config, final OperationOptions options) {
         LdapConnection conn = new LdapConnection(config);
         FirstOnlyResultsHandler handler = new FirstOnlyResultsHandler();
-        new LdapSearch(conn, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().build()).execute(handler);
+        new LdapSearch(conn, ObjectClass.ACCOUNT, null, handler, options).execute();
         handler.assertSingleResult();
     }
 
     @Test
     public void testSimplePagedSearch() {
         LdapConfiguration config = newConfiguration();
-        config.setUseBlocks(true);
-        config.setUsePagedResultControl(true);
         ConnectorFacade facade = newFacade(config);
 
-        List<ConnectorObject> objects = TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null);
+        // read first page
+        List<ConnectorObject> objects = TestHelpers.searchToList(
+                facade, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().setPageSize(100).build());
         assertNotNull(getObjectByName(objects, BUGS_BUNNY_DN));
         assertNotNull(getObjectByName(objects, USER_0_DN));
-        // 1000 is the default search size limit for OpenDS.
-        assertTrue(objects.size() > 1000);
+        assertEquals(100, objects.size());
+
+        // read all pages, being each page of 100 entries
+        final OperationOptionsBuilder builder = new OperationOptionsBuilder().setPageSize(100);
+        final String[] cookies = new String[1];
+        final Integer[] count = new Integer[] { 0, 0 };
+        do {
+            count[0] = 0;
+
+            if (cookies[0] != null) {
+                builder.setPagedResultsCookie(cookies[0]);
+            }
+
+            new LdapSearch(new LdapConnection(config), ObjectClass.ACCOUNT, null, new SearchResultsHandler() {
+
+                @Override
+                public void handleResult(final SearchResult result) {
+                    assertTrue(result.isAllResultsReturned());
+                    cookies[0] = result.getPagedResultsCookie();
+                }
+
+                @Override
+                public boolean handle(final ConnectorObject connectorObject) {
+                    // counts entries per page
+                    count[0]++;
+                    // counts entries globally
+                    count[1]++;
+                    return true;
+                }
+            }, builder.build()).execute();
+
+            if (cookies[0] != null) {
+                assertEquals(100, count[0], 0);
+            }
+        } while (cookies[0] != null);
+
+        // 2000 from BIG_COMPANY_DN, 4 from ACME_DN
+        assertEquals(2000 + 4, count[1], 0);
     }
 
     @Test
     public void testVlvIndexSearch() {
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(EXAMPLE_COM_DN);
-        config.setUseBlocks(true);
-        config.setUsePagedResultControl(false);
         config.setUidAttribute("entryDN");
+        config.setUseVlvControls(true);
         ConnectorFacade facade = newFacade(config);
 
-        List<ConnectorObject> objects = TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null);
+        List<ConnectorObject> objects = TestHelpers.searchToList(
+                facade, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().setPageSize(1000).build());
         assertNotNull(getObjectByName(objects, USER_0_DN));
         // 1000 is the default search size limit for OpenDS.
         assertTrue(objects.size() > 1000);
@@ -199,20 +226,32 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet("debugsearchindex");
         FirstOnlyResultsHandler handler = new FirstOnlyResultsHandler();
-        facade.search(ObjectClass.ACCOUNT, null, handler, builder.build());
-        String debugsearch = handler.getSingleResult().getAttributeByName("debugsearchindex").getValue().get(0).
-                toString();
+        facade.search(ObjectClass.ACCOUNT, null, handler, builder.setPageSize(1000).build());
+        String debugsearch = handler.getSingleResult().
+                getAttributeByName("debugsearchindex").getValue().get(0).toString();
         assertTrue(debugsearch.contains("vlv"));
     }
 
-    @Test(expected = ConnectorException.class)
-    public void testNoUseBlocks() {
+    public void testDefaultStrategy() {
         LdapConfiguration config = newConfiguration();
-        config.setUseBlocks(false);
         ConnectorFacade facade = newFacade(config);
-        // This should fail, since the search will exceed the maximum number of
-        // entries to return.
-        TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null);
+
+        final boolean[] isAllResultsReturned = new boolean[1];
+        facade.search(ObjectClass.ACCOUNT, null, new org.identityconnectors.framework.spi.SearchResultsHandler() {
+
+            @Override
+            public void handleResult(final SearchResult result) {
+                isAllResultsReturned[0] = result.isAllResultsReturned();
+            }
+
+            @Override
+            public boolean handle(final ConnectorObject connectorObject) {
+                return true;
+            }
+        }, null);
+
+        // the search will exceed the maximum number of entries to return
+        assertFalse(isAllResultsReturned[0]);
     }
 
     @Test
@@ -283,8 +322,9 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setScope(OperationOptions.SCOPE_ONE_LEVEL);
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
-        List<ConnectorObject> objects = TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null, optionsBuilder.
-                build());
+        optionsBuilder.setPageSize(100);
+        List<ConnectorObject> objects = TestHelpers.searchToList(
+                facade, ObjectClass.ACCOUNT, null, optionsBuilder.build());
         assertTrue(objects.isEmpty());
 
         // ... but there are some in the organization subtree.
@@ -304,8 +344,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setScope(OperationOptions.SCOPE_SUBTREE);
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
-        List<ConnectorObject> objects = TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null, optionsBuilder.
-                build());
+        List<ConnectorObject> objects = TestHelpers.searchToList(
+                facade, ObjectClass.ACCOUNT, null, optionsBuilder.build());
         assertNotNull(getObjectByName(objects, BUGS_BUNNY_DN));
         assertNotNull(getObjectByName(objects, ELMER_FUDD_DN));
 
@@ -387,7 +427,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade();
 
         // This should find accounts from both base DNs.
-        List<ConnectorObject> objects = TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null);
+        List<ConnectorObject> objects = TestHelpers.searchToList(
+                facade, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().setPageSize(1000).build());
         assertNotNull(getObjectByName(objects, BUGS_BUNNY_DN));
         assertNotNull(getObjectByName(objects, USER_0_DN));
     }

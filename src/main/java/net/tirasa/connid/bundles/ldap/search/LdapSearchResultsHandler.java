@@ -26,8 +26,7 @@ package net.tirasa.connid.bundles.ldap.search;
 import javax.naming.NamingException;
 import javax.naming.directory.SearchResult;
 
-public interface SearchResultsHandler {
+public interface LdapSearchResultsHandler {
 
-    public boolean handle(final String baseDN, final SearchResult result)
-            throws NamingException;
+    boolean handle(String baseDN, SearchResult result) throws NamingException;
 }

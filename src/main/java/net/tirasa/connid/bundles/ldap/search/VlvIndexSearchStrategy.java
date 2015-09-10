@@ -1,35 +1,34 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  * 
- * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
+ * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.     
  * 
- * The contents of this file are subject to the terms of the Common Development
- * and Distribution License("CDDL") (the "License").  You may not use this file
+ * The contents of this file are subject to the terms of the Common Development 
+ * and Distribution License("CDDL") (the "License").  You may not use this file 
  * except in compliance with the License.
  * 
- * You can obtain a copy of the License at
+ * You can obtain a copy of the License at 
  * http://opensource.org/licenses/cddl1.php
- * See the License for the specific language governing permissions and limitations
- * under the License.
+ * See the License for the specific language governing permissions and limitations 
+ * under the License. 
  * 
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
- * If applicable, add the following below this CDDL Header, with the fields
- * enclosed by brackets [] replaced by your own identifying information:
+ * If applicable, add the following below this CDDL Header, with the fields 
+ * enclosed by brackets [] replaced by your own identifying information: 
  * "Portions Copyrighted [year] [name of copyright owner]"
  * ====================
  * Portions Copyrighted 2011 ConnId.
  */
 package net.tirasa.connid.bundles.ldap.search;
 
-import static org.identityconnectors.common.StringUtil.isNotBlank;
-
+import com.sun.jndi.ldap.ctl.VirtualListViewControl;
+import com.sun.jndi.ldap.ctl.VirtualListViewResponseControl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
@@ -38,41 +37,44 @@ import javax.naming.ldap.Control;
 import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.SortControl;
 import javax.naming.ldap.SortResponseControl;
-
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
-
-import com.sun.jndi.ldap.ctl.VirtualListViewControl;
-import com.sun.jndi.ldap.ctl.VirtualListViewResponseControl;
 
 public class VlvIndexSearchStrategy extends LdapSearchStrategy {
 
-    private static Log log;
+    private static Log LOG;
 
     private final String vlvIndexAttr;
-    private final int blockSize;
+
+    private final int pageSize;
 
     private int index;
+
     private int lastListSize;
+
     private byte[] cookie;
 
-    static synchronized void setLog(Log log) {
-        VlvIndexSearchStrategy.log = log;
+    static synchronized void setLog(final Log log) {
+        VlvIndexSearchStrategy.LOG = log;
     }
 
     synchronized static Log getLog() {
-        if (log == null) {
-            log = Log.getLog(VlvIndexSearchStrategy.class);
+        if (LOG == null) {
+            LOG = Log.getLog(VlvIndexSearchStrategy.class);
         }
-        return log;
+        return LOG;
     }
 
-    public VlvIndexSearchStrategy(String vlvSortAttr, int blockSize) {
-        this.vlvIndexAttr = isNotBlank(vlvSortAttr) ? vlvSortAttr : "uid";
-        this.blockSize = blockSize;
+    public VlvIndexSearchStrategy(final String vlvSortAttr, final int pageSize) {
+        this.vlvIndexAttr = StringUtil.isNotBlank(vlvSortAttr) ? vlvSortAttr : "uid";
+        this.pageSize = pageSize;
     }
 
     @Override
-    public void doSearch(LdapContext initCtx, List<String> baseDNs, String query, SearchControls searchControls, SearchResultsHandler handler) throws IOException, NamingException {
+    public void doSearch(final LdapContext initCtx, final List<String> baseDNs, final String query,
+            final SearchControls searchControls, final LdapSearchResultsHandler handler)
+            throws IOException, NamingException {
+
         getLog().ok("Searching in {0} with filter {1} and {2}", baseDNs, query, searchControlsToString(searchControls));
 
         Iterator<String> baseDNIter = baseDNs.iterator();
@@ -88,9 +90,12 @@ public class VlvIndexSearchStrategy extends LdapSearchStrategy {
         }
     }
 
-    private boolean searchBaseDN(LdapContext ctx, String baseDN, String query, SearchControls searchControls, SearchResultsHandler handler) throws IOException, NamingException {
+    private boolean searchBaseDN(final LdapContext ctx, final String baseDN, final String query,
+            final SearchControls searchControls, final LdapSearchResultsHandler handler)
+            throws IOException, NamingException {
+
         getLog().ok("Searching in {0}", baseDN);
-        
+
         index = 1;
         lastListSize = 0;
         cookie = null;
@@ -99,11 +104,13 @@ public class VlvIndexSearchStrategy extends LdapSearchStrategy {
 
         for (;;) {
             SortControl sortControl = new SortControl(vlvIndexAttr, Control.CRITICAL);
-            
-            int afterCount = blockSize - 1;
-            VirtualListViewControl vlvControl = new VirtualListViewControl(index, lastListSize, 0, afterCount, Control.CRITICAL);
+
+            int afterCount = pageSize - 1;
+
+            VirtualListViewControl vlvControl =
+                    new VirtualListViewControl(index, lastListSize, 0, afterCount, Control.CRITICAL);
             vlvControl.setContextID(cookie);
-            
+
             getLog().ok("New search: target = {0}, afterCount = {1}", index, afterCount);
             ctx.setRequestControls(new Control[] { sortControl, vlvControl });
 
@@ -112,7 +119,7 @@ public class VlvIndexSearchStrategy extends LdapSearchStrategy {
             // (because processing the response controls might throw exceptions that
             // invalidate anything we might have sent otherwise).
             // So storing the results before actually sending them to the handler.
-            List<SearchResult> resultList = new ArrayList<SearchResult>(blockSize);
+            List<SearchResult> resultList = new ArrayList<SearchResult>(pageSize);
 
             NamingEnumeration<SearchResult> results = ctx.search(baseDN, query, searchControls);
             try {

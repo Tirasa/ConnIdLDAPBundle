@@ -26,7 +26,6 @@ package net.tirasa.connid.bundles.ldap.search;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
 import javax.naming.ldap.LdapContext;
@@ -38,26 +37,32 @@ public abstract class LdapSearchStrategy {
             final List<String> baseDNs,
             final String query,
             final SearchControls searchControls,
-            final SearchResultsHandler handler)
+            final LdapSearchResultsHandler handler)
             throws IOException, NamingException;
 
-    static String searchControlsToString(SearchControls controls) {
+    static String searchControlsToString(final SearchControls controls) {
         StringBuilder builder = new StringBuilder();
+
         builder.append("SearchControls: {returningAttributes=");
         String[] attrs = controls.getReturningAttributes();
-        builder.append(attrs != null ? Arrays.asList(attrs) : "null");
+
+        builder.append(attrs == null ? "null" : Arrays.asList(attrs));
+
         builder.append(", scope=");
         switch (controls.getSearchScope()) {
             case SearchControls.OBJECT_SCOPE:
                 builder.append("OBJECT");
                 break;
+
             case SearchControls.ONELEVEL_SCOPE:
                 builder.append("ONELEVEL");
                 break;
+
             case SearchControls.SUBTREE_SCOPE:
+            default:
                 builder.append("SUBTREE");
-                break;
         }
+
         builder.append('}');
         return builder.toString();
     }

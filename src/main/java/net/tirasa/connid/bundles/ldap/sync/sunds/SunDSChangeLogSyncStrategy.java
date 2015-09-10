@@ -76,7 +76,7 @@ import net.tirasa.connid.bundles.ldap.search.LdapFilter;
 import net.tirasa.connid.bundles.ldap.search.LdapInternalSearch;
 import net.tirasa.connid.bundles.ldap.search.LdapSearch;
 import net.tirasa.connid.bundles.ldap.search.LdapSearches;
-import net.tirasa.connid.bundles.ldap.search.SearchResultsHandler;
+import net.tirasa.connid.bundles.ldap.search.LdapSearchResultsHandler;
 import net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategy;
 import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.ChangeSeparator;
 import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Line;
@@ -162,7 +162,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                     new DefaultSearchStrategy(false),
                     controls);
 
-            search.execute(new SearchResultsHandler() {
+            search.execute(new LdapSearchResultsHandler() {
 
                 @Override
                 public boolean handle(String baseDN, SearchResult result)

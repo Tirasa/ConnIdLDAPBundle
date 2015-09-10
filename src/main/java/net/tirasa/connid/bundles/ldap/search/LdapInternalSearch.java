@@ -23,16 +23,13 @@
  */
 package net.tirasa.connid.bundles.ldap.search;
 
-import static org.identityconnectors.common.StringUtil.isNotBlank;
-
 import java.io.IOException;
 import java.util.List;
-
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
-
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.common.StringUtil;
 
 /**
  * A class to perform an LDAP search against a {@link LdapConnection}.
@@ -57,33 +54,27 @@ public class LdapInternalSearch {
             final List<String> baseDNs,
             final LdapSearchStrategy strategy,
             final SearchControls controls) {
+
         this.conn = conn;
-        this.filter = filter;
+        this.filter = StringUtil.isNotBlank(filter) ? filter : "(objectClass=*)";
         this.baseDNs = baseDNs;
         this.strategy = strategy;
         this.controls = controls;
     }
 
-    public void execute(final SearchResultsHandler handler) {
-        String filter = blankAsAllObjects(this.filter);
+    public void execute(final LdapSearchResultsHandler handler) {
         try {
-
             strategy.doSearch(
                     conn.getInitialContext(),
                     baseDNs,
                     filter,
                     controls,
                     handler);
-
         } catch (IOException e) {
             throw new ConnectorException(e);
         } catch (NamingException e) {
             throw new ConnectorException(e);
         }
-    }
-
-    private static String blankAsAllObjects(String query) {
-        return isNotBlank(query) ? query : "(objectClass=*)";
     }
 
     public static SearchControls createDefaultSearchControls() {

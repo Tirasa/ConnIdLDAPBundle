@@ -47,7 +47,7 @@ import net.tirasa.connid.bundles.ldap.LdapConnection;
 import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.escapeAttrValue;
 
 import net.tirasa.connid.bundles.ldap.search.LdapSearches;
-import net.tirasa.connid.bundles.ldap.search.SearchResultsHandler;
+import net.tirasa.connid.bundles.ldap.search.LdapSearchResultsHandler;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 
@@ -350,7 +350,7 @@ public class GroupHelper {
         }
     }
 
-    private static final class ToDNHandler implements SearchResultsHandler {
+    private static final class ToDNHandler implements LdapSearchResultsHandler {
 
         private final List<String> results = new ArrayList<String>();
 
@@ -367,7 +367,7 @@ public class GroupHelper {
         }
     }
 
-    private static final class ToGroupMembershipHandler implements SearchResultsHandler {
+    private static final class ToGroupMembershipHandler implements LdapSearchResultsHandler {
 
         private final Set<GroupMembership> results = new HashSet<GroupMembership>();
 

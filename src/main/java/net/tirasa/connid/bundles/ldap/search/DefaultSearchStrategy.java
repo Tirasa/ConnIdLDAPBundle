@@ -38,7 +38,7 @@ import org.identityconnectors.common.logging.Log;
 
 public class DefaultSearchStrategy extends LdapSearchStrategy {
 
-    private static final Log log = Log.getLog(DefaultSearchStrategy.class);
+    private static final Log LOG = Log.getLog(DefaultSearchStrategy.class);
 
     private final boolean ignoreNonExistingBaseDNs;
 
@@ -47,8 +47,10 @@ public class DefaultSearchStrategy extends LdapSearchStrategy {
     }
 
     @Override
-    public void doSearch(LdapContext initCtx, List<String> baseDNs, String query, SearchControls searchControls, SearchResultsHandler handler) throws NamingException {
-        log.ok("Searching in {0} with filter {1} and {2}", baseDNs, query, searchControlsToString(searchControls));
+    public void doSearch(LdapContext initCtx, List<String> baseDNs, String query, SearchControls searchControls,
+            LdapSearchResultsHandler handler) throws NamingException {
+
+        LOG.ok("Searching in {0} with filter {1} and {2}", baseDNs, query, searchControlsToString(searchControls));
 
         Iterator<String> baseDNIter = baseDNs.iterator();
         boolean proceed = true;
@@ -63,13 +65,13 @@ public class DefaultSearchStrategy extends LdapSearchStrategy {
                 if (!ignoreNonExistingBaseDNs) {
                     throw e;
                 }
-                log.warn(e, null);
+                LOG.warn(e, null);
                 continue;
             } catch (InvalidNameException e) {
                 if (!ignoreNonExistingBaseDNs) {
                     throw e;
                 }
-                log.warn(e, null);
+                LOG.warn(e, null);
                 continue;
             }
             try {
@@ -81,4 +83,5 @@ public class DefaultSearchStrategy extends LdapSearchStrategy {
             }
         }
     }
+
 }

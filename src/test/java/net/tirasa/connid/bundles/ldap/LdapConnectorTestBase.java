@@ -211,6 +211,7 @@ public abstract class LdapConnectorTestBase {
         // TODO: remove the line below when using ConnId >= 1.4.0.1
         ((APIConfigurationImpl) impl).
                 setConfigurationProperties(JavaClassProperties.createConfigurationProperties(cfg));
+        impl.getResultsHandlerConfiguration().setFilteredResultsHandlerInValidationMode(true);
         return factory.newInstance(impl);
     }
 

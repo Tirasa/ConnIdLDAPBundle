@@ -111,7 +111,7 @@
     <dependency>
       <groupId>org.glassfish.main.external</groupId>
       <artifactId>ldapbp-repackaged</artifactId>
-      <version>3.1.2.2</version>
+      <version>4.1</version>
     </dependency>
         
     <!-- TEST -->
@@ -149,27 +149,12 @@
       <plugin>
         <groupId>com.mycila.maven-license-plugin</groupId>
         <artifactId>maven-license-plugin</artifactId>
-        <inherited>true</inherited>
+        <version>1.10.b1</version>
+        <inherited>false</inherited>
         <configuration>
-          <header>https://raw.githubusercontent.com/Tirasa/ConnId/connid-${connid.version}/java/src/main/resources/header.txt</header>
-          <headerDefinitions>
-            <headerDefinition>https://raw.githubusercontent.com/Tirasa/ConnId/connid-${connid.version}/java/src/main/resources/java-single-star.xml</headerDefinition>
-          </headerDefinitions>    
-          <mapping>
-            <ldif>SCRIPT_STYLE</ldif>
-          </mapping>                
-          <excludes>
-            <exclude>README.md</exclude>
-            <exclude>**/LICENSE*</exclude>
-            <exclude>**/*.bat</exclude>
-            <exclude>**/*.pin</exclude>
-            <exclude>**/*.cert</exclude>
-            <exclude>**/*.template</exclude>
-            <exclude>**/bin/*-ds</exclude>
-            <exclude>**/.*</exclude>
-          </excludes>                    
+          <skip>true</skip>
         </configuration>
-      </plugin>      
+      </plugin>
       
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
