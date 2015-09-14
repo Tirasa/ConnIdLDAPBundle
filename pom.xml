@@ -161,6 +161,7 @@
             <phase>process-test-classes</phase>
             <configuration>
               <target>
+                <mkdir dir="${settings.localRepository}/openrock/opendj"/>
                 <get src="https://github.com/OpenRock/OpenDJ/releases/download/${opendj.version}/opendj-server-${opendj.version}.zip" 
                      dest="${settings.localRepository}/openrock/opendj" skipexisting="true"/>
                 <delete dir="${opendj.setup.dir}"/>
