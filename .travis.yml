@@ -1,5 +1,7 @@
 language: java
  
+sudo: false
+
 env:
   global:
     - SONATYPE_USERNAME=chicchiricco
