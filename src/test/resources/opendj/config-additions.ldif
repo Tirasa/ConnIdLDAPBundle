@@ -1,0 +1,70 @@
+dn: cn=Quickly Expiring Password Policy,cn=Password Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-password-policy
+cn: Quickly Expiring password Policy
+ds-cfg-password-attribute: userPassword
+ds-cfg-default-password-storage-scheme: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
+ds-cfg-allow-expired-password-changes: false
+ds-cfg-allow-multiple-password-values: false
+ds-cfg-allow-pre-encoded-passwords: false
+ds-cfg-allow-user-password-changes: true
+ds-cfg-expire-passwords-without-warning: true
+ds-cfg-force-change-on-add: false
+ds-cfg-force-change-on-reset: false
+ds-cfg-grace-login-count: 42
+ds-cfg-idle-lockout-interval: 0 seconds
+ds-cfg-lockout-failure-count: 0
+ds-cfg-lockout-duration: 0 seconds
+ds-cfg-lockout-failure-expiration-interval: 0 seconds
+ds-cfg-min-password-age: 0 seconds
+ds-cfg-max-password-age: 2 seconds
+ds-cfg-max-password-reset-age: 0 seconds
+ds-cfg-password-expiration-warning-interval: 1 seconds
+ds-cfg-password-generator: cn=Random Password Generator,cn=Password Generators,cn=config
+ds-cfg-password-change-requires-current-password: false
+ds-cfg-require-secure-authentication: false
+ds-cfg-require-secure-password-changes: false
+ds-cfg-skip-validation-for-administrators: false
+ds-cfg-state-update-failure-policy: reactive
+ds-cfg-password-history-count: 0
+ds-cfg-password-history-duration: 0 seconds
+
+dn: cn=Clear Text Password Policy,cn=Password Policies,cn=config
+objectClass: top
+objectClass: ds-cfg-password-policy
+cn: Default Password Policy
+ds-cfg-password-attribute: userPassword
+ds-cfg-default-password-storage-scheme: cn=Clear,cn=Password Storage Schemes,cn=config
+ds-cfg-allow-expired-password-changes: false
+ds-cfg-allow-multiple-password-values: false
+ds-cfg-allow-pre-encoded-passwords: true
+ds-cfg-allow-user-password-changes: true
+ds-cfg-expire-passwords-without-warning: false
+ds-cfg-force-change-on-add: false
+ds-cfg-force-change-on-reset: false
+ds-cfg-grace-login-count: 0
+ds-cfg-idle-lockout-interval: 0 seconds
+ds-cfg-lockout-failure-count: 0
+ds-cfg-lockout-duration: 0 seconds
+ds-cfg-lockout-failure-expiration-interval: 0 seconds
+ds-cfg-min-password-age: 0 seconds
+ds-cfg-max-password-age: 0 seconds
+ds-cfg-max-password-reset-age: 0 seconds
+ds-cfg-password-expiration-warning-interval: 5 days
+ds-cfg-password-generator: cn=Random Password Generator,cn=Password Generators,cn=config
+ds-cfg-password-change-requires-current-password: false
+ds-cfg-require-secure-authentication: false
+ds-cfg-require-secure-password-changes: false
+ds-cfg-skip-validation-for-administrators: false
+ds-cfg-state-update-failure-policy: reactive
+ds-cfg-password-history-count: 0
+ds-cfg-password-history-duration: 0 seconds
+
+dn: ds-cfg-name=index-uid,cn=VLV Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
+objectClass: ds-cfg-local-db-vlv-index
+objectClass: top
+ds-cfg-filter: (&(objectClass=inetOrgPerson)(objectClass=organizationalPerson)(objectClass=person)(objectClass=top))
+ds-cfg-base-dn: dc=example,dc=com
+ds-cfg-sort-order: uid
+ds-cfg-scope: whole-subtree
+ds-cfg-name: index-uid

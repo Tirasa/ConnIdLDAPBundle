@@ -47,7 +47,6 @@ import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.LdapConnection.ServerType;
-import org.identityconnectors.framework.api.ConnectorFacade;
 import org.junit.Test;
 
 public class LdapSchemaMappingTests extends LdapConnectorTestBase {
@@ -108,7 +107,7 @@ public class LdapSchemaMappingTests extends LdapConnectorTestBase {
         Set<AttributeInfo> attrInfos = oci.getAttributeInfo();
 
         AttributeInfo info = AttributeInfoUtil.find("cn", attrInfos);
-        assertEquals(AttributeInfoBuilder.build("cn", String.class, 
+        assertEquals(AttributeInfoBuilder.build("cn", String.class,
                 EnumSet.of(Flags.REQUIRED, Flags.MULTIVALUED)), info);
     }
 
@@ -173,7 +172,7 @@ public class LdapSchemaMappingTests extends LdapConnectorTestBase {
     public void testSyncNotSupported() {
         LdapConfiguration config = newConfiguration();
         LdapConnection conn = new LdapConnection(config);
-        assertEquals(ServerType.OPENDS, conn.getServerType());
+        assertEquals(ServerType.OPENDJ, conn.getServerType());
         Schema schema = newFacade(config).schema();
         assertTrue(schema.getSupportedObjectClassesByOperation().get(SyncApiOp.class).isEmpty());
     }

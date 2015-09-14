@@ -23,8 +23,6 @@
  */
 package net.tirasa.connid.bundles.ldap.modify;
 
-import static java.util.Collections.singleton;
-import static org.identityconnectors.common.CollectionUtil.newSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -33,8 +31,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-
 import org.identityconnectors.common.IOUtil;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorFacade;
@@ -50,6 +48,7 @@ import org.identityconnectors.framework.common.objects.Uid;
 import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
 import net.tirasa.connid.bundles.ldap.MyStatusManagement;
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.test.common.TestHelpers;
 import org.junit.Test;
 
@@ -69,27 +68,24 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
     @Test
     public void testSimpleAddRemoveAttrs() {
         ConnectorFacade facade = newFacade();
-        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT,
-                new Name(BUGS_BUNNY_DN));
+        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
         Attribute number1 = AttributeBuilder.build("telephoneNumber", NUMBER1);
 
-        Uid newUid = facade.addAttributeValues(ObjectClass.ACCOUNT,
-                bugs.getUid(), singleton(number1), null);
+        Uid newUid = facade.addAttributeValues(
+                ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(number1), null);
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet("telephoneNumber");
         OperationOptions options = builder.build();
 
         bugs = facade.getObject(ObjectClass.ACCOUNT, newUid, options);
-        List<Object> numberAttr = bugs.getAttributeByName("telephoneNumber").
-                getValue();
+        List<Object> numberAttr = bugs.getAttributeByName("telephoneNumber").getValue();
         assertEquals(NUMBER1, numberAttr.get(0));
         assertEquals(1, numberAttr.size());
 
         Attribute number2 = AttributeBuilder.build("telephoneNumber", NUMBER2);
-        newUid = facade.addAttributeValues(ObjectClass.ACCOUNT, bugs.getUid(),
-                singleton(number2), null);
+        newUid = facade.addAttributeValues(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(number2), null);
 
         bugs = facade.getObject(ObjectClass.ACCOUNT, newUid, options);
         numberAttr = bugs.getAttributeByName("telephoneNumber").getValue();
@@ -97,34 +93,29 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         assertEquals(NUMBER2, numberAttr.get(1));
         assertEquals(2, numberAttr.size());
 
-        newUid = facade.removeAttributeValues(ObjectClass.ACCOUNT, bugs.getUid(),
-                newSet(number1, number2), null);
+        newUid = facade.removeAttributeValues(
+                ObjectClass.ACCOUNT, bugs.getUid(), CollectionUtil.newSet(number1, number2), null);
 
         bugs = facade.getObject(ObjectClass.ACCOUNT, newUid, options);
-        assertTrue(
-                bugs.getAttributeByName("telephoneNumber").getValue().isEmpty());
+        assertTrue(bugs.getAttributeByName("telephoneNumber").getValue().isEmpty());
     }
 
     @Test
     public void testRename() {
         ConnectorFacade facade = newFacade();
-        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT,
-                new Name(BUGS_BUNNY_DN));
+        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
         Name name = new Name(
                 "uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com");
         Attribute number = AttributeBuilder.build("telephoneNumber", NUMBER1);
-        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), newSet(
-                name, number), null);
+        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), CollectionUtil.newSet(name, number), null);
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet("telephoneNumber");
 
-        ConnectorObject daffy = facade.getObject(ObjectClass.ACCOUNT, newUid,
-                builder.build());
+        ConnectorObject daffy = facade.getObject(ObjectClass.ACCOUNT, newUid, builder.build());
         assertEquals(name, daffy.getName());
-        assertEquals(NUMBER1, daffy.getAttributeByName("telephoneNumber").
-                getValue().get(0));
+        assertEquals(NUMBER1, daffy.getAttributeByName("telephoneNumber").getValue().get(0));
     }
 
     @Test
@@ -133,17 +124,14 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
         ConnectorFacade facade = newFacade(config);
-        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT,
-                new Name(BUGS_BUNNY_DN));
+        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
         Name name = new Name("uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com");
-        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(),
-                singleton((Attribute) name), null);
+        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton((Attribute) name), null);
 
         // Since they are both the entry DN.
         assertEquals(name.getNameValue(), newUid.getUidValue());
-        ConnectorObject daffy = facade.getObject(ObjectClass.ACCOUNT, newUid,
-                null);
+        ConnectorObject daffy = facade.getObject(ObjectClass.ACCOUNT, newUid, null);
         assertEquals(name, daffy.getName());
     }
 
@@ -154,41 +142,31 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
                 new Name(BUGS_BUNNY_DN));
 
         Attribute number = AttributeBuilder.build("telephoneNumber", NUMBER1);
-        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), singleton(number), null);
+        facade.update(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(number), null);
 
         Attribute noNumber = AttributeBuilder.build("telephoneNumber");
         assertNull(noNumber.getValue());
-        newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), singleton(
-                noNumber), null);
+        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(noNumber), null);
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet("telephoneNumber");
 
         bugs = facade.getObject(ObjectClass.ACCOUNT, newUid, builder.build());
-        assertTrue(
-                bugs.getAttributeByName("telephoneNumber").getValue().
-                isEmpty());
+        assertTrue(bugs.getAttributeByName("telephoneNumber").getValue().isEmpty());
     }
 
     @Test
-    public void testUpdateBinaryAttributes()
-            throws IOException {
+    public void testUpdateBinaryAttributes() throws IOException {
         ConnectorFacade facade = newFacade();
-        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT,
-                new Name(BUGS_BUNNY_DN));
+        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
-        byte[] certificate = IOUtil.getResourceAsBytes(LdapUpdateTests.class,
-                "certificate.cert");
-        Attribute certAttr = AttributeBuilder.build("userCertificate",
-                certificate);
-        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(),
-                singleton(certAttr), null);
+        byte[] certificate = IOUtil.getResourceAsBytes(LdapUpdateTests.class, "certificate.cert");
+        Attribute certAttr = AttributeBuilder.build("userCertificate", certificate);
+        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(certAttr), null);
 
-        byte[] photo = IOUtil.getResourceAsBytes(LdapUpdateTests.class,
-                "photo.jpg");
+        byte[] photo = IOUtil.getResourceAsBytes(LdapUpdateTests.class, "photo.jpg");
         Attribute photoAttr = AttributeBuilder.build("jpegPhoto", photo);
-        newUid = facade.addAttributeValues(ObjectClass.ACCOUNT, newUid,
-                singleton(photoAttr), null);
+        newUid = facade.addAttributeValues(ObjectClass.ACCOUNT, newUid, Collections.singleton(photoAttr), null);
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet("userCertificate", "jpegPhoto");
@@ -207,10 +185,9 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
 
         GuardedString password = new GuardedString("shotgun".toCharArray());
         Attribute pwdAttr = AttributeBuilder.buildPassword(password);
-        facade.update(ObjectClass.ACCOUNT, elmer.getUid(), singleton(pwdAttr), null);
+        facade.update(ObjectClass.ACCOUNT, elmer.getUid(), Collections.singleton(pwdAttr), null);
 
-        // Now test that the user can login with the new password and execute an
-        // operation.
+        // Now test that the user can login with the new password and execute an operation.
         LdapConfiguration config = newConfiguration();
         config.setPrincipal(ELMER_FUDD_DN);
         config.setCredentials(password);
@@ -230,10 +207,9 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
 
         GuardedString password = new GuardedString("cabbage".toCharArray());
         Attribute pwdAttr = AttributeBuilder.buildPassword(password);
-        facade.update(ObjectClass.ACCOUNT, bugs.getUid(), singleton(pwdAttr), null);
+        facade.update(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(pwdAttr), null);
 
-        // Now test that the user can login with the new password and execute 
-        // an operation.
+        // Now test that the user can login with the new password and execute an operation.
         config.setCredentials(password);
         facade = newFacade(config);
         ConnectorObject elmer = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(ELMER_FUDD_DN));
@@ -256,7 +232,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
         Attribute status = AttributeBuilder.buildEnabled(false);
-        Uid uid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), singleton(status), null);
+        Uid uid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(status), null);
         assertNotNull(uid);
 
         ConnectorObject obj = facade.getObject(ObjectClass.ACCOUNT, uid, null);
@@ -268,7 +244,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         assertFalse((Boolean) status.getValue().get(0));
 
         status = AttributeBuilder.buildEnabled(true);
-        uid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), singleton(status), null);
+        uid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(status), null);
         assertNotNull(uid);
 
         obj = facade.getObject(ObjectClass.ACCOUNT, uid, null);

@@ -23,13 +23,14 @@
  */
 package net.tirasa.connid.bundles.ldap;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
+import java.io.InputStream;
+import java.net.ServerSocket;
 import java.util.List;
+import java.util.Properties;
 import org.identityconnectors.common.IOUtil;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.APIConfiguration;
@@ -45,20 +46,24 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.test.common.TestHelpers;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.identityconnectors.framework.impl.api.APIConfigurationImpl;
-import org.identityconnectors.framework.impl.api.local.JavaClassProperties;
 import org.junit.Before;
-import org.opends.server.config.ConfigException;
-import org.opends.server.types.DirectoryEnvironmentConfig;
-import org.opends.server.types.InitializationException;
-import org.opends.server.util.EmbeddedUtils;
+import org.junit.BeforeClass;
 
 public abstract class LdapConnectorTestBase {
 
-    // Cf. data.ldif and bigcompany.ldif.
-    public static final int PORT = 2389;
+    public static String HOST;
 
-    public static final int SSL_PORT = 2636;
+    public static Integer PORT;
+
+    public static Integer SSL_PORT;
+
+    public static String TOOL_START_DS;
+
+    public static String TOOL_STOP_DS;
+
+    public static String TOOL_RESTORE;
+
+    public static String BACKUP_DIR;
 
     public static final String EXAMPLE_COM_DN = "dc=example,dc=com";
 
@@ -70,9 +75,9 @@ public abstract class LdapConnectorTestBase {
 
     public static final String ACME_O = "Acme";
 
-    public static final String CZECH_REPUBLIC_DN = "c=Czech Republic,o=Acme,dc=example,dc=com";
+    public static final String CZECH_REPUBLIC_DN = "c=CZ,o=Acme,dc=example,dc=com";
 
-    public static final String CZECH_REPUBLIC_C = "Czech Republic";
+    public static final String CZECH_REPUBLIC_C = "CZ";
 
     public static final String ACME_USERS_DN = "ou=Users,o=Acme,dc=example,dc=com";
 
@@ -140,37 +145,66 @@ public abstract class LdapConnectorTestBase {
 
     public static final String USER_0_GIVEN_NAME = "Aaccf";
 
-    // Cf. test/opends/config/config.ldif and setup-test-opends.xml.
-    private static final String[] FILES = {
-        "config/config.ldif",
-        "config/admin-backend.ldif",
-        "config/keystore",
-        "config/keystore.pin",
-        "config/schema/00-core.ldif",
-        "config/schema/01-pwpolicy.ldif",
-        "config/schema/02-config.ldif",
-        "config/schema/03-changelog.ldif",
-        "config/schema/03-rfc2713.ldif",
-        "config/schema/03-rfc2714.ldif",
-        "config/schema/03-rfc2739.ldif",
-        "config/schema/03-rfc2926.ldif",
-        "config/schema/03-rfc3112.ldif",
-        "config/schema/03-rfc3712.ldif",
-        "config/schema/03-uddiv3.ldif",
-        "config/schema/04-rfc2307bis.ldif",
-        "db/userRoot/00000000.jdb"
-    };
+    @BeforeClass
+    public static void init() throws IOException {
+        InputStream propStream = null;
+        String setupDir = null;
+        try {
+            Properties props = new Properties();
+            propStream = LdapConnectorTestBase.class.getResourceAsStream("/test.properties");
+            props.load(propStream);
+
+            HOST = props.getProperty("opendj.host");
+            PORT = Integer.valueOf(props.getProperty("opendj.port"));
+            SSL_PORT = Integer.valueOf(props.getProperty("opendj.sslport"));
+            setupDir = props.getProperty("opendj.setup.dir");
+            BACKUP_DIR = props.getProperty("opendj.backup.dir");
+        } finally {
+            IOUtil.quietClose(propStream);
+        }
+
+        assertNotNull(setupDir);
+        TOOL_START_DS = setupDir + File.separator + "bin" + File.separator + "start-ds";
+        TOOL_STOP_DS = setupDir + File.separator + "bin" + File.separator + "stop-ds";
+        TOOL_RESTORE = setupDir + File.separator + "bin" + File.separator + "restore";
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            TOOL_START_DS += ".bat";
+            TOOL_STOP_DS += ".bat";
+            TOOL_RESTORE += ".bat";
+        }
+
+        assertNotNull(HOST);
+        assertNotNull(PORT);
+        assertNotNull(SSL_PORT);
+        assertNotNull(TOOL_START_DS);
+        assertNotNull(TOOL_STOP_DS);
+        assertNotNull(TOOL_RESTORE);
+        assertNotNull(BACKUP_DIR);
+    }
+
+    private static boolean isOpenDJRunning() {
+        boolean result;
+        try {
+            ServerSocket socket = new ServerSocket(PORT);
+            socket.close();
+
+            result = false;
+        } catch (IOException e) {
+            result = true;
+        }
+        return result;
+    }
 
     @AfterClass
-    public static void afterClass() {
-        if (EmbeddedUtils.isRunning()) {
+    public static void afterClass() throws Exception {
+        if (isOpenDJRunning()) {
             stopServer();
         }
     }
 
     @Before
     public void before() throws Exception {
-        if (!EmbeddedUtils.isRunning()) {
+        if (!isOpenDJRunning()) {
             startServer();
         }
     }
@@ -190,9 +224,8 @@ public abstract class LdapConnectorTestBase {
     }
 
     public static LdapConfiguration newConfiguration(final boolean readSchema) {
-        final LdapConfiguration config = new LdapConfiguration();
-        // Cf. opends/config.ldif.
-        config.setHost("localhost");
+        LdapConfiguration config = new LdapConfiguration();
+        config.setHost(HOST);
         config.setPort(PORT);
         config.setBaseContexts(ACME_DN, BIG_COMPANY_DN);
         config.setPrincipal(ADMIN_DN);
@@ -206,11 +239,8 @@ public abstract class LdapConnectorTestBase {
     }
 
     public static ConnectorFacade newFacade(final LdapConfiguration cfg) {
-        final ConnectorFacadeFactory factory = ConnectorFacadeFactory.getInstance();
-        final APIConfiguration impl = TestHelpers.createTestConfiguration(LdapConnector.class, cfg);
-        // TODO: remove the line below when using ConnId >= 1.4.0.1
-        ((APIConfigurationImpl) impl).
-                setConfigurationProperties(JavaClassProperties.createConfigurationProperties(cfg));
+        ConnectorFacadeFactory factory = ConnectorFacadeFactory.getInstance();
+        APIConfiguration impl = TestHelpers.createTestConfiguration(LdapConnector.class, cfg);
         impl.getResultsHandlerConfiguration().setFilteredResultsHandlerInValidationMode(true);
         return factory.newInstance(impl);
     }
@@ -224,15 +254,14 @@ public abstract class LdapConnectorTestBase {
     public static ConnectorObject searchByAttribute(final ConnectorFacade facade,
             final ObjectClass oclass, final Attribute attr, final String... attributesToGet) {
 
-        final OperationOptionsBuilder builder = new OperationOptionsBuilder();
-        builder.setAttributesToGet(attributesToGet);
-        return searchByAttribute(facade, oclass, attr, builder.build());
+        return searchByAttribute(
+                facade, oclass, attr, new OperationOptionsBuilder().setAttributesToGet(attributesToGet).build());
     }
 
     public static ConnectorObject searchByAttribute(final ConnectorFacade facade,
             final ObjectClass oclass, final Attribute attr, final OperationOptions options) {
 
-        final List<ConnectorObject> objects = TestHelpers.searchToList(facade, oclass,
+        List<ConnectorObject> objects = TestHelpers.searchToList(facade, oclass,
                 FilterBuilder.equalTo(attr), options);
         return objects.isEmpty() ? null : objects.get(0);
     }
@@ -241,9 +270,9 @@ public abstract class LdapConnectorTestBase {
             final String attrName, final Object value) {
 
         for (ConnectorObject object : objects) {
-            final Attribute attr = object.getAttributeByName(attrName);
+            Attribute attr = object.getAttributeByName(attrName);
             if (attr != null) {
-                final Object attrValue = AttributeUtil.getSingleValue(attr);
+                Object attrValue = AttributeUtil.getSingleValue(attr);
                 if (value.equals(attrValue)) {
                     return object;
                 }
@@ -252,68 +281,16 @@ public abstract class LdapConnectorTestBase {
         return null;
     }
 
-    protected void startServer()
-            throws IOException {
-
-        final File root = new File(System.getProperty("java.io.tmpdir"), "opends");
-        IOUtil.delete(root);
-        if (!root.mkdirs()) {
-            throw new IOException();
-        }
-        for (String path : FILES) {
-            final File file = new File(root, path);
-            final File parent = file.getParentFile();
-            if (!parent.exists() && !parent.mkdirs()) {
-                throw new IOException(file.getAbsolutePath());
-            }
-            IOUtil.extractResourceToFile(LdapConnectorTestBase.class, "opends/" + path, file);
-        }
-
-        final File configDir = new File(root, "config");
-        final File configFile = new File(configDir, "config.ldif");
-        final File schemaDir = new File(configDir, "schema");
-        final File lockDir = new File(root, "locks");
-        if (!lockDir.mkdirs()) {
-            throw new IOException();
-        }
-
-        try {
-            final DirectoryEnvironmentConfig config = new DirectoryEnvironmentConfig();
-            config.setServerRoot(root);
-            config.setConfigFile(configFile);
-            config.setSchemaDirectory(schemaDir);
-            config.setLockDirectory(lockDir);
-            EmbeddedUtils.startServer(config);
-        } catch (ConfigException e) {
-            throw new IOException(e);
-        } catch (InitializationException e) {
-            throw new IOException(e);
-        }
+    protected void startServer() throws IOException, InterruptedException {
+        Process process = Runtime.getRuntime().exec(TOOL_START_DS);
+        process.waitFor();
     }
 
-    protected static void stopServer() {
-        EmbeddedUtils.stopServer("org.test.opends.EmbeddedOpenDS", null);
-        // It seems that EmbeddedUtils.stopServer() returns before the server
-        // has stopped listening on its port,
-        // causing the next test to fail when starting the server.
-        final int WAIT = 200; // ms
-        final int ITERATIONS = 25;
-        for (int i = 1;; i++) {
-            try {
-                new Socket(InetAddress.getLocalHost(), PORT).close();
-            } catch (IOException e) {
-                // Okay, server has stopped.
-                return;
-            }
-            if (i < ITERATIONS) {
-                try {
-                    Thread.sleep(WAIT);
-                } catch (InterruptedException e) {
-                }
-            } else {
-                break;
-            }
-        }
-        fail("OpenDS failed to stop");
+    protected static void stopServer() throws IOException, InterruptedException {
+        Process process = Runtime.getRuntime().exec(TOOL_STOP_DS);
+        process.waitFor();
+
+        process = Runtime.getRuntime().exec(TOOL_RESTORE + " -d " + BACKUP_DIR + File.separator + "userRoot");
+        process.waitFor();
     }
 }

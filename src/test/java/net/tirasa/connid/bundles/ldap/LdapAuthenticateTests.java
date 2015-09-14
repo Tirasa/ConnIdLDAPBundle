@@ -23,12 +23,10 @@
  */
 package net.tirasa.connid.bundles.ldap;
 
-import net.tirasa.connid.bundles.ldap.LdapConfiguration;
-import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
@@ -51,8 +49,7 @@ public class LdapAuthenticateTests extends LdapConnectorTestBase {
     @Test
     public void testAuthenticateWithDefaultConfiguration() {
         ConnectorFacade facade = newFacade();
-        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT,
-                new Name(BUGS_BUNNY_DN));
+        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
         Uid uid = facade.authenticate(ObjectClass.ACCOUNT, BUGS_BUNNY_CN,
                 new GuardedString("carrot".toCharArray()), null);
         assertEquals(bugs.getUid(), uid);
@@ -70,19 +67,15 @@ public class LdapAuthenticateTests extends LdapConnectorTestBase {
     @Test
     public void testAuthenticateWithCustomAttributes() {
         ConnectorFacade facade = newFacade();
-        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT,
-                new Name(BUGS_BUNNY_DN));
+        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
-        builder.setOption(LdapConstants.LDAP_UID_ATTRS_NAME,
-                new String[]{"sn"});
+        builder.setOption(LdapConstants.LDAP_UID_ATTRS_NAME, new String[] { "sn" });
         OperationOptions options = builder.build();
         Uid uid = facade.authenticate(ObjectClass.ACCOUNT, BUGS_BUNNY_SN,
                 new GuardedString("carrot".toCharArray()),
                 options);
         assertEquals(bugs.getUid(), uid);
-        uid =
-                facade.resolveUsername(ObjectClass.ACCOUNT, BUGS_BUNNY_SN,
-                options);
+        uid = facade.resolveUsername(ObjectClass.ACCOUNT, BUGS_BUNNY_SN, options);
         assertEquals(bugs.getUid(), uid);
 
         // Should not be possible to authenticate with the attributes from the 
@@ -102,14 +95,14 @@ public class LdapAuthenticateTests extends LdapConnectorTestBase {
 
         // ... and "uid").
         try {
-            uid = facade.authenticate(ObjectClass.ACCOUNT, BUGS_BUNNY_UID,
+            facade.authenticate(ObjectClass.ACCOUNT, BUGS_BUNNY_UID,
                     new GuardedString("carrot".toCharArray()),
                     options);
             fail();
         } catch (ConnectorSecurityException e) {
         }
         try {
-            uid = facade.resolveUsername(ObjectClass.ACCOUNT, BUGS_BUNNY_UID,
+            facade.resolveUsername(ObjectClass.ACCOUNT, BUGS_BUNNY_UID,
                     options);
             fail();
         } catch (ConnectorSecurityException e) {
@@ -121,8 +114,7 @@ public class LdapAuthenticateTests extends LdapConnectorTestBase {
         LdapConfiguration config = newConfiguration();
         config.setAccountUserNameAttributes("entryDN");
         ConnectorFacade facade = newFacade(config);
-        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT,
-                new Name(BUGS_BUNNY_DN));
+        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
         Uid uid = facade.authenticate(ObjectClass.ACCOUNT, BUGS_BUNNY_DN,
                 new GuardedString("carrot".toCharArray()),
                 null);
@@ -163,7 +155,8 @@ public class LdapAuthenticateTests extends LdapConnectorTestBase {
         config.setRespectResourcePasswordPolicyChangeAfterReset(false);
         ConnectorFacade facade = newFacade(config);
         facade.authenticate(ObjectClass.ACCOUNT, EXPIRED_UID,
-                new GuardedString("password".toCharArray()), null);
+                new GuardedString("password".toCharArray()),
+                null);
 
         config = newConfiguration();
         config.setRespectResourcePasswordPolicyChangeAfterReset(true);

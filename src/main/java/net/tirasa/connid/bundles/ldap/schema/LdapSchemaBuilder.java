@@ -85,7 +85,7 @@ class LdapSchemaBuilder {
                 schemaBld.removeSupportedObjectClass(AuthenticateOp.class, oci);
             }
             // Since we are not sure we can detect Sun DSEE correctly, only disable sync() for servers known not to support it.
-            if (conn.getServerType() == ServerType.OPENDS) {
+            if (conn.getServerType() == ServerType.OPENDJ) {
                 schemaBld.removeSupportedObjectClass(SyncOp.class, oci);
             }
         }
@@ -101,7 +101,7 @@ class LdapSchemaBuilder {
 
             schemaBld.removeSupportedObjectClass(AuthenticateOp.class, oci);
             // Since we are not sure we can detect Sun DSEE correctly, only disable sync() for servers known not to support it.
-            if (conn.getServerType() == ServerType.OPENDS) {
+            if (conn.getServerType() == ServerType.OPENDJ) {
                 schemaBld.removeSupportedObjectClass(SyncOp.class, oci);
             }
         }

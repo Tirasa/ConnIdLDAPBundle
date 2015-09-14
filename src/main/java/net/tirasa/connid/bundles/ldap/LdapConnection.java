@@ -295,7 +295,7 @@ public class LdapConnection {
     /**
      * Returns {@code} true if the control with the given OID is supported by the server.
      */
-    public boolean supportsControl(String oid) {
+    public boolean supportsControl(final String oid) {
         return getSupportedControls().contains(oid);
     }
 
@@ -326,11 +326,10 @@ public class LdapConnection {
             String vendorVersion = LdapUtil.getStringAttrValue(attrs, "vendorVersion");
             if (vendorVersion != null) {
                 vendorVersion = vendorVersion.toLowerCase();
-                if (vendorVersion.contains("opends")) {
-                    return ServerType.OPENDS;
+                if (vendorVersion.contains("opendj")) {
+                    return ServerType.OPENDJ;
                 }
-                if (vendorVersion.contains("sun") && vendorVersion.contains(
-                        "directory")) {
+                if (vendorVersion.contains("sun") && vendorVersion.contains("directory")) {
                     return ServerType.SUN_DSEE;
                 }
             }
@@ -401,9 +400,9 @@ public class LdapConnection {
         @Override
         public String toString() {
             StringBuilder result = new StringBuilder();
-            result.append("AuthenticationResult[type: " + type);
+            result.append("AuthenticationResult[type: ").append(type);
             if (cause != null) {
-                result.append("; cause: " + cause.getMessage());
+                result.append("; cause: ").append(cause.getMessage());
             }
             result.append(']');
             return result.toString();
@@ -413,7 +412,7 @@ public class LdapConnection {
     public enum ServerType {
 
         SUN_DSEE,
-        OPENDS,
+        OPENDJ,
         UNKNOWN
 
     }

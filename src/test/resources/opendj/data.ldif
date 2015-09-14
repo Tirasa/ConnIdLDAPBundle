@@ -34,10 +34,10 @@ objectClass: top
 objectClass: organization
 o: Acme
 
-dn: c=Czech Republic,o=Acme,dc=example,dc=com
+dn: c=CZ,o=Acme,dc=example,dc=com
 objectClass: top
 objectClass: country
-c: Czech Republic
+c: CZ
 
 dn: ou=Users,o=Acme,dc=example,dc=com
 objectClass: top

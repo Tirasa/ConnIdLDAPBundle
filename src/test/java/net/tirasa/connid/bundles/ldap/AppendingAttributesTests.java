@@ -23,26 +23,25 @@
  */
 package net.tirasa.connid.bundles.ldap;
 
-import net.tirasa.connid.bundles.ldap.commons.AppendingAttributes;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
-
+import net.tirasa.connid.bundles.ldap.commons.AppendingAttributes;
 import org.junit.Before;
 import org.junit.Test;
 
 public class AppendingAttributesTests {
 
     private Attribute foo, existingFoo, existingCapitalFoo;
+
     private Attribute bar, existingBar;
 
     @Before
@@ -110,7 +109,9 @@ public class AppendingAttributesTests {
         assertEquals(attrID, findAttrIDUsingEnumMoreElements(attrs.getIDs(), attrID));
     }
 
-    private static Attribute findAttrUsingEnumMore(NamingEnumeration<? extends Attribute> attrEnum, String attrID) throws NamingException {
+    private static Attribute findAttrUsingEnumMore(
+            final NamingEnumeration<? extends Attribute> attrEnum, final String attrID) throws NamingException {
+
         Attribute attr = null;
         int found = 0;
         while (attrEnum.hasMore()) {
@@ -124,7 +125,9 @@ public class AppendingAttributesTests {
         return attr;
     }
 
-    private static Attribute findAttrUsingEnumMoreElements(NamingEnumeration<? extends Attribute> attrEnum, String attrID) {
+    private static Attribute findAttrUsingEnumMoreElements(
+            final NamingEnumeration<? extends Attribute> attrEnum, final String attrID) {
+
         Attribute attr = null;
         int found = 0;
         while (attrEnum.hasMoreElements()) {
@@ -138,7 +141,9 @@ public class AppendingAttributesTests {
         return attr;
     }
 
-    private static String findAttrIDUsingEnumMore(NamingEnumeration<String> idEnum, String attrID) throws NamingException {
+    private static String findAttrIDUsingEnumMore(
+            final NamingEnumeration<String> idEnum, final String attrID) throws NamingException {
+
         String id = null;
         int found = 0;
         while (idEnum.hasMore()) {
@@ -152,7 +157,7 @@ public class AppendingAttributesTests {
         return id;
     }
 
-    private static String findAttrIDUsingEnumMoreElements(NamingEnumeration<String> idEnum, String attrID) {
+    private static String findAttrIDUsingEnumMoreElements(final NamingEnumeration<String> idEnum, final String attrID) {
         String id = null;
         int found = 0;
         while (idEnum.hasMoreElements()) {
@@ -168,7 +173,7 @@ public class AppendingAttributesTests {
 
     private static final class AppendingAttrImpl extends AppendingAttributes {
 
-        private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 2210665122898657558L;
 
         private final Attribute[] toAppend;
 
@@ -183,7 +188,7 @@ public class AppendingAttributesTests {
         }
 
         @Override
-        protected Attribute getAttributeToAppend(String attrID) {
+        protected Attribute getAttributeToAppend(final String attrID) {
             for (Attribute attr : toAppend) {
                 if (attrID.equals(attr.getID())) {
                     return attr;

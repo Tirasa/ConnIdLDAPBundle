@@ -23,7 +23,7 @@
     ====================
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -82,14 +82,16 @@
 
   <properties>
     <connid.version>1.4.2.0-SNAPSHOT</connid.version>
-        
-    <opends.setup.dir>${java.io.tmpdir}/opends-setup</opends.setup.dir>
-    <opends.dest.dir>${project.build.directory}/test-classes/net/tirasa/connid/bundles/ldap/opends</opends.dest.dir>
-    <opends.host>localhost</opends.host>
-    <opends.port>2389</opends.port>
-    <opends.principal>cn=Directory Manager</opends.principal>
-    <opends.credentials>password</opends.credentials>
-    <opends.baseDN>dc=example,dc=com</opends.baseDN>
+    
+    <opendj.version>2.6.2</opendj.version>        
+    <opendj.setup.dir>${project.build.directory}/opendj-setup</opendj.setup.dir>
+    <opendj.backup.dir>${project.build.directory}/opendj-backup</opendj.backup.dir>
+    <opendj.host>localhost</opendj.host>
+    <opendj.port>2389</opendj.port>
+    <opendj.sslport>2636</opendj.sslport>
+    <opendj.principal>cn=Directory Manager</opendj.principal>
+    <opendj.credentials>password</opendj.credentials>
+    <opendj.baseDN>dc=example,dc=com</opendj.baseDN>
         
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <netbeans.hint.license>connid</netbeans.hint.license>
@@ -115,13 +117,6 @@
     </dependency>
         
     <!-- TEST -->
-    <dependency>
-      <groupId>sun-opends</groupId>
-      <artifactId>OpenDS</artifactId>
-      <version>1.0.0</version>
-      <scope>test</scope>
-    </dependency>
-
     <dependency>
       <groupId>berkeleydb</groupId>
       <artifactId>je</artifactId>
@@ -162,121 +157,138 @@
         <inherited>true</inherited>
         <executions>
           <execution>
-            <id>prepareOpenDS</id>
+            <id>prepareOpenDJ</id>
             <phase>process-test-classes</phase>
             <configuration>
               <target>
-                <get src="http://java.net/downloads/opends/promoted-builds/1.0.0/OpenDS-1.0.0.zip" dest="${java.io.tmpdir}" skipexisting="true" />
-                <delete dir="${opends.setup.dir}" />
-                <unzip dest="${opends.setup.dir}" src="${java.io.tmpdir}/OpenDS-1.0.0.zip">
-                  <!-- Remove the "OpenDS-1.x.y" prefix. -->
-                  <regexpmapper from="[^/\\]+[/\\](.*)" to="\1" />
-                </unzip>
+                <get src="https://github.com/OpenRock/OpenDJ/releases/download/${opendj.version}/opendj-server-${opendj.version}.zip" 
+                     dest="${settings.localRepository}/openrock/opendj" skipexisting="true"/>
+                <delete dir="${opendj.setup.dir}"/>
+                <unzip dest="${project.build.directory}" 
+                       src="${settings.localRepository}/openrock/opendj/opendj-server-${opendj.version}.zip"/>
+                <move file="${project.build.directory}/opendj" tofile="${opendj.setup.dir}"/>
                                 
+                <condition property="tool.setup" value="setup.bat" else="setup">
+                  <os family="windows"/>
+                </condition>
+                <condition property="tool.backup" value="bat/backup.bat" else="bin/backup">
+                  <os family="windows"/>
+                </condition>
+                <condition property="tool.restore" value="bat/restore.bat" else="bin/restore">
+                  <os family="windows"/>
+                </condition>
                 <condition property="tool.import-ldif" value="bat/import-ldif.bat" else="bin/import-ldif">
-                  <os family="windows" />
+                  <os family="windows"/>
                 </condition>
                 <condition property="tool.ldapmodify" value="bat/ldapmodify.bat" else="bin/ldapmodify">
-                  <os family="windows" />
+                  <os family="windows"/>
                 </condition>
                 <condition property="tool.make-ldif" value="bat/make-ldif.bat" else="bin/make-ldif">
-                  <os family="windows" />
+                  <os family="windows"/>
                 </condition>
                 <condition property="tool.rebuild-index" value="bat/rebuild-index.bat" else="bin/rebuild-index">
-                  <os family="windows" />
+                  <os family="windows"/>
                 </condition>
                 <condition property="tool.start-ds" value="bat/start-ds.bat" else="bin/start-ds">
-                  <os family="windows" />
+                  <os family="windows"/>
                 </condition>
                 <condition property="tool.stop-ds" value="bat/stop-ds.bat" else="bin/stop-ds">
-                  <os family="windows" />
+                  <os family="windows"/>
                 </condition>
                 <chmod perm="+x">
-                  <fileset dir="${opends.setup.dir}">
-                    <include name="${tool.import-ldif}" />
-                    <include name="${tool.ldapmodify}" />
-                    <include name="${tool.make-ldif}" />
-                    <include name="${tool.rebuild-index}" />
-                    <include name="${tool.start-ds}" />
-                    <include name="${tool.stop-ds}" />
-                    <include name="lib/_client-script.sh" />
-                    <include name="lib/_mixed-script.sh" />
-                    <include name="lib/_server-script.sh" />
+                  <fileset dir="${opendj.setup.dir}">
+                    <include name="${tool.setup}"/>
+                    <include name="${tool.backup}"/>
+                    <include name="${tool.restore}"/>
+                    <include name="${tool.import-ldif}"/>
+                    <include name="${tool.ldapmodify}"/>
+                    <include name="${tool.make-ldif}"/>
+                    <include name="${tool.rebuild-index}"/>
+                    <include name="${tool.start-ds}"/>
+                    <include name="${tool.stop-ds}"/>
+                    <include name="lib/_script-util.sh"/>
+                    <include name="lib/_client-script.sh"/>
+                    <include name="lib/_mixed-script.sh"/>
+                    <include name="lib/_server-script.sh"/>
                   </fileset>
                 </chmod>
                                 
-                <copy tofile="${opends.setup.dir}/config/config.ldif" file="${project.build.directory}/test-classes/opends/config.ldif" />
-                <copy tofile="${opends.setup.dir}/config/keystore.pin" file="${project.build.directory}/test-classes/opends/keystore.pin" />
-
-                <!-- Generate a self-signed certificate. The password is the one in opends/password.pin. -->
-                <genkey alias="server-cert" keyalg="rsa" keystore="${opends.setup.dir}/config/keystore" storetype="JKS" storepass="password" validity="365">
-                  <dname>
-                    <param name="CN" value="opends.example.com" />
-                    <param name="O" value="Example Organization" />
-                    <param name="C" value="US" />
-                  </dname>
-                </genkey>
+                <concat destfile="${opendj.setup.dir}/template/config/config.ldif" append="true">
+                  <filelist dir="${project.build.directory}/test-classes/opendj" files="config-additions.ldif"/>
+                </concat>
+                            
+                <exec executable="${opendj.setup.dir}/${tool.setup}" dir="${opendj.setup.dir}">
+                  <arg value="--cli"/>
+                  <arg value="-n"/>
+                  <arg value="-O"/>
+                  <arg value="--baseDN"/>
+                  <arg value="dc=example,dc=com"/>
+                  <arg value="-D"/>
+                  <arg value="${opendj.principal}"/>
+                  <arg value="-w"/>
+                  <arg value="${opendj.credentials}"/>
+                  <arg value="--generateSelfSignedCertificate"/>                                    
+                  <arg value="-h"/>
+                  <arg value="${opendj.host}"/>
+                  <arg value="-p"/>
+                  <arg value="${opendj.port}"/>
+                  <arg value="-Z"/>
+                  <arg value="${opendj.sslport}"/>
+                  <arg value="--adminConnectorPort"/>
+                  <arg value="4444"/>
+                  <arg value="--acceptLicense"/>
+                </exec>
 
                 <!-- Generate and import data. -->
-                <exec executable="${opends.setup.dir}/${tool.make-ldif}" dir="${opends.setup.dir}">
-                  <arg value="-t" />
-                  <arg value="${project.build.directory}/test-classes/opends/bigcompany.template" />
-                  <arg value="-o" />
-                  <arg value="${opends.setup.dir}/bigcompany.ldif" />
+                <exec executable="${opendj.setup.dir}/${tool.make-ldif}" dir="${opendj.setup.dir}">
+                  <arg value="-t"/>
+                  <arg value="${project.build.directory}/test-classes/opendj/bigcompany.template"/>
+                  <arg value="-o"/>
+                  <arg value="${opendj.setup.dir}/bigcompany.ldif"/>
                 </exec>
-                <exec executable="${opends.setup.dir}/${tool.import-ldif}" dir="${opends.setup.dir}">
-                  <arg value="--clearBackend" />
-                  <arg value="--ldifFile" />
-                  <arg value="${project.build.directory}/test-classes/opends/data.ldif" />
-                  <arg value="--backendID" />
-                  <arg value="userRoot" />
+                <exec executable="${opendj.setup.dir}/${tool.import-ldif}" dir="${opendj.setup.dir}">
+                  <arg value="--clearBackend"/>
+                  <arg value="--ldifFile"/>
+                  <arg value="${project.build.directory}/test-classes/opendj/data.ldif"/>
+                  <arg value="--backendID"/>
+                  <arg value="userRoot"/>
                 </exec>
-                <exec executable="${opends.setup.dir}/${tool.import-ldif}" dir="${opends.setup.dir}">
-                  <arg value="--append" />
-                  <arg value="--ldifFile" />
-                  <arg value="${opends.setup.dir}/bigcompany.ldif" />
-                  <arg value="--backendID" />
-                  <arg value="userRoot" />
+                <exec executable="${opendj.setup.dir}/${tool.import-ldif}" dir="${opendj.setup.dir}">
+                  <arg value="--append"/>
+                  <arg value="--ldifFile"/>
+                  <arg value="${opendj.setup.dir}/bigcompany.ldif"/>
+                  <arg value="--backendID"/>
+                  <arg value="userRoot"/>
                 </exec>
-                <exec executable="${opends.setup.dir}/${tool.rebuild-index}" dir="${opends.setup.dir}">
-                  <arg value="--baseDN" />
-                  <arg value="dc=example,dc=com" />
-                  <arg value="--index" />
-                  <arg value="vlv.index-uid" />
+                <exec executable="${opendj.setup.dir}/${tool.rebuild-index}" dir="${opendj.setup.dir}">
+                  <arg value="--baseDN"/>
+                  <arg value="dc=example,dc=com"/>
+                  <arg value="--index"/>
+                  <arg value="vlv.index-uid"/>
                 </exec>
 
                 <!-- Set up an admin user. -->
-                <copy tofile="${opends.setup.dir}/${tool.start-ds}" file="${project.build.directory}/test-classes/opends/${tool.start-ds}" />
-                <copy tofile="${opends.setup.dir}/${tool.stop-ds}" file="${project.build.directory}/test-classes/opends/${tool.stop-ds}" />
-                                
-                <exec executable="${opends.setup.dir}/${tool.start-ds}" dir="${opends.setup.dir}" />
-                <exec executable="${opends.setup.dir}/${tool.ldapmodify}" dir="${opends.setup.dir}">
-                  <arg value="-h" />
-                  <arg value="${opends.host}" />
-                  <arg value="-p" />
-                  <arg value="${opends.port}" />
-                  <arg value="-D" />
-                  <arg value="${opends.principal}" />
-                  <arg value="-w" />
-                  <arg value="${opends.credentials}" />
-                  <arg value="-f" />
-                  <arg value="${project.build.directory}/test-classes/opends/admin.ldif" />
+                <exec executable="${opendj.setup.dir}/${tool.start-ds}" dir="${opendj.setup.dir}"/>
+                <exec executable="${opendj.setup.dir}/${tool.ldapmodify}" dir="${opendj.setup.dir}">
+                  <arg value="-h"/>
+                  <arg value="${opendj.host}"/>
+                  <arg value="-p"/>
+                  <arg value="${opendj.port}"/>
+                  <arg value="-D"/>
+                  <arg value="${opendj.principal}"/>
+                  <arg value="-w"/>
+                  <arg value="${opendj.credentials}"/>
+                  <arg value="-f"/>
+                  <arg value="${project.build.directory}/test-classes/opendj/admin.ldif"/>
                 </exec>
-                <exec executable="${opends.setup.dir}/${tool.stop-ds}" dir="${opends.setup.dir}" />
-                                
-                <delete dir="${opends.dest.dir}" />
-                <mkdir dir="${opends.dest.dir}" />
-                <copy todir="${opends.dest.dir}">
-                  <fileset dir="${opends.setup.dir}">
-                    <!-- This needs to be in sync with LdapConnectorTestBase. -->
-                    <include name="config/schema/*.ldif" />
-                    <include name="config/admin-backend.ldif" />
-                    <include name="config/config.ldif" />
-                    <include name="config/keystore" />
-                    <include name="config/keystore.pin" />
-                    <include name="db/userRoot/*.jdb" />
-                  </fileset>
-                </copy>
+                <exec executable="${opendj.setup.dir}/${tool.stop-ds}" dir="${opendj.setup.dir}"/>
+                
+                <!-- Backup right after OpenDJ setup, for usage with LdapConnectorTestBase -->
+                <exec executable="${opendj.setup.dir}/${tool.backup}" dir="${opendj.setup.dir}">
+                  <arg value="-a"/>
+                  <arg value="-d"/>
+                  <arg value="${opendj.backup.dir}"/>
+                </exec>
               </target>
             </configuration>
             <goals>
@@ -325,6 +337,25 @@
       </plugin>
     </plugins>
         
+    <testResources>
+      <testResource>
+        <directory>${basedir}/src/test/resources</directory>
+        <filtering>true</filtering>
+        <includes>
+          <include>test.properties</include>
+        </includes>
+      </testResource>
+      <testResource>
+        <directory>${basedir}/src/test/resources/net</directory>   
+        <targetPath>${project.build.directory}/test-classes/net</targetPath>     
+        <filtering>false</filtering>
+      </testResource>
+      <testResource>
+        <directory>${basedir}/src/test/resources/opendj</directory>        
+        <targetPath>${project.build.directory}/test-classes/opendj</targetPath>     
+        <filtering>false</filtering>
+      </testResource>
+    </testResources>
   </build>
 
   <repositories>
@@ -336,16 +367,6 @@
       </releases>
       <snapshots>
         <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>jboss</id>
-      <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
       </snapshots>
     </repository>
   </repositories>

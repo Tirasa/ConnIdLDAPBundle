@@ -40,6 +40,7 @@ public class MyStatusManagement extends StatusManagement {
             final Attributes attributes,
             final List<String> posixGroups,
             final List<String> ldapGroups) {
+
         Attribute description = attributes.get("description");
         if (description == null) {
             description = new BasicAttribute("description");

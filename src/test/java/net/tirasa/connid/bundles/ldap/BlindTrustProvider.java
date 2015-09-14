@@ -37,17 +37,18 @@ import javax.net.ssl.TrustManagerFactorySpi;
 import javax.net.ssl.X509TrustManager;
 
 /**
- * A trust provider which blindly trusts any certificate. This saves
- * us from having to generate the certificate, import it into a trust file,
- * specify the file, etc.
+ * A trust provider which blindly trusts any certificate.
+ * This saves from having to generate the certificate, import it into a trust file, specify the file, etc.
  *
  * Inspired by <a href="http://www.howardism.org/Technical/Java/SelfSignedCerts.html">
  * http://www.howardism.org/Technical/Java/SelfSignedCerts.html</a>.
  */
 public class BlindTrustProvider extends Provider {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 6857872576693926685L;
+
     private static final String ID = "BlindTrustProvider";
+
     private static final String ALGORITHM = "Blind";
 
     public static final void register() {
@@ -70,22 +71,27 @@ public class BlindTrustProvider extends Provider {
         }
 
         @Override
-        protected void engineInit(KeyStore ks) throws KeyStoreException {
+        protected void engineInit(final KeyStore ks) throws KeyStoreException {
         }
 
         @Override
-        protected void engineInit(ManagerFactoryParameters spec) throws InvalidAlgorithmParameterException {
+        protected void engineInit(final ManagerFactoryParameters spec) throws InvalidAlgorithmParameterException {
         }
     }
 
     public static final class BlindTrustManager implements X509TrustManager {
 
-        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        @Override
+        public void checkClientTrusted(final X509Certificate[] chain, final String authType)
+                throws CertificateException {
         }
 
-        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+        @Override
+        public void checkServerTrusted(final X509Certificate[] chain, final String authType)
+                throws CertificateException {
         }
 
+        @Override
         public X509Certificate[] getAcceptedIssuers() {
             return null;
         }

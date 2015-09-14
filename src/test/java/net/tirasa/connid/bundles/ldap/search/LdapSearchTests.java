@@ -217,16 +217,15 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
 
         List<ConnectorObject> objects = TestHelpers.searchToList(
-                facade, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().setPageSize(1000).build());
+                facade, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().setPageSize(1).build());
         assertNotNull(getObjectByName(objects, USER_0_DN));
-        // 1000 is the default search size limit for OpenDS.
+        // 1000 is the default search size limit for OpenDJ.
         assertTrue(objects.size() > 1000);
 
-        // OpenDS-specific.
-        OperationOptionsBuilder builder = new OperationOptionsBuilder();
-        builder.setAttributesToGet("debugsearchindex");
+        // OpenDJ-specific.
+        OperationOptionsBuilder builder = new OperationOptionsBuilder().setAttributesToGet("debugsearchindex");
         FirstOnlyResultsHandler handler = new FirstOnlyResultsHandler();
-        facade.search(ObjectClass.ACCOUNT, null, handler, builder.setPageSize(1000).build());
+        facade.search(ObjectClass.ACCOUNT, null, handler, builder.setPageSize(1).build());
         String debugsearch = handler.getSingleResult().
                 getAttributeByName("debugsearchindex").getValue().get(0).toString();
         assertTrue(debugsearch.contains("vlv"));
@@ -462,6 +461,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         // Simplest: try w/o filter.
         List<ConnectorObject> objects = TestHelpers.searchToList(facade, new ObjectClass("country"), null, null);
         ConnectorObject czechRep = getObjectByName(objects, CZECH_REPUBLIC_DN);
+        assertNotNull(czechRep);
 
         // Try with a name filter and options.
         Filter filter = FilterBuilder.equalTo(AttributeBuilder.build(Name.NAME, CZECH_REPUBLIC_DN));
@@ -481,7 +481,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
                 getValue().get(0);
         password.access(new Accessor() {
 
-            public void access(char[] clearChars) {
+            @Override
+            public void access(final char[] clearChars) {
                 assertEquals(0, clearChars.length);
             }
         });
@@ -498,7 +499,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
                 getValue().get(0);
         password.access(new Accessor() {
 
-            public void access(char[] clearChars) {
+            @Override
+            public void access(final char[] clearChars) {
                 assertTrue(clearChars.length > 0);
             }
         });
@@ -517,7 +519,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         private final List<ConnectorObject> objects = new ArrayList<ConnectorObject>();
 
-        public boolean handle(ConnectorObject obj) {
+        @Override
+        public boolean handle(final ConnectorObject obj) {
             objects.add(obj);
             return false; // We only want the first one.
         }

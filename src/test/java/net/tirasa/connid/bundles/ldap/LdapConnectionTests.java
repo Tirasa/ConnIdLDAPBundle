@@ -23,25 +23,20 @@
  */
 package net.tirasa.connid.bundles.ldap;
 
-import net.tirasa.connid.bundles.ldap.LdapConfiguration;
-import net.tirasa.connid.bundles.ldap.LdapConnection;
-
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.getStringAttrValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.sun.jndi.ldap.ctl.PagedResultsControl;
+import com.sun.jndi.ldap.ctl.VirtualListViewControl;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
-
+import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import net.tirasa.connid.bundles.ldap.LdapConnection.ServerType;
 import org.junit.Test;
-
-import com.sun.jndi.ldap.ctl.PagedResultsControl;
-import com.sun.jndi.ldap.ctl.VirtualListViewControl;
 
 public class LdapConnectionTests extends LdapConnectorTestBase {
 
@@ -51,8 +46,7 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testSSL()
-            throws NamingException {
+    public void testSSL() throws NamingException {
         BlindTrustProvider.register();
         LdapConfiguration config = newConfiguration();
         config.setSsl(true);
@@ -86,7 +80,7 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
             throws NamingException {
         LdapConnection conn = new LdapConnection(config);
         Attributes attrs = conn.getInitialContext().getAttributes(BUGS_BUNNY_DN);
-        assertEquals(BUGS_BUNNY_CN, getStringAttrValue(attrs, "cn"));
+        assertEquals(BUGS_BUNNY_CN, LdapUtil.getStringAttrValue(attrs, "cn"));
     }
 
     @Test
@@ -154,7 +148,7 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCheckAlive() {
+    public void testCheckAlive() throws Exception {
         // Set readSchema to true since we are calling createNativeSchema() below, and we
         // want to get the server schema, not the static one.
         LdapConfiguration config = newConfiguration(true);
@@ -183,6 +177,6 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
     @Test
     public void testServerType() {
         LdapConnection conn = new LdapConnection(newConfiguration());
-        assertEquals(ServerType.OPENDS, conn.getServerType());
+        assertEquals(ServerType.OPENDJ, conn.getServerType());
     }
 }

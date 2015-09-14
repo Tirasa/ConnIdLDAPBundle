@@ -23,28 +23,21 @@
  */
 package net.tirasa.connid.bundles.ldap.commons;
 
-import static java.util.Collections.unmodifiableSet;
-import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveMap;
-import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.addStringAttrValues;
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.attrNameEquals;
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.getStringAttrValue;
-
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-
 import javax.naming.NameClassPair;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
-
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
+import org.identityconnectors.common.CollectionUtil;
 
 /**
  * Implements {@link LdapNativeSchema} by reading it from the server.
@@ -58,18 +51,18 @@ public class ServerNativeSchema implements LdapNativeSchema {
 
     private final DirContext schemaCtx;
 
-    private final Set<String> structuralLdapClasses = newCaseInsensitiveSet();
+    private final Set<String> structuralLdapClasses = CollectionUtil.newCaseInsensitiveSet();
 
-    private final Map<String, Set<String>> ldapClass2MustAttrs = newCaseInsensitiveMap();
+    private final Map<String, Set<String>> ldapClass2MustAttrs = CollectionUtil.newCaseInsensitiveMap();
 
-    private final Map<String, Set<String>> ldapClass2MayAttrs = newCaseInsensitiveMap();
+    private final Map<String, Set<String>> ldapClass2MayAttrs = CollectionUtil.newCaseInsensitiveMap();
 
-    private final Map<String, Set<String>> ldapClass2Sup = newCaseInsensitiveMap();
+    private final Map<String, Set<String>> ldapClass2Sup = CollectionUtil.newCaseInsensitiveMap();
 
-    private final Map<String, LdapAttributeType> attrName2Type = newCaseInsensitiveMap();
+    private final Map<String, LdapAttributeType> attrName2Type = CollectionUtil.newCaseInsensitiveMap();
 
     static {
-        LDAP_DIRECTORY_ATTRS = newCaseInsensitiveSet();
+        LDAP_DIRECTORY_ATTRS = CollectionUtil.newCaseInsensitiveSet();
         LDAP_DIRECTORY_ATTRS.add("createTimestamp");
         LDAP_DIRECTORY_ATTRS.add("modifyTimestamp");
         LDAP_DIRECTORY_ATTRS.add("creatorsName");
@@ -91,7 +84,7 @@ public class ServerNativeSchema implements LdapNativeSchema {
 
     @Override
     public Set<String> getStructuralObjectClasses() {
-        return unmodifiableSet(structuralLdapClasses);
+        return Collections.unmodifiableSet(structuralLdapClasses);
     }
 
     @Override
@@ -105,7 +98,7 @@ public class ServerNativeSchema implements LdapNativeSchema {
     }
 
     private Set<String> getAttributes(String ldapClass, boolean required) {
-        Set<String> result = newCaseInsensitiveSet();
+        Set<String> result = CollectionUtil.newCaseInsensitiveSet();
         Queue<String> queue = new LinkedList<String>();
         Set<String> visited = new HashSet<String>();
         queue.add(ldapClass);
@@ -114,8 +107,7 @@ public class ServerNativeSchema implements LdapNativeSchema {
             String current = queue.remove();
             if (!visited.contains(current)) {
                 visited.add(current);
-                Set<String> attrs = required ? ldapClass2MustAttrs.get(current) : ldapClass2MayAttrs.
-                        get(current);
+                Set<String> attrs = required ? ldapClass2MustAttrs.get(current) : ldapClass2MayAttrs.get(current);
                 if (attrs != null) {
                     result.addAll(attrs);
                 }
@@ -131,7 +123,7 @@ public class ServerNativeSchema implements LdapNativeSchema {
 
     @Override
     public Set<String> getEffectiveObjectClasses(String ldapClass) {
-        Set<String> result = newCaseInsensitiveSet();
+        Set<String> result = CollectionUtil.newCaseInsensitiveSet();
         Queue<String> classQueue = new LinkedList<String>();
         classQueue.add(ldapClass);
 
@@ -162,33 +154,30 @@ public class ServerNativeSchema implements LdapNativeSchema {
             String objClassName = objClassEnum.next().getName();
             Attributes attrs = objClassCtx.getAttributes(objClassName);
 
-            boolean abstractAttr = "true".equals(getStringAttrValue(attrs,
-                    "ABSTRACT"));
-            boolean structuralAttr = "true".equals(getStringAttrValue(attrs,
-                    "STRUCTURAL"));
-            boolean auxiliaryAttr = "true".equals(getStringAttrValue(attrs,
-                    "AUXILIARY"));
+            boolean abstractAttr = "true".equals(LdapUtil.getStringAttrValue(attrs, "ABSTRACT"));
+            boolean structuralAttr = "true".equals(LdapUtil.getStringAttrValue(attrs, "STRUCTURAL"));
+            boolean auxiliaryAttr = "true".equals(LdapUtil.getStringAttrValue(attrs, "AUXILIARY"));
             boolean structural = structuralAttr || !(abstractAttr || auxiliaryAttr);
 
-            Set<String> mustAttrs = newCaseInsensitiveSet();
-            addStringAttrValues(attrs, "MUST", mustAttrs);
-            Set<String> mayAttrs = newCaseInsensitiveSet();
-            addStringAttrValues(attrs, "MAY", mayAttrs);
+            Set<String> mustAttrs = CollectionUtil.newCaseInsensitiveSet();
+            LdapUtil.addStringAttrValues(attrs, "MUST", mustAttrs);
+            Set<String> mayAttrs = CollectionUtil.newCaseInsensitiveSet();
+            LdapUtil.addStringAttrValues(attrs, "MAY", mayAttrs);
 
             // The objectClass attribute must not be required, since it is handled internally by the connector.
             if (mustAttrs.remove("objectClass")) {
                 mayAttrs.add("objectClass");
             }
 
-            Set<String> supClasses = newCaseInsensitiveSet();
-            addStringAttrValues(attrs, "SUP", supClasses);
+            Set<String> supClasses = CollectionUtil.newCaseInsensitiveSet();
+            LdapUtil.addStringAttrValues(attrs, "SUP", supClasses);
             if (structural && supClasses.isEmpty()) {
-                // Hack for OpenDS, whose "referral" object class does not specify SUP.
+                // Hack for OpenDS / OpenDJ, whose "referral" object class does not specify SUP.
                 supClasses.add("top");
             }
 
-            Set<String> names = newCaseInsensitiveSet();
-            addStringAttrValues(attrs, "NAME", names);
+            Set<String> names = CollectionUtil.newCaseInsensitiveSet();
+            LdapUtil.addStringAttrValues(attrs, "NAME", names);
             for (String name : names) {
                 if (structural) {
                     structuralLdapClasses.addAll(names);
@@ -209,18 +198,16 @@ public class ServerNativeSchema implements LdapNativeSchema {
             String attrName = attrsEnum.next().getName();
             Attributes attrs = attrsCtx.getAttributes(attrName);
 
-            boolean singleValue = "true".equals(getStringAttrValue(attrs,
-                    "SINGLE-VALUE"));
-            boolean noUserModification = "true".equals(getStringAttrValue(attrs,
-                    "NO-USER-MODIFICATION"));
-            String usage = getStringAttrValue(attrs, "USAGE");
+            boolean singleValue = "true".equals(LdapUtil.getStringAttrValue(attrs, "SINGLE-VALUE"));
+            boolean noUserModification = "true".equals(LdapUtil.getStringAttrValue(attrs, "NO-USER-MODIFICATION"));
+            String usage = LdapUtil.getStringAttrValue(attrs, "USAGE");
             boolean userApplications = "userApplications".equals(usage) || usage == null;
 
-            Set<String> names = newCaseInsensitiveSet();
-            addStringAttrValues(attrs, "NAME", names);
+            Set<String> names = CollectionUtil.newCaseInsensitiveSet();
+            LdapUtil.addStringAttrValues(attrs, "NAME", names);
             for (String name : names) {
                 // The objectClass attribute must not be writable, since it is handled internally by the connector.
-                boolean objectClass = attrNameEquals(name, "objectClass");
+                boolean objectClass = LdapUtil.attrNameEquals(name, "objectClass");
                 boolean binary = conn.isBinarySyntax(attrName);
 
                 Class<?> type;
@@ -247,8 +234,7 @@ public class ServerNativeSchema implements LdapNativeSchema {
 
         for (String dirAttrName : LDAP_DIRECTORY_ATTRS) {
             attrName2Type.put(dirAttrName, new LdapAttributeType(String.class,
-                    EnumSet.of(Flags.NOT_CREATABLE, Flags.NOT_UPDATEABLE,
-                            Flags.NOT_RETURNED_BY_DEFAULT)));
+                    EnumSet.of(Flags.NOT_CREATABLE, Flags.NOT_UPDATEABLE, Flags.NOT_RETURNED_BY_DEFAULT)));
         }
     }
 }
