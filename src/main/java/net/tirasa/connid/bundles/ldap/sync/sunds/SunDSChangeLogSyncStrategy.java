@@ -159,7 +159,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                     conn,
                     filter,
                     singletonList(context),
-                    new DefaultSearchStrategy(false),
+                    conn.getConfiguration().newDefaultSearchStrategy(false),
                     controls);
 
             search.execute(new SearchResultsHandler() {

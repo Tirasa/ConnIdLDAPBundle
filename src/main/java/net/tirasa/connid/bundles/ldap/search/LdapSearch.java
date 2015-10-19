@@ -192,7 +192,7 @@ public class LdapSearch {
             // Would be good to check that filterEntryDN is under the configured base contexts.
             // However, the adapter is likely to pass entries outside the base contexts,
             // so not checking in order to be on the safe side.
-            strategy = new DefaultSearchStrategy(true);
+            strategy = conn.getConfiguration().newDefaultSearchStrategy(true);
             dns = Collections.singletonList(filterEntryDN);
             searchScope = SearchControls.OBJECT_SCOPE;
         } else {
@@ -406,10 +406,10 @@ public class LdapSearch {
             } else if (useBlocks && conn.supportsControl(PagedResultsControl.OID)) {
                 strategy = new SimplePagedSearchStrategy(pageSize);
             } else {
-                strategy = new DefaultSearchStrategy(false);
+                strategy = conn.getConfiguration().newDefaultSearchStrategy(false);
             }
         } else {
-            strategy = new DefaultSearchStrategy(false);
+            strategy = conn.getConfiguration().newDefaultSearchStrategy(false);
         }
         return strategy;
     }

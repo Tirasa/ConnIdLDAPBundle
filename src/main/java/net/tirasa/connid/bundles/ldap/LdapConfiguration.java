@@ -36,6 +36,7 @@ import javax.naming.ldap.LdapName;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.ObjectClassMappingConfig;
+import net.tirasa.connid.bundles.ldap.search.DefaultSearchStrategy;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.EqualsHashCodeBuilder;
 import org.identityconnectors.common.StringUtil;
@@ -359,6 +360,10 @@ public class LdapConfiguration extends AbstractConfiguration {
     private void failValidation(String key, Object... args) {
         String message = getConnectorMessages().format(key, null, args);
         throw new ConfigurationException(message);
+    }
+
+    public DefaultSearchStrategy newDefaultSearchStrategy(final boolean ignoreNonExistingBaseDN) {
+        return new DefaultSearchStrategy(ignoreNonExistingBaseDN);
     }
 
     @ConfigurationProperty(order = 1, required = true,
