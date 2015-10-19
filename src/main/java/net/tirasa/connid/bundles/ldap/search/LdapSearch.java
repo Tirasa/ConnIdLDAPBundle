@@ -191,7 +191,7 @@ public class LdapSearch {
             // Would be good to check that filterEntryDN is under the configured base contexts.
             // However, the adapter is likely to pass entries outside the base contexts,
             // so not checking in order to be on the safe side.
-            strategy = new DefaultSearchStrategy(true);
+            strategy = conn.getConfiguration().newDefaultSearchStrategy(true);
             dns = Collections.singletonList(filterEntryDN);
             searchScope = SearchControls.OBJECT_SCOPE;
         }
@@ -271,8 +271,8 @@ public class LdapSearch {
 
                 attribute = AttributeBuilder.build(LdapConstants.LDAP_GROUPS_NAME, ldapGroups);
             } else if (LdapConstants.isPosixGroups(attrName)) {
-                final Set<String> posixRefAttrs =
-                        LdapUtil.getStringAttrValues(entry.getAttributes(), GroupHelper.getPosixRefAttribute());
+                final Set<String> posixRefAttrs = LdapUtil.getStringAttrValues(entry.getAttributes(), GroupHelper.
+                        getPosixRefAttribute());
 
                 posixGroups.addAll(groupHelper.getPosixGroups(posixRefAttrs));
 
@@ -387,7 +387,7 @@ public class LdapSearch {
     }
 
     private LdapSearchStrategy getSearchStrategy() {
-        LdapSearchStrategy result = new DefaultSearchStrategy(false);
+        LdapSearchStrategy result = conn.getConfiguration().newDefaultSearchStrategy(false);
         if (options.getPageSize() != null) {
             if (conn.getConfiguration().isUseVlvControls() && conn.supportsControl(VirtualListViewControl.OID)) {
                 String vlvSortAttr = conn.getConfiguration().getVlvSortAttribute();
