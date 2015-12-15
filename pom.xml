@@ -144,12 +144,19 @@
       <plugin>
         <groupId>com.mycila.maven-license-plugin</groupId>
         <artifactId>maven-license-plugin</artifactId>
-        <version>1.10.b1</version>
-        <inherited>false</inherited>
+        <inherited>true</inherited>
         <configuration>
-          <skip>true</skip>
+          <header>https://raw.githubusercontent.com/Tirasa/ConnId/connid-${connid.version}/java/src/main/resources/header.txt</header>
+          <headerDefinitions>
+            <headerDefinition>https://raw.githubusercontent.com/Tirasa/ConnId/connid-${connid.version}/java/src/main/resources/java-single-star.xml</headerDefinition>
+          </headerDefinitions>          
+          <excludes>
+            <exclude>README.md</exclude>
+            <exclude>**/LICENSE*</exclude>
+            <exclude>**/.*</exclude>
+          </excludes>                    
         </configuration>
-      </plugin>
+      </plugin>      
       
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
