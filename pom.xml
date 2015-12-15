@@ -35,7 +35,7 @@
 
   <groupId>net.tirasa.connid.bundles</groupId>
   <artifactId>net.tirasa.connid.bundles.ldap</artifactId>
-  <version>1.5.0-SNAPSHOT</version>
+  <version>1.5.0</version>
 
   <name>ConnId Bundles: LDAP</name>
 
@@ -55,6 +55,7 @@
     <connection>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</connection>
     <url>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</url>
     <developerConnection>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</developerConnection>
+    <tag>net.tirasa.connid.bundles.ldap-1.5.0</tag>
   </scm>
 
   <issueManagement>
@@ -194,134 +195,132 @@
             <phase>process-test-classes</phase>
             <configuration>
               <target>
-                <mkdir dir="${settings.localRepository}/openrock/opendj"/>
-                <get src="https://github.com/OpenRock/OpenDJ/releases/download/${opendj.version}/opendj-server-${opendj.version}.zip" 
-                     dest="${settings.localRepository}/openrock/opendj" skipexisting="true"/>
-                <delete dir="${opendj.setup.dir}"/>
-                <unzip dest="${project.build.directory}" 
-                       src="${settings.localRepository}/openrock/opendj/opendj-server-${opendj.version}.zip"/>
-                <move file="${project.build.directory}/opendj" tofile="${opendj.setup.dir}"/>
+                <mkdir dir="${settings.localRepository}/openrock/opendj" />
+                <get src="https://github.com/OpenRock/OpenDJ/releases/download/${opendj.version}/opendj-server-${opendj.version}.zip" dest="${settings.localRepository}/openrock/opendj" skipexisting="true" />
+                <delete dir="${opendj.setup.dir}" />
+                <unzip dest="${project.build.directory}" src="${settings.localRepository}/openrock/opendj/opendj-server-${opendj.version}.zip" />
+                <move file="${project.build.directory}/opendj" tofile="${opendj.setup.dir}" />
                                 
                 <condition property="tool.setup" value="setup.bat" else="setup">
-                  <os family="windows"/>
+                  <os family="windows" />
                 </condition>
                 <condition property="tool.backup" value="bat/backup.bat" else="bin/backup">
-                  <os family="windows"/>
+                  <os family="windows" />
                 </condition>
                 <condition property="tool.restore" value="bat/restore.bat" else="bin/restore">
-                  <os family="windows"/>
+                  <os family="windows" />
                 </condition>
                 <condition property="tool.import-ldif" value="bat/import-ldif.bat" else="bin/import-ldif">
-                  <os family="windows"/>
+                  <os family="windows" />
                 </condition>
                 <condition property="tool.ldapmodify" value="bat/ldapmodify.bat" else="bin/ldapmodify">
-                  <os family="windows"/>
+                  <os family="windows" />
                 </condition>
                 <condition property="tool.make-ldif" value="bat/make-ldif.bat" else="bin/make-ldif">
-                  <os family="windows"/>
+                  <os family="windows" />
                 </condition>
                 <condition property="tool.rebuild-index" value="bat/rebuild-index.bat" else="bin/rebuild-index">
-                  <os family="windows"/>
+                  <os family="windows" />
                 </condition>
                 <condition property="tool.start-ds" value="bat/start-ds.bat" else="bin/start-ds">
-                  <os family="windows"/>
+                  <os family="windows" />
                 </condition>
                 <condition property="tool.stop-ds" value="bat/stop-ds.bat" else="bin/stop-ds">
-                  <os family="windows"/>
+                  <os family="windows" />
                 </condition>
                 <chmod perm="+x">
                   <fileset dir="${opendj.setup.dir}">
-                    <include name="${tool.setup}"/>
-                    <include name="${tool.backup}"/>
-                    <include name="${tool.restore}"/>
-                    <include name="${tool.import-ldif}"/>
-                    <include name="${tool.ldapmodify}"/>
-                    <include name="${tool.make-ldif}"/>
-                    <include name="${tool.rebuild-index}"/>
-                    <include name="${tool.start-ds}"/>
-                    <include name="${tool.stop-ds}"/>
-                    <include name="lib/_script-util.sh"/>
-                    <include name="lib/_client-script.sh"/>
-                    <include name="lib/_mixed-script.sh"/>
-                    <include name="lib/_server-script.sh"/>
+                    <include name="${tool.setup}" />
+                    <include name="${tool.backup}" />
+                    <include name="${tool.restore}" />
+                    <include name="${tool.import-ldif}" />
+                    <include name="${tool.ldapmodify}" />
+                    <include name="${tool.make-ldif}" />
+                    <include name="${tool.rebuild-index}" />
+                    <include name="${tool.start-ds}" />
+                    <include name="${tool.stop-ds}" />
+                    <include name="lib/_script-util.sh" />
+                    <include name="lib/_client-script.sh" />
+                    <include name="lib/_mixed-script.sh" />
+                    <include name="lib/_server-script.sh" />
                   </fileset>
                 </chmod>
                                 
                 <concat destfile="${opendj.setup.dir}/template/config/config.ldif" append="true">
-                  <filelist dir="${project.build.directory}/test-classes/opendj" files="config-additions.ldif"/>
+                  <filelist dir="${project.build.directory}/test-classes/opendj" files="config-additions.ldif" />
                 </concat>
                             
                 <exec executable="${opendj.setup.dir}/${tool.setup}" dir="${opendj.setup.dir}">
-                  <arg value="--cli"/>
-                  <arg value="-n"/>
-                  <arg value="-O"/>
-                  <arg value="--baseDN"/>
-                  <arg value="dc=example,dc=com"/>
-                  <arg value="-D"/>
-                  <arg value="${opendj.principal}"/>
-                  <arg value="-w"/>
-                  <arg value="${opendj.credentials}"/>
-                  <arg value="--generateSelfSignedCertificate"/>                                    
-                  <arg value="-h"/>
-                  <arg value="${opendj.host}"/>
-                  <arg value="-p"/>
-                  <arg value="${opendj.port}"/>
-                  <arg value="-Z"/>
-                  <arg value="${opendj.sslport}"/>
-                  <arg value="--adminConnectorPort"/>
-                  <arg value="4444"/>
-                  <arg value="--acceptLicense"/>
+                  <arg value="--cli" />
+                  <arg value="-n" />
+                  <arg value="-O" />
+                  <arg value="--baseDN" />
+                  <arg value="dc=example,dc=com" />
+                  <arg value="-D" />
+                  <arg value="${opendj.principal}" />
+                  <arg value="-w" />
+                  <arg value="${opendj.credentials}" />
+                  <arg value="--generateSelfSignedCertificate" />                                    
+                  <arg value="-h" />
+                  <arg value="${opendj.host}" />
+                  <arg value="-p" />
+                  <arg value="${opendj.port}" />
+                  <arg value="-Z" />
+                  <arg value="${opendj.sslport}" />
+                  <arg value="--adminConnectorPort" />
+                  <arg value="4444" />
+                  <arg value="--acceptLicense" />
                 </exec>
 
                 <!-- Generate and import data. -->
                 <exec executable="${opendj.setup.dir}/${tool.make-ldif}" dir="${opendj.setup.dir}">
-                  <arg value="-t"/>
-                  <arg value="${project.build.directory}/test-classes/opendj/bigcompany.template"/>
-                  <arg value="-o"/>
-                  <arg value="${opendj.setup.dir}/bigcompany.ldif"/>
+                  <arg value="-t" />
+                  <arg value="${project.build.directory}/test-classes/opendj/bigcompany.template" />
+                  <arg value="-o" />
+                  <arg value="${opendj.setup.dir}/bigcompany.ldif" />
                 </exec>
                 <exec executable="${opendj.setup.dir}/${tool.import-ldif}" dir="${opendj.setup.dir}">
-                  <arg value="--clearBackend"/>
-                  <arg value="--ldifFile"/>
-                  <arg value="${project.build.directory}/test-classes/opendj/data.ldif"/>
-                  <arg value="--backendID"/>
-                  <arg value="userRoot"/>
+                  <arg value="--clearBackend" />
+                  <arg value="--ldifFile" />
+                  <arg value="${project.build.directory}/test-classes/opendj/data.ldif" />
+                  <arg value="--backendID" />
+                  <arg value="userRoot" />
                 </exec>
                 <exec executable="${opendj.setup.dir}/${tool.import-ldif}" dir="${opendj.setup.dir}">
-                  <arg value="--append"/>
-                  <arg value="--ldifFile"/>
-                  <arg value="${opendj.setup.dir}/bigcompany.ldif"/>
-                  <arg value="--backendID"/>
-                  <arg value="userRoot"/>
+                  <arg value="--append" />
+                  <arg value="--ldifFile" />
+                  <arg value="${opendj.setup.dir}/bigcompany.ldif" />
+                  <arg value="--backendID" />
+                  <arg value="userRoot" />
                 </exec>
                 <exec executable="${opendj.setup.dir}/${tool.rebuild-index}" dir="${opendj.setup.dir}">
-                  <arg value="--baseDN"/>
-                  <arg value="dc=example,dc=com"/>
-                  <arg value="--index"/>
-                  <arg value="vlv.index-uid"/>
+                  <arg value="--baseDN" />
+                  <arg value="dc=example,dc=com" />
+                  <arg value="--index" />
+                  <arg value="vlv.index-uid" />
                 </exec>
 
                 <!-- Set up an admin user. -->
-                <exec executable="${opendj.setup.dir}/${tool.start-ds}" dir="${opendj.setup.dir}"/>
+                <exec executable="${opendj.setup.dir}/${tool.start-ds}" dir="${opendj.setup.dir}" />
                 <exec executable="${opendj.setup.dir}/${tool.ldapmodify}" dir="${opendj.setup.dir}">
-                  <arg value="-h"/>
-                  <arg value="${opendj.host}"/>
-                  <arg value="-p"/>
-                  <arg value="${opendj.port}"/>
-                  <arg value="-D"/>
-                  <arg value="${opendj.principal}"/>
-                  <arg value="-w"/>
-                  <arg value="${opendj.credentials}"/>
-                  <arg value="-f"/>
-                  <arg value="${project.build.directory}/test-classes/opendj/admin.ldif"/>
+                  <arg value="-h" />
+                  <arg value="${opendj.host}" />
+                  <arg value="-p" />
+                  <arg value="${opendj.port}" />
+                  <arg value="-D" />
+                  <arg value="${opendj.principal}" />
+                  <arg value="-w" />
+                  <arg value="${opendj.credentials}" />
+                  <arg value="-f" />
+                  <arg value="${project.build.directory}/test-classes/opendj/admin.ldif" />
                 </exec>
-                <exec executable="${opendj.setup.dir}/${tool.stop-ds}" dir="${opendj.setup.dir}"/>
+                <exec executable="${opendj.setup.dir}/${tool.stop-ds}" dir="${opendj.setup.dir}" />
                 
                 <!-- Backup right after OpenDJ setup, for usage with LdapConnectorTestBase -->
                 <exec executable="${opendj.setup.dir}/${tool.backup}" dir="${opendj.setup.dir}">
-                  <arg value="-a"/>
-                  <arg value="-d"/>
-                  <arg value="${opendj.backup.dir}"/>
+                  <arg value="-a" />
+                  <arg value="-d" />
+                  <arg value="${opendj.backup.dir}" />
                 </exec>
               </target>
             </configuration>
