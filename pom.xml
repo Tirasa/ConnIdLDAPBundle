@@ -389,4 +389,33 @@
     </repository>
   </repositories>
 
+  <profiles>
+    <profile>
+      <id>sonatype-oss-release</id>
+      
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.4</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+		<configuration>
+		  <includes>
+		    <include>${basedir}/LICENSE</include>
+		  </includes>
+		</configuration>
+              </execution>
+            </executions>
+          </plugin>
+	</plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
