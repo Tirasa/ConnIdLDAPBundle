@@ -372,6 +372,9 @@
 
     <resources>
       <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
         <directory>.</directory>
         <targetPath>META-INF</targetPath>
         <includes>
@@ -430,15 +433,15 @@
                 <goals>
                   <goal>jar-no-fork</goal>
                 </goals>
-		<configuration>
-		  <includes>
-		    <include>${basedir}/LICENSE</include>
-		  </includes>
-		</configuration>
+                <configuration>
+                  <includes>
+                    <include>${basedir}/LICENSE</include>
+                  </includes>
+                </configuration>
               </execution>
             </executions>
           </plugin>
-	</plugins>
+        </plugins>
       </build>
     </profile>
   </profiles>
