@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -164,7 +164,7 @@ public class LdapSchemaMapping {
         if (result == null && !AttributeUtil.isSpecialName(attrName)) {
             result = attrName;
         }
-        
+
         if (result != null && transfer && conn.needsBinaryOption(result)) {
             result = addBinaryOption(result);
         }
@@ -201,27 +201,30 @@ public class LdapSchemaMapping {
     }
 
     /**
-     * Returns the LDAP attribute which corresponds to {@link Uid}. Should never return null.
+     * @param oclass Object Class
+     * @return the LDAP attribute which corresponds to {@link Uid}. Should never return null.
      */
-    public String getLdapUidAttribute(ObjectClass oclass) {
+    public String getLdapUidAttribute(final ObjectClass oclass) {
         return StringUtil.isBlank(conn.getConfiguration().getUidAttribute())
                 ? conn.getConfiguration().getObjectClassMappingConfigs().get(oclass).
                 getShortNameLdapAttributes().iterator().next()
                 : conn.getConfiguration().getUidAttribute();
     }
-    
+
     /**
-     * Returns the LDAP attribute which corresponds to the password.
+     * @param oclass Object Class
+     * @return the LDAP attribute which corresponds to the password.
      */
-    public String getLdapPasswordAttribute(ObjectClass oclass) {
+    public String getLdapPasswordAttribute(final ObjectClass oclass) {
         return conn.getConfiguration().getPasswordAttribute();
     }
 
     /**
-     * Returns the LDAP attribute which corresponds to {@link Name} for the given object class. Might return
+     * @param oclass Object Class
+     * @return the LDAP attribute which corresponds to {@link Name} for the given object class. Might return
      * {@code null} if, for example, the object class was not configured explicitly in the configuration.
      */
-    public String getLdapNameAttribute(ObjectClass oclass) {
+    public String getLdapNameAttribute(final ObjectClass oclass) {
         return DEFAULT_LDAP_NAME_ATTR;
     }
 
@@ -241,7 +244,7 @@ public class LdapSchemaMapping {
         } else {
             try {
                 Attributes attributes = conn.getInitialContext().getAttributes(
-                        entryDN, new String[]{ldapUidAttr});
+                        entryDN, new String[] { ldapUidAttr });
                 return createUid(ldapUidAttr, attributes);
             } catch (NamingException e) {
                 throw new ConnectorException(e);
@@ -286,12 +289,12 @@ public class LdapSchemaMapping {
         if (ldapAttr == null) {
             return emptyWhenNotFound ? AttributeBuilder.build(attrName, Collections.emptyList()) : null;
         }
-        
+
         AttributeBuilder builder = new AttributeBuilder();
         builder.setName(attrName);
         try {
             if (OperationalAttributes.PASSWORD_NAME.equals(attrName)) {
-                String password = new String((byte[])ldapAttr.get());
+                String password = new String((byte[]) ldapAttr.get());
                 builder.addValue(new GuardedString(password.toCharArray()));
             } else {
                 NamingEnumeration<?> valEnum = ldapAttr.getAll();
