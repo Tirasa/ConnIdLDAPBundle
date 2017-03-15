@@ -213,6 +213,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(EXAMPLE_COM_DN);
         config.setUidAttribute("entryDN");
+        config.setGidAttribute("entryDN");
         config.setUseVlvControls(true);
         ConnectorFacade facade = newFacade(config);
 
@@ -437,6 +438,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("cn"));
         config.setUidAttribute("cn");
+        config.setGidAttribute("cn");
         ConnectorFacade facade = newFacade(config);
 
         ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Uid(BUGS_BUNNY_CN));
@@ -448,6 +450,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
+        config.setGidAttribute("entryDN");
         ConnectorFacade facade = newFacade(config);
 
         ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Uid(BUGS_BUNNY_DN));

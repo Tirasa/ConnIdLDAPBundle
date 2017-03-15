@@ -84,6 +84,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
+        config.setGidAttribute("entryDN");
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
 
@@ -135,6 +136,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
+        config.setGidAttribute("entryDN");
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
 
@@ -175,6 +177,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
+        config.setGidAttribute("entryDN");
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
 

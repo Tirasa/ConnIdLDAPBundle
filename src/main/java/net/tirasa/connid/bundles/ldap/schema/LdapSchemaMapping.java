@@ -205,10 +205,23 @@ public class LdapSchemaMapping {
      * @return the LDAP attribute which corresponds to {@link Uid}. Should never return null.
      */
     public String getLdapUidAttribute(final ObjectClass oclass) {
-        return StringUtil.isBlank(conn.getConfiguration().getUidAttribute())
-                ? conn.getConfiguration().getObjectClassMappingConfigs().get(oclass).
+        ObjectClass clazz;
+        String idAttribute;
+        if (oclass.equals(ObjectClass.GROUP)) {
+            clazz = oclass;
+            idAttribute = conn.getConfiguration().getGidAttribute();
+        } else if (oclass.equals(ObjectClass.ACCOUNT)) {
+            clazz = oclass;
+            idAttribute = conn.getConfiguration().getUidAttribute();
+        } else {
+            clazz = ObjectClass.ALL;
+            idAttribute = null;
+        }
+
+        return StringUtil.isBlank(idAttribute)
+                ? conn.getConfiguration().getObjectClassMappingConfigs().get(clazz).
                 getShortNameLdapAttributes().iterator().next()
-                : conn.getConfiguration().getUidAttribute();
+                : idAttribute;
     }
 
     /**
