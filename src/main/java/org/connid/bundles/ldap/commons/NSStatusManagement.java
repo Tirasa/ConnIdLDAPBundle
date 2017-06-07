@@ -59,7 +59,8 @@ public class NSStatusManagement extends AttributeStatusManagement {
 
         LOG.ok("Calling setStatus {0}", status);
 
-        final Object value = status ? getStatusAttrActiveValue() : getStatusAttrInactiveValue();
+        Object value = status ? getStatusAttrActiveValue() : getStatusAttrInactiveValue();
+        attributes.remove(getStatusAttrName());
         attributes.put(getStatusAttrName(), value);
     }
 
@@ -72,7 +73,7 @@ public class NSStatusManagement extends AttributeStatusManagement {
         final Attribute attr = attributes.get(getStatusAttrName());
         if (attr != null) {
             try {
-                final Object value = attr.get();
+                Object value = attr.get();
                 if (value != null) {
                     status ^= getStatusAttrInactiveValue().equalsIgnoreCase(value.toString());
                 }
