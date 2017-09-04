@@ -220,7 +220,7 @@ public class LdapSchemaMapping {
 
         return StringUtil.isBlank(idAttribute)
                 ? conn.getConfiguration().getObjectClassMappingConfigs().get(clazz).
-                getShortNameLdapAttributes().iterator().next()
+                        getShortNameLdapAttributes().iterator().next()
                 : idAttribute;
     }
 
@@ -256,8 +256,7 @@ public class LdapSchemaMapping {
             return new Uid(entryDN);
         } else {
             try {
-                Attributes attributes = conn.getInitialContext().getAttributes(
-                        entryDN, new String[] { ldapUidAttr });
+                Attributes attributes = conn.getInitialContext().getAttributes(entryDN, new String[] { ldapUidAttr });
                 return createUid(ldapUidAttr, attributes);
             } catch (NamingException e) {
                 throw new ConnectorException(e);
