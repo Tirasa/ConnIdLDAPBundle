@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -39,19 +39,12 @@ import net.tirasa.connid.bundles.ldap.commons.GroupHelper.GroupMembership;
 import net.tirasa.connid.bundles.ldap.commons.GroupHelper.Modification;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapModifyOperation;
-
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.checkedListByFilter;
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapName;
-
+import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.StatusManagement;
 import net.tirasa.connid.bundles.ldap.schema.GuardedPasswordAttribute;
 import net.tirasa.connid.bundles.ldap.schema.GuardedPasswordAttribute.Accessor;
 import net.tirasa.connid.bundles.ldap.search.LdapSearches;
-
-import static org.identityconnectors.common.CollectionUtil.isEmpty;
-import static org.identityconnectors.common.CollectionUtil.newSet;
-import static org.identityconnectors.common.CollectionUtil.nullAsEmpty;
-
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.Pair;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -65,7 +58,7 @@ public class LdapUpdate extends LdapModifyOperation {
 
     private final ObjectClass oclass;
 
-    private Uid uid;
+    private final Uid uid;
 
     public LdapUpdate(
             final LdapConnection conn,
@@ -84,7 +77,7 @@ public class LdapUpdate extends LdapModifyOperation {
         // Extract the Name attribute if any, to be used to rename the entry later.
         Set<Attribute> updateAttrs = attrs;
 
-        Name newName = (Name) AttributeUtil.find(Name.NAME, attrs);
+        Name newName = AttributeUtil.getNameFromAttributes(attrs);
 
         // serach for status attribute
         final Attribute status = AttributeUtil.find(OperationalAttributes.ENABLE_NAME, attrs);
@@ -92,7 +85,7 @@ public class LdapUpdate extends LdapModifyOperation {
         String newEntryDN = null;
 
         if (newName != null) {
-            updateAttrs = newSet(attrs);
+            updateAttrs = CollectionUtil.newSet(attrs);
             updateAttrs.remove(newName);
             newEntryDN = conn.getSchemaMapping().getEntryDN(oclass, newName);
         }
@@ -110,7 +103,7 @@ public class LdapUpdate extends LdapModifyOperation {
         // removing them -- we will update the groups to refer to the new attributes.
         final Set<String> newPosixRefAttrs = getAttributeValues(
                 GroupHelper.getPosixRefAttribute(),
-                quietCreateLdapName(newEntryDN != null ? newEntryDN : entryDN),
+                LdapUtil.quietCreateLdapName(newEntryDN != null ? newEntryDN : entryDN),
                 ldapAttrs);
 
         if (newPosixRefAttrs != null && newPosixRefAttrs.isEmpty()) {
@@ -122,9 +115,9 @@ public class LdapUpdate extends LdapModifyOperation {
             StatusManagement.getInstance(
                     conn.getConfiguration().getStatusManagementClass()).
                     setStatus((Boolean) status.getValue().get(0),
-                    ldapAttrs,
-                    posixGroups,
-                    ldapGroups);
+                            ldapAttrs,
+                            posixGroups,
+                            ldapGroups);
         }
 
         // Update the attributes.
@@ -205,12 +198,12 @@ public class LdapUpdate extends LdapModifyOperation {
         modifyAttributes(entryDN, attrsToModify, DirContext.ADD_ATTRIBUTE);
 
         List<String> ldapGroups = getStringListValue(attrs, LdapConstants.LDAP_GROUPS_NAME);
-        if (!isEmpty(ldapGroups)) {
+        if (!CollectionUtil.isEmpty(ldapGroups)) {
             groupHelper.addLdapGroupMemberships(entryDN, ldapGroups);
         }
 
         List<String> posixGroups = getStringListValue(attrs, LdapConstants.POSIX_GROUPS_NAME);
-        if (!isEmpty(posixGroups)) {
+        if (!CollectionUtil.isEmpty(posixGroups)) {
             Set<String> posixRefAttrs = posixMember.getPosixRefAttributes();
             String posixRefAttr = getFirstPosixRefAttr(entryDN, posixRefAttrs);
             groupHelper.addPosixGroupMemberships(posixRefAttr, posixGroups);
@@ -227,19 +220,19 @@ public class LdapUpdate extends LdapModifyOperation {
         Attributes ldapAttrs = attrsToModify.first;
 
         Set<String> removedPosixRefAttrs = getAttributeValues(GroupHelper.getPosixRefAttribute(), null, ldapAttrs);
-        if (!isEmpty(removedPosixRefAttrs)) {
+        if (!CollectionUtil.isEmpty(removedPosixRefAttrs)) {
             checkRemovedPosixRefAttrs(removedPosixRefAttrs, posixMember.getPosixGroupMemberships());
         }
 
         modifyAttributes(entryDN, attrsToModify, DirContext.REMOVE_ATTRIBUTE);
 
         List<String> ldapGroups = getStringListValue(attrs, LdapConstants.LDAP_GROUPS_NAME);
-        if (!isEmpty(ldapGroups)) {
+        if (!CollectionUtil.isEmpty(ldapGroups)) {
             groupHelper.removeLdapGroupMemberships(entryDN, ldapGroups);
         }
 
         List<String> posixGroups = getStringListValue(attrs, LdapConstants.POSIX_GROUPS_NAME);
-        if (!isEmpty(posixGroups)) {
+        if (!CollectionUtil.isEmpty(posixGroups)) {
             Set<GroupMembership> members = posixMember.getPosixGroupMembershipsByGroups(posixGroups);
             groupHelper.removePosixGroupMemberships(members);
         }
@@ -332,6 +325,8 @@ public class LdapUpdate extends LdapModifyOperation {
 
     private List<String> getStringListValue(final Set<Attribute> attrs, final String attrName) {
         Attribute attr = AttributeUtil.find(attrName, attrs);
-        return attr == null ? null : checkedListByFilter(nullAsEmpty(attr.getValue()), String.class);
+        return attr == null
+                ? null
+                : LdapUtil.checkedListByFilter(CollectionUtil.nullAsEmpty(attr.getValue()), String.class);
     }
 }

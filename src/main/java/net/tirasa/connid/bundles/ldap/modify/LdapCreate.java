@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -23,10 +23,6 @@
  */
 package net.tirasa.connid.bundles.ldap.modify;
 
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.checkedListByFilter;
-import static org.identityconnectors.common.CollectionUtil.isEmpty;
-import static org.identityconnectors.common.CollectionUtil.nullAsEmpty;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -36,9 +32,11 @@ import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.commons.GroupHelper;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapModifyOperation;
+import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.StatusManagement;
 import net.tirasa.connid.bundles.ldap.schema.GuardedPasswordAttribute;
 import net.tirasa.connid.bundles.ldap.schema.GuardedPasswordAttribute.Accessor;
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
@@ -94,9 +92,11 @@ public class LdapCreate extends LdapModifyOperation {
             if (attr.is(Name.NAME)) {
                 // Handled already.
             } else if (LdapConstants.isLdapGroups(attr.getName())) {
-                ldapGroups.addAll(checkedListByFilter(nullAsEmpty(attr.getValue()), String.class));
+                ldapGroups.addAll(
+                        LdapUtil.checkedListByFilter(CollectionUtil.nullAsEmpty(attr.getValue()), String.class));
             } else if (LdapConstants.isPosixGroups(attr.getName())) {
-                posixGroups.addAll(checkedListByFilter(nullAsEmpty(attr.getValue()), String.class));
+                posixGroups.addAll(
+                        LdapUtil.checkedListByFilter(CollectionUtil.nullAsEmpty(attr.getValue()), String.class));
             } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
                 pwdAttr = conn.getSchemaMapping().encodePassword(oclass, attr);
             } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
@@ -123,7 +123,7 @@ public class LdapCreate extends LdapModifyOperation {
             groupHelper.addMemberAttributeIfMissing(ldapAttrs);
         }
 
-        final String[] entryDN = {null};
+        final String[] entryDN = { null };
         if (pwdAttr != null) {
             pwdAttr.access(new Accessor() {
 
@@ -138,11 +138,11 @@ public class LdapCreate extends LdapModifyOperation {
             entryDN[0] = conn.getSchemaMapping().create(oclass, nameAttr, ldapAttrs);
         }
 
-        if (!isEmpty(ldapGroups)) {
+        if (!CollectionUtil.isEmpty(ldapGroups)) {
             groupHelper.addLdapGroupMemberships(entryDN[0], ldapGroups);
         }
 
-        if (!isEmpty(posixGroups)) {
+        if (!CollectionUtil.isEmpty(posixGroups)) {
             Set<String> posixRefAttrs = getAttributeValues(GroupHelper.getPosixRefAttribute(), null, ldapAttrs);
             String posixRefAttr = getFirstPosixRefAttr(entryDN[0], posixRefAttrs);
             groupHelper.addPosixGroupMemberships(posixRefAttr, posixGroups);
