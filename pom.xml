@@ -30,7 +30,7 @@
   <parent>
     <groupId>net.tirasa.connid</groupId>
     <artifactId>connid</artifactId>
-    <version>1.4.2.0</version>
+    <version>1.4.5.1</version>
   </parent>
 
   <groupId>net.tirasa.connid.bundles</groupId>
@@ -82,7 +82,7 @@
   </mailingLists>
 
   <properties>
-    <connid.version>1.4.2.0</connid.version>
+    <connid.version>1.4.5.1</connid.version>
     
     <opendj.version>2.6.2</opendj.version>        
     <opendj.setup.dir>${project.build.directory}/opendj-setup</opendj.setup.dir>
@@ -143,8 +143,8 @@
     <plugins>
             
       <plugin>
-        <groupId>com.mycila.maven-license-plugin</groupId>
-        <artifactId>maven-license-plugin</artifactId>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
         <inherited>true</inherited>
         <configuration>
           <header>https://raw.githubusercontent.com/Tirasa/ConnId/connid-${connid.version}/java/src/main/resources/header.txt</header>
@@ -155,14 +155,14 @@
             <exclude>README.md</exclude>
             <exclude>**/LICENSE*</exclude>
             <exclude>**/.*</exclude>
-          </excludes>                    
+          </excludes>
         </configuration>
       </plugin>      
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
-        <version>2.7</version>
+        <inherited>true</inherited>
         <executions>
           <execution>
             <id>copy-javadoc-legal-files</id>

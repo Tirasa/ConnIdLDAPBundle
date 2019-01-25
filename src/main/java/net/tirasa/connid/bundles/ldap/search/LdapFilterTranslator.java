@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -42,6 +42,9 @@ import org.identityconnectors.framework.common.objects.filter.LessThanOrEqualFil
 import org.identityconnectors.framework.common.objects.filter.SingleValueAttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.filter.EqualsIgnoreCaseFilter;
 
 public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
 
@@ -119,6 +122,15 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
         // XXX is there a way in LDAP to test that the values of an attribute
         // exactly match a given list of values?
         return createContainsAllValuesFilter(filter, not);
+    }
+
+    @Override
+    protected LdapFilter createEqualsIgnoreCaseExpression(EqualsIgnoreCaseFilter filter, boolean not) {
+        // LDAP is generally case-insensitive, reverting to EqualsFilter
+        Attribute attr = filter.getValue() == null
+                ? AttributeBuilder.build(filter.getName())
+                : AttributeBuilder.build(filter.getName(), filter.getValue());
+        return createEqualsExpression(new EqualsFilter(attr), not);
     }
 
     @Override
