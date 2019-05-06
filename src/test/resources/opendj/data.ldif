@@ -184,3 +184,13 @@ objectClass: inetOrgPerson
 uid: owner
 cn: Owner
 sn: Owner
+
+dn: uid=rename.one,ou=Users,o=Acme,dc=example,dc=com
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: rename.one
+cn: Rename one
+sn: Rename
+userPassword: carrot

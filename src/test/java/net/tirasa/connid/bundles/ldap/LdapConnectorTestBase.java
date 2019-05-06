@@ -82,6 +82,10 @@ public abstract class LdapConnectorTestBase {
     public static final String ACME_USERS_DN = "ou=Users,o=Acme,dc=example,dc=com";
 
     public static final String BUGS_BUNNY_DN = "uid=bugs.bunny,ou=Users,o=Acme,dc=example,dc=com";
+    
+    public static final String RENAME_ONE_TEST_DN = "uid=rename.one,ou=Users,o=Acme,dc=example,dc=com";
+    
+    public static final String RENAME_TWO_TEST_DN = "uid=rename.two,ou=Users,o=Acme,dc=example,dc=com";
 
     public static final String BUGS_BUNNY_UID = "bugs.bunny";
 

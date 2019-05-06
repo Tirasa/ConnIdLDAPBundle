@@ -205,7 +205,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         } while (cookies[0] != null);
 
         // 2000 from BIG_COMPANY_DN, 4 from ACME_DN
-        assertEquals(2000 + 4, count[1], 0);
+        assertEquals(2000 + 5, count[1], 0);
     }
 
     @Test

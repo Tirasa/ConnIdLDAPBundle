@@ -256,4 +256,21 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         assertFalse(status.getValue().isEmpty());
         assertTrue((Boolean) status.getValue().get(0));
     }
+    
+    @Test
+    public void testRenameDnAttribute() {
+        ConnectorFacade facade = newFacade();
+        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(RENAME_ONE_TEST_DN));
+
+        Name name = new Name(RENAME_TWO_TEST_DN);
+        Attribute uidAttribute = AttributeBuilder.build("uid", "rename.one");
+        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), CollectionUtil.newSet(name, uidAttribute), null);
+
+        OperationOptionsBuilder builder = new OperationOptionsBuilder();
+        builder.setAttributesToGet("uid");
+
+        ConnectorObject renameTwo = facade.getObject(ObjectClass.ACCOUNT, newUid, builder.build());
+        assertEquals(name, renameTwo.getName());
+        assertEquals("rename.two", renameTwo.getAttributeByName("uid").getValue().get(0));
+    }
 }

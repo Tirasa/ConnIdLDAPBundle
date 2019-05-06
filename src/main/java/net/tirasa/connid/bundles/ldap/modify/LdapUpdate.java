@@ -87,6 +87,7 @@ public class LdapUpdate extends LdapModifyOperation {
         if (newName != null) {
             updateAttrs = CollectionUtil.newSet(attrs);
             updateAttrs.remove(newName);
+            updateAttrs.remove(AttributeUtil.find(LdapUtil.getDNAttributeName(newName), attrs));
             newEntryDN = conn.getSchemaMapping().getEntryDN(oclass, newName);
         }
 
