@@ -3,7 +3,7 @@ ConnIdLDAPBundle
 
 The LDAP bundle is part of the [ConnId](http://connid.tirasa.net) project.
 
-<a href="https://travis-ci.org/Tirasa/ConnIdLDAPBundle"><img src="https://api.travis-ci.org/Tirasa/ConnIdLDAPBundle.png"/></a>
+<a href="https://travis-ci.com/Tirasa/ConnIdLDAPBundle"><img src="https://api.travis-ci.com/Tirasa/ConnIdLDAPBundle.png"/></a>
 <a href="#">
     <img src="https://img.shields.io/maven-central/v/net.tirasa.connid.bundles/net.tirasa.connid.bundles.ldap.svg"/>
 </a>
