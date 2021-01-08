@@ -65,7 +65,7 @@
 
   <ciManagement>
     <system>Travis CI</system>
-    <url>https://travis-ci.org/Tirasa/ConnIdLDAPBundle</url>
+    <url>https://travis-ci.com/Tirasa/ConnIdLDAPBundle</url>
   </ciManagement>
 
   <mailingLists>
