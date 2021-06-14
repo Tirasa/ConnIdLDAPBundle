@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.naming.InvalidNameException;
@@ -51,6 +52,7 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 
 import org.identityconnectors.common.Base64;
 import org.identityconnectors.common.logging.Log;
@@ -71,7 +73,6 @@ import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.commons.LdapEntry;
-import net.tirasa.connid.bundles.ldap.search.DefaultSearchStrategy;
 import net.tirasa.connid.bundles.ldap.search.LdapFilter;
 import net.tirasa.connid.bundles.ldap.search.LdapInternalSearch;
 import net.tirasa.connid.bundles.ldap.search.LdapSearch;
@@ -98,6 +99,8 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
      */
     private static final Set<String> LDIF_MODIFY_OPS;
 
+    private static final Set<String> LDAP_DN_ATTRIBUTES;
+
     private final LdapConnection conn;
 
     private final ObjectClass oclass;
@@ -115,6 +118,10 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         LDIF_MODIFY_OPS.add("add");
         LDIF_MODIFY_OPS.add("delete");
         LDIF_MODIFY_OPS.add("replace");
+
+        LDAP_DN_ATTRIBUTES = newCaseInsensitiveSet();
+        LDAP_DN_ATTRIBUTES.add("uid");
+        LDAP_DN_ATTRIBUTES.add("cn");
     }
 
     public SunDSChangeLogSyncStrategy(LdapConnection conn, ObjectClass oclass) {
@@ -141,13 +148,14 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         controls.setReturningAttributes(new String[] {
             changeNumberAttr,
             "targetDN",
+            "targetEntryUUID",
             "changeType",
             "changes",
             "newRdn",
             "deleteOldRdn",
-            "newSuperior"});
+            "newSuperior" });
 
-        final int[] currentChangeNumber = {getStartChangeNumber(token)};
+        final int[] currentChangeNumber = { getStartChangeNumber(token) };
 
         final boolean[] results = new boolean[1];
         do {
@@ -198,7 +206,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
     private SyncDelta createSyncDelta(
             final LdapEntry changeLogEntry,
             final int changeNumber,
-            final String[] attrsToGetOption) {
+            final String[] attrsToGetOption) throws InvalidNameException {
 
         LOG.ok("Attempting to create sync delta for log entry {0}", changeNumber);
 
@@ -226,17 +234,20 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         syncDeltaBuilder.setDeltaType(deltaType);
 
         if (deltaType.equals(SyncDeltaType.DELETE)) {
-            LOG.ok("Creating sync delta for deleted entry");
+            LOG.ok("Creating sync delta for deleted entry " + getStringAttrValue(changeLogEntry.getAttributes(),
+                    "targetEntryUUID"));
 
-            // XXX fix this!
             String uidAttr = conn.getSchemaMapping().getLdapUidAttribute(oclass);
 
-            if (!LdapEntry.isDNAttribute(uidAttr)) {
-                throw new ConnectorException("Unsupported Uid attribute " + uidAttr);
+            Uid deletedUid;
+            if (LDAP_DN_ATTRIBUTES.contains(uidAttr)) {
+                deletedUid = createUid(uidAttr, targetDN);
+            } else if ("entryUUID".equalsIgnoreCase(uidAttr)) {
+                deletedUid = new Uid(getStringAttrValue(changeLogEntry.getAttributes(), "targetEntryUUID"));
+            } else {
+                // ever fallback to dn without throwing any exception more reliable
+                deletedUid = new Uid(targetDN);
             }
-
-            Uid deletedUid = conn.getSchemaMapping().createUid(oclass, targetDN);
-
             // Build an empty connector object, with minimal information - LDAP-8
             ConnectorObjectBuilder objectBuilder = new ConnectorObjectBuilder();
             objectBuilder.setObjectClass(oclass);
@@ -613,7 +624,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         if (changeLogAttrs == null) {
             try {
                 Attributes attrs = conn.getInitialContext().getAttributes("",
-                        new String[] {"changeLog", "firstChangeNumber", "lastChangeNumber"});
+                        new String[] { "changeLog", "firstChangeNumber", "lastChangeNumber" });
                 String changeLog = getStringAttrValue(attrs, "changeLog");
                 String firstChangeNumber = getStringAttrValue(attrs,
                         "firstChangeNumber");
@@ -678,14 +689,14 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                 public void access(final byte[] decryptionKey) {
                     conn.getConfiguration().
                             getPasswordDecryptionInitializationVector().access(
-                            new Accessor() {
+                                    new Accessor() {
 
-                        @Override
-                        public void access(byte[] decryptionIV) {
-                            passwordDecryptor = new PasswordDecryptor(
-                                    decryptionKey, decryptionIV);
-                        }
-                    });
+                                @Override
+                                public void access(byte[] decryptionIV) {
+                                    passwordDecryptor = new PasswordDecryptor(
+                                            decryptionKey, decryptionIV);
+                                }
+                            });
                 }
             });
         }
@@ -701,6 +712,13 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
             }
         }
         return false;
+    }
+
+    private Uid createUid(final String uidAttr, final String targetDN) throws InvalidNameException {
+        Optional<Rdn> matchingRnd =
+                new LdapName(targetDN).getRdns().stream().filter(rdn -> rdn.getType().equalsIgnoreCase(uidAttr)).
+                        findFirst();
+        return matchingRnd.isPresent() ? new Uid(matchingRnd.get().getValue().toString()) : null;
     }
 
     public static int convertToInt(String number, final int def) {
