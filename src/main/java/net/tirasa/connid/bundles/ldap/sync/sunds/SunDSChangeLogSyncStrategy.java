@@ -43,7 +43,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import javax.naming.InvalidNameException;
@@ -715,10 +714,13 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
     }
 
     private Uid createUid(final String uidAttr, final String targetDN) throws InvalidNameException {
-        Optional<Rdn> matchingRnd =
-                new LdapName(targetDN).getRdns().stream().filter(rdn -> rdn.getType().equalsIgnoreCase(uidAttr)).
-                        findFirst();
-        return matchingRnd.isPresent() ? new Uid(matchingRnd.get().getValue().toString()) : null;
+        Rdn matchingRnd = null;
+        for (Rdn rdn : new LdapName(targetDN).getRdns()) {
+            if (uidAttr.equalsIgnoreCase(rdn.getType())) {
+                matchingRnd = rdn;
+            }
+        }
+        return matchingRnd == null ? null : new Uid(matchingRnd.getValue().toString());
     }
 
     public static int convertToInt(String number, final int def) {
