@@ -64,8 +64,8 @@
   </issueManagement>
 
   <ciManagement>
-    <system>Travis CI</system>
-    <url>https://travis-ci.com/Tirasa/ConnIdLDAPBundle</url>
+    <system>GitHub Workflow</system>
+    <url>https://github.com/Tirasa/ConnIdLDAPBundle/actions</url>
   </ciManagement>
 
   <mailingLists>
