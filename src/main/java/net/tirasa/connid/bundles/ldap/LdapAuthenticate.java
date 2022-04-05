@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
@@ -63,7 +64,7 @@ public class LdapAuthenticate {
     public Uid authenticate(GuardedString password) {
         ConnectorObject authnObject = getObjectToAuthenticate();
         AuthenticationResult authnResult = null;
-        if (authnObject != null) {
+        if (authnObject != null && isNotBlankCredentials(password)) {
             String entryDN = authnObject.getAttributeByName(
                     this.conn.getConfiguration().getDnAttribute()).getValue().get(0).toString();
             authnResult = conn.authenticate(entryDN, password);
@@ -123,7 +124,22 @@ public class LdapAuthenticate {
 
     private static boolean isSuccess(AuthenticationResult authResult) {
         // We consider PASSWORD_EXPIRED to be a success, because it means the credentials were right.
-        AuthenticationResultType type = authResult.getType();
-        return type.equals(AuthenticationResultType.SUCCESS) || type.equals(AuthenticationResultType.PASSWORD_EXPIRED);
+        return authResult != null
+                && (authResult.getType().equals(AuthenticationResultType.SUCCESS)
+                || authResult.getType().equals(AuthenticationResultType.PASSWORD_EXPIRED));
+    }
+
+    private static boolean isNotBlankCredentials(final GuardedString credentials) {
+        final AtomicBoolean isNotBlank = new AtomicBoolean(false);
+        if (credentials != null) {
+            credentials.access(new GuardedString.Accessor() {
+
+                @Override
+                public void access(char[] clearChars) {
+                    isNotBlank.set(clearChars.length > 0);
+                }
+            });
+        }
+        return isNotBlank.get();
     }
 }
