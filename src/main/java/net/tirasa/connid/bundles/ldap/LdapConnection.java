@@ -163,6 +163,9 @@ public class LdapConnection {
 
                     @Override
                     public void access(final char[] clearChars) {
+                        if(clearChars == null || clearChars.length == 0){
+                            throw new IllegalArgumentException("Password is blank");
+                        }
                         env.put(Context.SECURITY_CREDENTIALS, clearChars);
                         // Connect while in the accessor, otherwise clearChars will be cleared.
                         result.add(createContext(env));
