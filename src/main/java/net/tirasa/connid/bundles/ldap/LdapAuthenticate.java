@@ -123,7 +123,8 @@ public class LdapAuthenticate {
 
     private static boolean isSuccess(AuthenticationResult authResult) {
         // We consider PASSWORD_EXPIRED to be a success, because it means the credentials were right.
-        AuthenticationResultType type = authResult.getType();
-        return type.equals(AuthenticationResultType.SUCCESS) || type.equals(AuthenticationResultType.PASSWORD_EXPIRED);
+        return authResult.getType() != null 
+                && (authResult.getType().equals(AuthenticationResultType.SUCCESS) 
+                || authResult.getType().equals(AuthenticationResultType.PASSWORD_EXPIRED));
     }
 }
