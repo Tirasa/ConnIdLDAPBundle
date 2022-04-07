@@ -50,6 +50,7 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.common.security.GuardedString.Accessor;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
+import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.exceptions.PasswordExpiredException;
 
 public class LdapConnection {
@@ -164,7 +165,7 @@ public class LdapConnection {
                     @Override
                     public void access(final char[] clearChars) {
                         if(clearChars == null || clearChars.length == 0){
-                            throw new IllegalArgumentException("Password is blank");
+                            throw new InvalidCredentialException("Password is blank");
                         }
                         env.put(Context.SECURITY_CREDENTIALS, clearChars);
                         // Connect while in the accessor, otherwise clearChars will be cleared.
