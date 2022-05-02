@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -23,11 +23,13 @@
  */
 package net.tirasa.connid.bundles.ldap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -54,7 +56,7 @@ import org.identityconnectors.test.common.TestHelpers;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import org.identityconnectors.common.CollectionUtil;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
@@ -131,7 +133,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
 
         ObjectClass oclass = new ObjectClass("groupOfUniqueNames");
-        Set<Attribute> attributes = new HashSet<Attribute>();
+        Set<Attribute> attributes = new HashSet<>();
         Name name = new Name("cn=Another Group," + ACME_DN);
         attributes.add(name);
         attributes.add(AttributeBuilder.build("cn", "Another Group"));
@@ -206,7 +208,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     private void doTestCreateWithGroups(ConnectorFacade facade, Attribute groupsAttr) {
-        Set<Attribute> attributes = new HashSet<Attribute>();
+        Set<Attribute> attributes = new HashSet<>();
         attributes.add(new Name("uid=porky.pig," + ACME_USERS_DN));
         attributes.add(AttributeBuilder.build("uid", "porky.pig"));
         attributes.add(AttributeBuilder.build("cn", "Porky Pig"));
@@ -300,16 +302,19 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         assertAttributeValue(oldGroups, facade, ObjectClass.ACCOUNT, uid, groupsAttr.getName());
     }
 
-    @Test(expected = ConnectorException.class)
+    @Test
     public void testCannotRemoveUidWhenInPosixGroups() {
         ConnectorFacade facade = newFacade();
 
         ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
         Attribute uidAttr = AttributeBuilder.build("uid", BBUNNY_UID);
-        facade.removeAttributeValues(ObjectClass.ACCOUNT, object.getUid(), Collections.singleton(uidAttr), null);
+        assertThrows(
+                ConnectorException.class,
+                () -> facade.removeAttributeValues(
+                        ObjectClass.ACCOUNT, object.getUid(), Collections.singleton(uidAttr), null));
     }
 
-    @Test(expected = ConnectorException.class)
+    @Test
     public void testCannotUpdateUidToNoneWhenInPosixGroups() {
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(ACME_DN, SMALL_COMPANY_DN);
@@ -317,7 +322,9 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
         ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(OWNER_DN));
         Attribute uidAttr = AttributeBuilder.build("uid");
-        facade.update(ObjectClass.ACCOUNT, object.getUid(), Collections.singleton(uidAttr), null);
+        assertThrows(
+                ConnectorException.class,
+                () -> facade.update(ObjectClass.ACCOUNT, object.getUid(), Collections.singleton(uidAttr), null));
     }
 
     @Test
@@ -349,12 +356,12 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         for (String group : oldLdapGroups) {
             object = searchByAttribute(facade, new ObjectClass("groupOfUniqueNames"), new Name(group), "uniqueMember");
             List<Object> members = object.getAttributeByName("uniqueMember").getValue();
-            assertFalse("Group " + group + " should not contain " + SYLVESTER_DN, members.contains(SYLVESTER_DN));
+            assertFalse(members.contains(SYLVESTER_DN));
         }
         for (String group : oldPosixGroups) {
             object = searchByAttribute(facade, new ObjectClass("posixGroup"), new Name(group), "memberUid");
             List<Object> members = object.getAttributeByName("memberUid").getValue();
-            assertFalse("Group " + group + " should not contain " + SYLVESTER_UID, members.contains(SYLVESTER_UID));
+            assertFalse(members.contains(SYLVESTER_UID));
         }
     }
 
@@ -391,12 +398,12 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         for (String group : oldLdapGroups) {
             object = searchByAttribute(facade, new ObjectClass("groupOfUniqueNames"), new Name(group), "uniqueMember");
             List<Object> members = object.getAttributeByName("uniqueMember").getValue();
-            assertFalse("Group " + group + " should not contain " + SYLVESTER_DN, members.contains(SYLVESTER_DN));
+            assertFalse(members.contains(SYLVESTER_DN));
         }
         for (String group : oldPosixGroups) {
             object = searchByAttribute(facade, new ObjectClass("posixGroup"), new Name(group), "memberUid");
             List<Object> members = object.getAttributeByName("memberUid").getValue();
-            assertFalse("Group " + group + " should not contain " + SYLVESTER_UID, members.contains(SYLVESTER_UID));
+            assertFalse(members.contains(SYLVESTER_UID));
         }
     }
 
@@ -459,14 +466,12 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         for (String group : oldLdapGroups) {
             object = searchByAttribute(facade, new ObjectClass("groupOfUniqueNames"), new Name(group), "uniqueMember");
             List<Object> members = object.getAttributeByName("uniqueMember").getValue();
-            assertFalse("Group " + group + " should not contain " + SYLVESTER_DN, members.contains(SYLVESTER_DN));
+            assertFalse(members.contains(SYLVESTER_DN));
         }
         for (String group : oldPosixGroups) {
             object = searchByAttribute(facade, new ObjectClass("posixGroup"), new Name(group), "memberUid");
             List<Object> members = object.getAttributeByName("memberUid").getValue();
-            assertFalse(
-                    "Group " + group + " should not contain " + SYLVESTER_UID,
-                    members.contains(SYLVESTER_UID));
+            assertFalse(members.contains(SYLVESTER_UID));
         }
     }
 
@@ -524,7 +529,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
         String algorithmLabel = "{" + algorithm + "}";
 
-        Set<Attribute> attrs = new HashSet<Attribute>();
+        Set<Attribute> attrs = new HashSet<>();
         attrs.add(new Name("uid=daffy.duck," + ACME_USERS_DN));
         attrs.add(AttributeBuilder.build("uid", "daffy.duck"));
         attrs.add(AttributeBuilder.build("cn", "Daffy Duck"));
@@ -537,7 +542,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
         ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, uid, "userPassword");
         byte[] passwordBytes = (byte[]) object.getAttributeByName("userPassword").getValue().get(0);
-        assertTrue(new String(passwordBytes, "UTF-8").startsWith(algorithmLabel));
+        assertTrue(new String(passwordBytes, StandardCharsets.UTF_8).startsWith(algorithmLabel));
         facade.authenticate(ObjectClass.ACCOUNT, "daffy.duck", password, null);
 
         password = new GuardedString("newpassword".toCharArray());
@@ -547,7 +552,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
         object = searchByAttribute(facade, ObjectClass.ACCOUNT, uid, "userPassword");
         passwordBytes = (byte[]) object.getAttributeByName("userPassword").getValue().get(0);
-        assertTrue(new String(passwordBytes, "UTF-8").startsWith(algorithmLabel));
+        assertTrue(new String(passwordBytes, StandardCharsets.UTF_8).startsWith(algorithmLabel));
         facade.authenticate(ObjectClass.ACCOUNT, "daffy.duck", password, null);
     }
 

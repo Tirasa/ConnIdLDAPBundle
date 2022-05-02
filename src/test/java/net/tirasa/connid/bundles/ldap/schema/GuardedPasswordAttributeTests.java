@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -23,18 +23,13 @@
  */
 package net.tirasa.connid.bundles.ldap.schema;
 
-import net.tirasa.connid.bundles.ldap.schema.GuardedPasswordAttribute;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.UnsupportedEncodingException;
-
+import java.nio.charset.StandardCharsets;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
-
 import org.identityconnectors.common.security.GuardedString;
-import net.tirasa.connid.bundles.ldap.schema.GuardedPasswordAttribute.Accessor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class GuardedPasswordAttributeTests {
 
@@ -42,21 +37,18 @@ public class GuardedPasswordAttributeTests {
     public void testAccess() throws NamingException {
         final String PASSWORD = "\u011b\u0161\u010d\u0159\u017e\u00fd\u00e1\u00ed\u00e9"; // Czech characters ;-)
 
-        GuardedPasswordAttribute pwdAttr = GuardedPasswordAttribute.create("userPassword", new GuardedString(PASSWORD.toCharArray()));
+        GuardedPasswordAttribute pwdAttr =
+                GuardedPasswordAttribute.create("userPassword", new GuardedString(PASSWORD.toCharArray()));
         final Attribute[] attribute = { null };
 
-        pwdAttr.access(new Accessor() {
-            public void access(Attribute passwordAttribute) {
-                assertEquals("userPassword", passwordAttribute.getID());
-                try {
-                    assertEquals(PASSWORD, new String((byte[]) passwordAttribute.get(), "UTF-8"));
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                } catch (NamingException e) {
-                    throw new RuntimeException(e);
-                }
-                attribute[0] = passwordAttribute;
+        pwdAttr.access(passwordAttribute -> {
+            assertEquals("userPassword", passwordAttribute.getID());
+            try {
+                assertEquals(PASSWORD, new String((byte[]) passwordAttribute.get(), StandardCharsets.UTF_8));
+            } catch (NamingException e) {
+                throw new RuntimeException(e);
             }
+            attribute[0] = passwordAttribute;
         });
         assertEquals(1, attribute[0].size());
         byte[] value = (byte[]) attribute[0].get();
@@ -64,14 +56,10 @@ public class GuardedPasswordAttributeTests {
             assertEquals((byte) 0, value[i]);
         }
     }
-    
+
     @Test
     public void testEmpty() {
         GuardedPasswordAttribute pwdAttr = GuardedPasswordAttribute.create("userPassword");
-        pwdAttr.access(new Accessor() {
-            public void access(Attribute passwordAttribute) {
-                assertEquals(0, passwordAttribute.size());
-            }
-        });
+        pwdAttr.access(passwordAttribute -> assertEquals(0, passwordAttribute.size()));
     }
 }

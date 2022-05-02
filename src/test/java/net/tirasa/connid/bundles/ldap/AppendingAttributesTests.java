@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -23,8 +23,8 @@
  */
 package net.tirasa.connid.bundles.ldap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -35,8 +35,8 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import net.tirasa.connid.bundles.ldap.commons.AppendingAttributes;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class AppendingAttributesTests {
 
@@ -44,7 +44,7 @@ public class AppendingAttributesTests {
 
     private Attribute bar, existingBar;
 
-    @Before
+    @BeforeEach
     public void before() {
         foo = new BasicAttribute("foo", "Foo");
         existingFoo = new BasicAttribute("foo", "Existing Foo");
@@ -199,7 +199,7 @@ public class AppendingAttributesTests {
 
         @Override
         protected Set<String> getAttributeIDsToAppend() {
-            Set<String> result = new HashSet<String>();
+            Set<String> result = new HashSet<>();
             for (Attribute attr : toAppend) {
                 result.add(attr.getID());
             }

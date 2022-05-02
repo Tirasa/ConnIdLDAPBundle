@@ -23,11 +23,11 @@
  */
 package net.tirasa.connid.bundles.ldap.search;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,7 +60,7 @@ import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
 import org.identityconnectors.test.common.TestHelpers;
 import org.identityconnectors.test.common.ToListResultsHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class LdapSearchTests extends LdapConnectorTestBase {
 
@@ -487,13 +487,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
                 OperationalAttributes.PASSWORD_NAME);
         GuardedString password = (GuardedString) bunny.getAttributeByName(OperationalAttributes.PASSWORD_NAME).
                 getValue().get(0);
-        password.access(new Accessor() {
-
-            @Override
-            public void access(final char[] clearChars) {
-                assertEquals(0, clearChars.length);
-            }
-        });
+        password.access(clearChars -> assertEquals(0, clearChars.length));
     }
 
     @Test
@@ -505,13 +499,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
                 OperationalAttributes.PASSWORD_NAME);
         GuardedString password = (GuardedString) bunny.getAttributeByName(OperationalAttributes.PASSWORD_NAME).
                 getValue().get(0);
-        password.access(new Accessor() {
-
-            @Override
-            public void access(final char[] clearChars) {
-                assertTrue(clearChars.length > 0);
-            }
-        });
+        password.access(clearChars -> assertEquals(0, clearChars.length));
     }
 
     private static ConnectorObject getObjectByName(List<ConnectorObject> objects, String name) {
@@ -525,7 +513,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
     private static final class FirstOnlyResultsHandler implements ResultsHandler {
 
-        private final List<ConnectorObject> objects = new ArrayList<ConnectorObject>();
+        private final List<ConnectorObject> objects = new ArrayList<>();
 
         @Override
         public boolean handle(final ConnectorObject obj) {

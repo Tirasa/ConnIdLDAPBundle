@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -23,7 +23,7 @@
  */
 package net.tirasa.connid.bundles.ldap;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,10 +44,10 @@ import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class LdapConnectorTestBase {
 
@@ -82,9 +82,9 @@ public abstract class LdapConnectorTestBase {
     public static final String ACME_USERS_DN = "ou=Users,o=Acme,dc=example,dc=com";
 
     public static final String BUGS_BUNNY_DN = "uid=bugs.bunny,ou=Users,o=Acme,dc=example,dc=com";
-    
+
     public static final String RENAME_ONE_TEST_DN = "uid=rename.one,ou=Users,o=Acme,dc=example,dc=com";
-    
+
     public static final String RENAME_TWO_TEST_DN = "uid=rename.two,ou=Users,o=Acme,dc=example,dc=com";
 
     public static final String BUGS_BUNNY_UID = "bugs.bunny";
@@ -149,7 +149,7 @@ public abstract class LdapConnectorTestBase {
 
     public static final String USER_0_GIVEN_NAME = "Aaccf";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() throws IOException {
         InputStream propStream = null;
         String setupDir = null;
@@ -199,21 +199,21 @@ public abstract class LdapConnectorTestBase {
         return result;
     }
 
-    @AfterClass
+    @AfterAll
     public static void afterClass() throws Exception {
         if (isOpenDJRunning()) {
             stopServer();
         }
     }
 
-    @Before
+    @BeforeEach
     public void before() throws Exception {
         if (!isOpenDJRunning()) {
             startServer();
         }
     }
 
-    @After
+    @AfterEach
     public void after() throws Exception {
         if (restartServerAfterEachTest()) {
             stopServer();

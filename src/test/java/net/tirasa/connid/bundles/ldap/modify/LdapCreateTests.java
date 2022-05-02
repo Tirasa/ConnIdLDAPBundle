@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -23,10 +23,10 @@
  */
 package net.tirasa.connid.bundles.ldap.modify;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -47,7 +47,7 @@ import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
 import net.tirasa.connid.bundles.ldap.MyStatusManagement;
 import org.identityconnectors.framework.common.objects.OperationOptions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class LdapCreateTests extends LdapConnectorTestBase {
 
@@ -96,7 +96,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     private void doCreateAccount(final ConnectorFacade facade, final OperationOptions options) {
-        Set<Attribute> attributes = new HashSet<Attribute>();
+        Set<Attribute> attributes = new HashSet<>();
         Name name = new Name("uid=another.worker," + SMALL_COMPANY_DN);
         attributes.add(name);
         attributes.add(AttributeBuilder.build("uid", "another.worker"));
@@ -144,7 +144,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     private void doCreateGroup(ConnectorFacade facade) {
-        Set<Attribute> attributes = new HashSet<Attribute>();
+        Set<Attribute> attributes = new HashSet<>();
         Name name = new Name("cn=Another Group," + SMALL_COMPANY_DN);
         attributes.add(name);
         attributes.add(AttributeBuilder.build("cn", "Another Group"));
@@ -186,7 +186,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
 
     private void doCreateArbitrary(ConnectorFacade facade) {
         // Let the arbitrary object class be organization.
-        Set<Attribute> attributes = new HashSet<Attribute>();
+        Set<Attribute> attributes = new HashSet<>();
         Name name = new Name("o=Smallest," + SMALL_COMPANY_DN);
         attributes.add(name);
         attributes.add(AttributeBuilder.build("o", "Smallest"));
@@ -201,7 +201,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     public void testCreateBinaryAttributes() throws IOException {
         ConnectorFacade facade = newFacade();
 
-        Set<Attribute> attributes = new HashSet<Attribute>();
+        Set<Attribute> attributes = new HashSet<>();
         attributes.add(new Name("uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com"));
         attributes.add(AttributeBuilder.build("uid", "daffy.duck"));
         attributes.add(AttributeBuilder.build("cn", "Daffy Duck"));
@@ -226,7 +226,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     public void testCreatePassword() {
         ConnectorFacade facade = newFacade();
 
-        Set<Attribute> attributes = new HashSet<Attribute>();
+        Set<Attribute> attributes = new HashSet<>();
         attributes.add(new Name("uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com"));
         attributes.add(AttributeBuilder.build("uid", "daffy.duck"));
         attributes.add(AttributeBuilder.build("cn", "Daffy Duck"));
@@ -253,7 +253,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
 
         ConnectorFacade facade = newFacade(config);
 
-        Set<Attribute> attributes = new HashSet<Attribute>();
+        Set<Attribute> attributes = new HashSet<>();
         attributes.add(new Name("uid=daffy2,ou=Users,o=Acme,dc=example,dc=com"));
         attributes.add(AttributeBuilder.build("uid", "daffy2"));
         attributes.add(AttributeBuilder.build("cn", "Daffy Duck 2"));

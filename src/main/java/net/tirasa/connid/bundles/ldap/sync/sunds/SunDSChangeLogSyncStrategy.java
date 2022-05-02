@@ -38,25 +38,32 @@ import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapNam
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.naming.InvalidNameException;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
-
-import org.identityconnectors.common.Base64;
+import net.tirasa.connid.bundles.ldap.LdapConnection;
+import net.tirasa.connid.bundles.ldap.commons.LdapEntry;
+import net.tirasa.connid.bundles.ldap.search.LdapFilter;
+import net.tirasa.connid.bundles.ldap.search.LdapInternalSearch;
+import net.tirasa.connid.bundles.ldap.search.LdapSearch;
+import net.tirasa.connid.bundles.ldap.search.LdapSearches;
+import net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategy;
+import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.ChangeSeparator;
+import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Line;
+import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.NameValue;
+import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Separator;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.common.security.GuardedByteArray.Accessor;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -70,18 +77,6 @@ import org.identityconnectors.framework.common.objects.SyncDeltaBuilder;
 import org.identityconnectors.framework.common.objects.SyncDeltaType;
 import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
-import net.tirasa.connid.bundles.ldap.LdapConnection;
-import net.tirasa.connid.bundles.ldap.commons.LdapEntry;
-import net.tirasa.connid.bundles.ldap.search.LdapFilter;
-import net.tirasa.connid.bundles.ldap.search.LdapInternalSearch;
-import net.tirasa.connid.bundles.ldap.search.LdapSearch;
-import net.tirasa.connid.bundles.ldap.search.LdapSearches;
-import net.tirasa.connid.bundles.ldap.search.LdapSearchResultsHandler;
-import net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategy;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.ChangeSeparator;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Line;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.NameValue;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Separator;
 import org.identityconnectors.framework.common.objects.Uid;
 
 /**
@@ -169,28 +164,22 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                     conn.getConfiguration().newDefaultSearchStrategy(false),
                     controls);
 
-            search.execute(new LdapSearchResultsHandler() {
+            search.execute((baseDN, result) -> {
+                results[0] = true;
+                final LdapEntry entry = LdapEntry.create(baseDN, result);
 
-                @Override
-                public boolean handle(String baseDN, SearchResult result)
-                        throws NamingException {
+                int changeNumber = convertToInt(getStringAttrValue(entry.getAttributes(), changeNumberAttr), -1);
 
-                    results[0] = true;
-                    final LdapEntry entry = LdapEntry.create(baseDN, result);
-
-                    int changeNumber = convertToInt(getStringAttrValue(entry.getAttributes(), changeNumberAttr), -1);
-
-                    if (changeNumber > currentChangeNumber[0]) {
-                        currentChangeNumber[0] = changeNumber;
-                    }
-
-                    final SyncDelta delta = createSyncDelta(entry, changeNumber, options.getAttributesToGet());
-
-                    if (delta != null) {
-                        return handler.handle(delta);
-                    }
-                    return true;
+                if (changeNumber > currentChangeNumber[0]) {
+                    currentChangeNumber[0] = changeNumber;
                 }
+
+                final SyncDelta delta = createSyncDelta(entry, changeNumber, options.getAttributesToGet());
+
+                if (delta != null) {
+                    return handler.handle(delta);
+                }
+                return true;
             });
 
             // We have already processed the current change.
@@ -414,10 +403,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         if (baseContexts.isEmpty()) {
             baseContexts = conn.getConfiguration().getBaseContextsAsLdapNames();
         }
-        if (!isUnderContexts(targetName, baseContexts)) {
-            return true;
-        }
-        return false;
+        return !isUnderContexts(targetName, baseContexts);
     }
 
     private boolean filterOutByModifiersNames(
@@ -499,7 +485,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                 String operation = nameValue.getName();
                 String attrName = nameValue.getValue();
                 if (LDIF_MODIFY_OPS.contains(operation)) {
-                    List<Object> values = new ArrayList<Object>();
+                    List<Object> values = new ArrayList<>();
                     while (lines.hasNext()) {
                         line = lines.next();
                         if (line instanceof Separator) {
@@ -518,9 +504,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
             }
         } else if ("add".equalsIgnoreCase(changeType)) {
             LdifParser parser = new LdifParser(ldif);
-            Iterator<Line> lines = parser.iterator();
-            while (lines.hasNext()) {
-                Line line = lines.next();
+            for (Line line : parser) {
                 // We only expect one change, so ignore any change separators.
                 if (line instanceof Separator || line instanceof ChangeSeparator) {
                     continue;
@@ -530,7 +514,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                 if (value != null) {
                     List<Object> values = result.get(nameValue.getName());
                     if (values == null) {
-                        values = new ArrayList<Object>();
+                        values = new ArrayList<>();
                         result.put(nameValue.getName(), values);
                     }
                     values.add(value);
@@ -548,7 +532,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
             // This is a Base64 encoded value...
             String base64 = value.substring(1).trim();
             try {
-                return Base64.decode(base64);
+                return Base64.getDecoder().decode(base64);
                 // TODO the adapter had code here to convert the byte array
                 // to a string if the attribute was of a string type. Since
                 // that information is in the schema and we don't have access
@@ -682,21 +666,10 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
 
     private PasswordDecryptor getPasswordDecryptor() {
         if (passwordDecryptor == null) {
-            conn.getConfiguration().getPasswordDecryptionKey().access(new Accessor() {
-
-                @Override
-                public void access(final byte[] decryptionKey) {
-                    conn.getConfiguration().
-                            getPasswordDecryptionInitializationVector().access(
-                                    new Accessor() {
-
-                                @Override
-                                public void access(byte[] decryptionIV) {
-                                    passwordDecryptor = new PasswordDecryptor(
-                                            decryptionKey, decryptionIV);
-                                }
-                            });
-                }
+            conn.getConfiguration().getPasswordDecryptionKey().access(decryptionKey -> {
+                conn.getConfiguration().getPasswordDecryptionInitializationVector().access(decryptionIV -> {
+                    passwordDecryptor = new PasswordDecryptor(decryptionKey, decryptionIV);
+                });
             });
         }
         assert passwordDecryptor != null;

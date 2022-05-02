@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -23,8 +23,6 @@
  */
 package net.tirasa.connid.bundles.ldap.sync.sunds;
 
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser;
-
 import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapName;
 
 import java.util.ArrayList;
@@ -34,7 +32,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.BasicAttribute;
@@ -44,14 +41,13 @@ import javax.naming.directory.ModificationItem;
 import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
-
-import org.identityconnectors.common.logging.Log;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.ChangeSeparator;
 import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Line;
 import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.NameValue;
 import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Separator;
-import org.junit.Test;
+import org.identityconnectors.common.logging.Log;
+import org.junit.jupiter.api.Test;
 
 /**
  * A simple, and in no way complete, way to modify an LDAP server
@@ -70,8 +66,8 @@ public class LdapModifyForTests {
         String dn = null;
         String changeType = null;
 
-        Map<String, List<String>> added = new HashMap<String, List<String>>();
-        Map<String, List<String>> deleted = new HashMap<String, List<String>>();
+        Map<String, List<String>> added = new HashMap<>();
+        Map<String, List<String>> deleted = new HashMap<>();
         Map<String, List<String>> modifyMap = null;
 
         String newRdn = null;
@@ -111,7 +107,7 @@ public class LdapModifyForTests {
                 NameValue nameValue = (NameValue) line;
                 List<String> values = added.get(nameValue.getName());
                 if (values == null) {
-                    values = new ArrayList<String>();
+                    values = new ArrayList<>();
                     added.put(nameValue.getName(), values);
                 }
                 values.add(nameValue.getValue());
@@ -135,7 +131,7 @@ public class LdapModifyForTests {
                     NameValue nameValue = (NameValue) line;
                     List<String> values = modifyMap.get(nameValue.getName());
                     if (values == null) {
-                        values = new ArrayList<String>();
+                        values = new ArrayList<>();
                         modifyMap.put(nameValue.getName(), values);
                     }
                     values.add(nameValue.getValue());
@@ -171,7 +167,7 @@ public class LdapModifyForTests {
                     lookup(container);
             containerCtx.createSubcontext(rdn.toString(), attrs);
         } else if ("modify".equalsIgnoreCase(changeType)) {
-            List<ModificationItem> modItems = new ArrayList<ModificationItem>();
+            List<ModificationItem> modItems = new ArrayList<>();
             addModificationItems(DirContext.ADD_ATTRIBUTE, added, modItems);
             addModificationItems(DirContext.REMOVE_ATTRIBUTE, deleted, modItems);
             LOG.ok("Modifying context {0} with attributes {1}", dn, modItems);

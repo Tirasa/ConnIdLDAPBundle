@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -31,6 +31,7 @@ import static org.identityconnectors.common.StringUtil.isBlank;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -44,7 +45,6 @@ import javax.naming.ldap.Rdn;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.commons.GroupHelper.GroupMembership;
 import net.tirasa.connid.bundles.ldap.search.LdapSearches;
-import org.identityconnectors.common.Base64;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 
 public abstract class LdapModifyOperation {
@@ -84,7 +84,7 @@ public abstract class LdapModifyOperation {
                 return plainPassword;
             }
         }
-        
+
         MessageDigest digest = null;
         try {
             if (algorithm.equalsIgnoreCase("SSHA") || algorithm.equalsIgnoreCase("SHA")) {
@@ -125,15 +125,15 @@ public abstract class LdapModifyOperation {
         result.append('{');
         result.append(algorithm);
         result.append('}');
-        result.append(Base64.encode(hashPlusSalt));
+        result.append(Base64.getEncoder().encodeToString(hashPlusSalt));
 
         return result.toString();
     }
 
-    protected static Set<String> getAttributeValues(final String attrName, final LdapName entryDN,
-            final Attributes attrs) {
+    protected static Set<String> getAttributeValues(
+            final String attrName, final LdapName entryDN, final Attributes attrs) {
 
-        final Set<String> result = new HashSet<String>();
+        final Set<String> result = new HashSet<>();
         if (entryDN != null && !entryDN.isEmpty()) {
             Rdn rdn = entryDN.getRdn(entryDN.size() - 1);
             addStringAttrValues(rdn.toAttributes(), attrName, result);
@@ -191,7 +191,7 @@ public abstract class LdapModifyOperation {
         }
 
         public Set<GroupMembership> getPosixGroupMembershipsByAttrs(final Set<String> posixRefAttrs) {
-            Set<GroupMembership> result = new HashSet<GroupMembership>();
+            Set<GroupMembership> result = new HashSet<>();
             for (GroupMembership member : getPosixGroupMemberships()) {
                 if (posixRefAttrs.contains(member.getMemberRef())) {
                     result.add(member);
@@ -201,11 +201,11 @@ public abstract class LdapModifyOperation {
         }
 
         public Set<GroupMembership> getPosixGroupMembershipsByGroups(final List<String> groupDNs) {
-            Set<LdapName> groupNames = new HashSet<LdapName>();
+            Set<LdapName> groupNames = new HashSet<>();
             for (String groupDN : groupDNs) {
                 groupNames.add(quietCreateLdapName(groupDN));
             }
-            Set<GroupMembership> result = new HashSet<GroupMembership>();
+            Set<GroupMembership> result = new HashSet<>();
             for (GroupMembership member : getPosixGroupMemberships()) {
                 if (groupNames.contains(quietCreateLdapName(member.getGroupDN()))) {
                     result.add(member);

@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -23,11 +23,11 @@
  */
 package net.tirasa.connid.bundles.ldap.modify;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -50,7 +50,7 @@ import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
 import net.tirasa.connid.bundles.ldap.MyStatusManagement;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class LdapUpdateTests extends LdapConnectorTestBase {
 
@@ -256,7 +256,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         assertFalse(status.getValue().isEmpty());
         assertTrue((Boolean) status.getValue().get(0));
     }
-    
+
     @Test
     public void testRenameDnAttribute() {
         ConnectorFacade facade = newFacade();
