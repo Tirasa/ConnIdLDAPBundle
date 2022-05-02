@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.common.security.GuardedString.Accessor;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -485,8 +484,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade();
         ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN),
                 OperationalAttributes.PASSWORD_NAME);
-        GuardedString password = (GuardedString) bunny.getAttributeByName(OperationalAttributes.PASSWORD_NAME).
-                getValue().get(0);
+        GuardedString password =
+                (GuardedString) bunny.getAttributeByName(OperationalAttributes.PASSWORD_NAME).getValue().get(0);
         password.access(clearChars -> assertEquals(0, clearChars.length));
     }
 
@@ -497,12 +496,12 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
         ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN),
                 OperationalAttributes.PASSWORD_NAME);
-        GuardedString password = (GuardedString) bunny.getAttributeByName(OperationalAttributes.PASSWORD_NAME).
-                getValue().get(0);
-        password.access(clearChars -> assertEquals(0, clearChars.length));
+        GuardedString password =
+                (GuardedString) bunny.getAttributeByName(OperationalAttributes.PASSWORD_NAME).getValue().get(0);
+        password.access(clearChars -> assertTrue(clearChars.length > 0));
     }
 
-    private static ConnectorObject getObjectByName(List<ConnectorObject> objects, String name) {
+    private static ConnectorObject getObjectByName(final List<ConnectorObject> objects, final String name) {
         for (ConnectorObject object : objects) {
             if (name.equals(object.getName().getNameValue())) {
                 return object;
