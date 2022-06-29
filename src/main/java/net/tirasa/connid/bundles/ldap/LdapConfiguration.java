@@ -59,6 +59,8 @@ public class LdapConfiguration extends AbstractConfiguration {
     // XXX should try to connect to the resource.
     public static final int DEFAULT_PORT = 389;
 
+    private static final String DEFAULT_ID_ATTRIBUTE = "entryUUID";
+
     // Exposed configuration properties.
     /**
      * The LDAP host server to connect to.
@@ -126,6 +128,11 @@ public class LdapConfiguration extends AbstractConfiguration {
     private boolean maintainPosixGroupMembership = false;
 
     /**
+     * If true, will automatically add the configured principal as first member of a new group.
+     */
+    private boolean addPrincipalToNewGroups = false;
+
+    /**
      * If the server stores passwords in clear text, we will hash them with the algorithm specified here.
      */
     private String passwordHashAlgorithm;
@@ -155,11 +162,6 @@ public class LdapConfiguration extends AbstractConfiguration {
      * The LDAP attribute to map Gid to.
      */
     private String gidAttribute = "entryUUID";
-
-    /**
-     * The LDAP attribute to map Gid to.
-     */
-    private String defaultIdAttribute = "entryUUID";
 
     /**
      * Whether to read the schema from the server.
@@ -217,7 +219,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     private final ObjectClassMappingConfig allConfig = new ObjectClassMappingConfig(
             ObjectClass.ALL,
             CollectionUtil.newList("top"),
-            false, CollectionUtil.newList(defaultIdAttribute));
+            false, CollectionUtil.newList(DEFAULT_ID_ATTRIBUTE));
 
     // Other state not to be included in hashCode/equals.
     private List<LdapName> baseContextsAsLdapNames;
@@ -549,6 +551,17 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(order = 17,
+            displayMessageKey = "addPrincipalToNewGroups.display",
+            helpMessageKey = "addPrincipalToNewGroups.help")
+    public boolean isAddPrincipalToNewGroups() {
+        return addPrincipalToNewGroups;
+    }
+
+    public void setAddPrincipalToNewGroups(boolean addPrincipalToNewGroups) {
+        this.addPrincipalToNewGroups = addPrincipalToNewGroups;
+    }
+
+    @ConfigurationProperty(order = 18,
             displayMessageKey = "passwordHashAlgorithm.display",
             helpMessageKey = "passwordHashAlgorithm.help")
     public String getPasswordHashAlgorithm() {
@@ -559,7 +572,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.passwordHashAlgorithm = passwordHashAlgorithm;
     }
 
-    @ConfigurationProperty(order = 18,
+    @ConfigurationProperty(order = 19,
             displayMessageKey = "respectResourcePasswordPolicyChangeAfterReset.display",
             helpMessageKey = "respectResourcePasswordPolicyChangeAfterReset.help")
     public boolean isRespectResourcePasswordPolicyChangeAfterReset() {
@@ -570,7 +583,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.respectResourcePasswordPolicyChangeAfterReset = respectResourcePasswordPolicyChangeAfterReset;
     }
 
-    @ConfigurationProperty(order = 19,
+    @ConfigurationProperty(order = 20,
             displayMessageKey = "useVlvControls.display",
             helpMessageKey = "useVlvControls.help")
     public boolean isUseVlvControls() {
@@ -581,7 +594,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.useVlvControls = useVlvControls;
     }
 
-    @ConfigurationProperty(order = 20,
+    @ConfigurationProperty(order = 21,
             displayMessageKey = "vlvSortAttribute.display",
             helpMessageKey = "vlvSortAttribute.help")
     public String getVlvSortAttribute() {
@@ -592,7 +605,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.vlvSortAttribute = vlvSortAttribute;
     }
 
-    @ConfigurationProperty(order = 21,
+    @ConfigurationProperty(order = 22,
             displayMessageKey = "uidAttribute.display",
             helpMessageKey = "uidAttribute.help")
     public String getUidAttribute() {
@@ -603,7 +616,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.uidAttribute = uidAttribute;
     }
 
-    @ConfigurationProperty(order = 22,
+    @ConfigurationProperty(order = 23,
             displayMessageKey = "gidAttribute.display",
             helpMessageKey = "gidAttribute.help")
     public String getGidAttribute() {
@@ -769,7 +782,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     public void setPasswordDecryptionInitializationVector(GuardedByteArray passwordDecryptionInitializationVector) {
         this.passwordDecryptionInitializationVector = passwordDecryptionInitializationVector != null
                 ? passwordDecryptionInitializationVector.
-                copy() : null;
+                        copy() : null;
     }
 
     @ConfigurationProperty(order = 37,
