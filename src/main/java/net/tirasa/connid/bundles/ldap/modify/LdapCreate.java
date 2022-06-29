@@ -72,23 +72,21 @@ public class LdapCreate extends LdapModifyOperation {
         }
     }
 
-    private Uid executeImpl()
-            throws NamingException {
-
-        final Name nameAttr = AttributeUtil.getNameFromAttributes(attrs);
+    private Uid executeImpl() throws NamingException {
+        Name nameAttr = AttributeUtil.getNameFromAttributes(attrs);
         if (nameAttr == null) {
             throw new IllegalArgumentException("No Name attribute provided in the attributes");
         }
 
-        final List<String> ldapGroups = new ArrayList<String>();
-        final List<String> posixGroups = new ArrayList<String>();
+        List<String> ldapGroups = new ArrayList<>();
+        List<String> posixGroups = new ArrayList<>();
         GuardedPasswordAttribute pwdAttr = null;
         Boolean status = null;
 
-        final BasicAttributes ldapAttrs = new BasicAttributes(true);
+        BasicAttributes ldapAttrs = new BasicAttributes(true);
 
         for (Attribute attr : attrs) {
-            javax.naming.directory.Attribute ldapAttr = null;
+            javax.naming.directory.Attribute ldapAttr;
             if (attr.is(Name.NAME)) {
                 // Handled already.
             } else if (LdapConstants.isLdapGroups(attr.getName())) {
@@ -123,7 +121,7 @@ public class LdapCreate extends LdapModifyOperation {
             groupHelper.addMemberAttributeIfMissing(ldapAttrs);
         }
 
-        final String[] entryDN = { null };
+        String[] entryDN = { null };
         if (pwdAttr != null) {
             pwdAttr.access(new Accessor() {
 

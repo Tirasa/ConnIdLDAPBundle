@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -26,9 +26,7 @@ package net.tirasa.connid.bundles.ldap.commons;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-
-import static java.util.Collections.singletonList;
-
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,18 +41,15 @@ import javax.naming.directory.ModificationItem;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapName;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
-
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.escapeAttrValue;
-
-import net.tirasa.connid.bundles.ldap.search.LdapSearches;
 import net.tirasa.connid.bundles.ldap.search.LdapSearchResultsHandler;
+import net.tirasa.connid.bundles.ldap.search.LdapSearches;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 
 public class GroupHelper {
 
-    // This must be sorted in ascending order for Arrays.binarySearch to work properly!
-    private static final String[] OBJECT_CLASSES_WITH_MANDATORY_MEMB_ATTR = {"groupOfNames", "groupOfUniqueNames"};
+    private static final List<String> OBJECT_CLASSES_WITH_MANDATORY_MEMB_ATTR =
+            Arrays.asList("groupOfNames", "groupOfUniqueNames");
 
     private static final Log log = Log.getLog(GroupHelper.class);
 
@@ -84,7 +79,7 @@ public class GroupHelper {
 
     public List<String> getLdapGroups(String entryDN) {
         log.ok("Retrieving LDAP groups for {0}", entryDN);
-        String filter = createAttributeFilter(getLdapGroupMemberAttribute(), singletonList(entryDN));
+        String filter = createAttributeFilter(getLdapGroupMemberAttribute(), Collections.singletonList(entryDN));
         ToDNHandler handler = new ToDNHandler();
         LdapSearches.findEntries(handler, conn, filter);
         return handler.getResults();
@@ -92,7 +87,7 @@ public class GroupHelper {
 
     public Set<GroupMembership> getLdapGroupMemberships(String entryDN) {
         log.ok("Retrieving LDAP group memberships for {0}", entryDN);
-        String filter = createAttributeFilter(getLdapGroupMemberAttribute(), singletonList(entryDN));
+        String filter = createAttributeFilter(getLdapGroupMemberAttribute(), Collections.singletonList(entryDN));
         ToGroupMembershipHandler handler = new ToGroupMembershipHandler();
         handler.setMemberRef(entryDN);
         LdapSearches.findEntries(handler, conn, filter);
@@ -138,7 +133,7 @@ public class GroupHelper {
         log.ok("Retrieving POSIX group memberships for ", posixRefAttrs);
         ToGroupMembershipHandler handler = new ToGroupMembershipHandler();
         for (String posixRefAttr : posixRefAttrs) {
-            String filter = createAttributeFilter("memberUid", singletonList(posixRefAttr));
+            String filter = createAttributeFilter("memberUid", Collections.singletonList(posixRefAttr));
             handler.setMemberRef(posixRefAttr);
             LdapSearches.findEntries(handler, conn, filter);
         }
@@ -171,20 +166,18 @@ public class GroupHelper {
     }
 
     public void addMemberAttributeIfMissing(final BasicAttributes ldapAttrs) {
-        String[] groupObjectClasses = conn.getConfiguration().getGroupObjectClasses();
-        boolean found = false;
-        for (int i = 0; i < groupObjectClasses.length; i++) {
-            found = Arrays.binarySearch(OBJECT_CLASSES_WITH_MANDATORY_MEMB_ATTR, groupObjectClasses[i]) >= 0;
-            if (found) {
-                break;
-            }
+        if (!conn.getConfiguration().isAddPrincipalToNewGroups()) {
+            return;
         }
-        if (!found) {
+
+        if (Arrays.stream(conn.getConfiguration().getGroupObjectClasses()).
+                noneMatch(oc -> OBJECT_CLASSES_WITH_MANDATORY_MEMB_ATTR.stream().anyMatch(oc::equalsIgnoreCase))) {
+
             return;
         }
 
         javax.naming.directory.Attribute memberAttr = null;
-        final NamingEnumeration<javax.naming.directory.Attribute> attrEnum = ldapAttrs.getAll();
+        NamingEnumeration<javax.naming.directory.Attribute> attrEnum = ldapAttrs.getAll();
         while (attrEnum.hasMoreElements()) {
             javax.naming.directory.Attribute attr = attrEnum.nextElement();
             if (conn.getConfiguration().getGroupMemberAttribute().equals(attr.getID())) {
@@ -212,7 +205,7 @@ public class GroupHelper {
             builder.append('(');
             builder.append(memberAttr);
             builder.append('=');
-            escapeAttrValue(memberValue, builder);
+            LdapUtil.escapeAttrValue(memberValue, builder);
             builder.append(')');
         }
         if (multi) {
@@ -226,7 +219,7 @@ public class GroupHelper {
         ModificationItem item = new ModificationItem(DirContext.ADD_ATTRIBUTE,
                 attr);
         try {
-            conn.getInitialContext().modifyAttributes(groupDN, new ModificationItem[]{item});
+            conn.getInitialContext().modifyAttributes(groupDN, new ModificationItem[] { item });
         } catch (AttributeInUseException e) {
             throw new ConnectorException(conn.format("memberAlreadyInGroup", null, memberValue, groupDN), e);
         } catch (NamingException e) {
@@ -238,7 +231,7 @@ public class GroupHelper {
         BasicAttribute attr = new BasicAttribute(memberAttr, memberValue);
         ModificationItem item = new ModificationItem(DirContext.REMOVE_ATTRIBUTE, attr);
         try {
-            conn.getInitialContext().modifyAttributes(groupDN, new ModificationItem[]{item});
+            conn.getInitialContext().modifyAttributes(groupDN, new ModificationItem[] { item });
         } catch (NamingException e) {
             throw new ConnectorException(e);
         }
