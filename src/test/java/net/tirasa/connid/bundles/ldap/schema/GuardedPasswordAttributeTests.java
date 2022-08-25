@@ -34,8 +34,8 @@ import org.junit.jupiter.api.Test;
 public class GuardedPasswordAttributeTests {
 
     @Test
-    public void testAccess() throws NamingException {
-        final String PASSWORD = "\u011b\u0161\u010d\u0159\u017e\u00fd\u00e1\u00ed\u00e9"; // Czech characters ;-)
+    public void access() throws NamingException {
+        String PASSWORD = "\u011b\u0161\u010d\u0159\u017e\u00fd\u00e1\u00ed\u00e9"; // Czech characters ;-)
 
         GuardedPasswordAttribute pwdAttr =
                 GuardedPasswordAttribute.create("userPassword", new GuardedString(PASSWORD.toCharArray()));
@@ -58,7 +58,7 @@ public class GuardedPasswordAttributeTests {
     }
 
     @Test
-    public void testEmpty() {
+    public void empty() {
         GuardedPasswordAttribute pwdAttr = GuardedPasswordAttribute.create("userPassword");
         pwdAttr.access(passwordAttribute -> assertEquals(0, passwordAttribute.size()));
     }

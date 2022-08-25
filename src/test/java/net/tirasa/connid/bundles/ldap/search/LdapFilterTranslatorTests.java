@@ -23,6 +23,8 @@
  */
 package net.tirasa.connid.bundles.ldap.search;
 
+import static net.tirasa.connid.bundles.ldap.search.LdapFilter.forEntryDN;
+import static net.tirasa.connid.bundles.ldap.search.LdapFilter.forNativeFilter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -53,159 +55,144 @@ public class LdapFilterTranslatorTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAnd() {
-        assertEquals(LdapFilter.forNativeFilter("(&(foo=1)(bar=2))"), newTranslator().createAndExpression(
-                LdapFilter.forNativeFilter("(foo=1)"),
-                LdapFilter.forNativeFilter("(bar=2)")));
-        assertEquals(LdapFilter.forEntryDN("dc=example,dc=com").withNativeFilter("(foo=1)"), newTranslator().
+    public void and() {
+        assertEquals(forNativeFilter("(&(foo=1)(bar=2))"), newTranslator().createAndExpression(
+                forNativeFilter("(foo=1)"),
+                forNativeFilter("(bar=2)")));
+        assertEquals(forEntryDN("dc=example,dc=com").withNativeFilter("(foo=1)"), newTranslator().
                 createAndExpression(
-                        LdapFilter.forEntryDN("dc=example,dc=com"),
-                        LdapFilter.forNativeFilter("(foo=1)")));
-        assertEquals(LdapFilter.forEntryDN("dc=example,dc=com").withNativeFilter("(&(foo=1)(bar=2))"), newTranslator().
+                        forEntryDN("dc=example,dc=com"),
+                        forNativeFilter("(foo=1)")));
+        assertEquals(forEntryDN("dc=example,dc=com").withNativeFilter("(&(foo=1)(bar=2))"), newTranslator().
                 createAndExpression(
-                        LdapFilter.forEntryDN("dc=example,dc=com").withNativeFilter("(foo=1)"),
-                        LdapFilter.forNativeFilter("(bar=2)")));
+                        forEntryDN("dc=example,dc=com").withNativeFilter("(foo=1)"),
+                        forNativeFilter("(bar=2)")));
         assertNull(newTranslator().createAndExpression(
-                LdapFilter.forEntryDN("dc=example,dc=com").withNativeFilter("(foo=1)"),
-                LdapFilter.forEntryDN("dc=example,dc=org").withNativeFilter("(bar=2)")));
+                forEntryDN("dc=example,dc=com").withNativeFilter("(foo=1)"),
+                forEntryDN("dc=example,dc=org").withNativeFilter("(bar=2)")));
     }
 
     @Test
-    public void testOr() {
-        assertEquals(LdapFilter.forNativeFilter("(|(foo=1)(bar=2))"),
-                newTranslator().createOrExpression(LdapFilter.forNativeFilter("(foo=1)"), LdapFilter.forNativeFilter(
+    public void or() {
+        assertEquals(forNativeFilter("(|(foo=1)(bar=2))"),
+                newTranslator().createOrExpression(forNativeFilter("(foo=1)"), forNativeFilter(
                         "(bar=2)")));
         assertNull(newTranslator().createOrExpression(
-                LdapFilter.forEntryDN("dc=example,dc=com"), LdapFilter.forNativeFilter("(foo=1)")));
+                forEntryDN("dc=example,dc=com"), forNativeFilter("(foo=1)")));
     }
 
     @Test
-    public void testContains() {
+    public void contains() {
         ContainsFilter filter = (ContainsFilter) FilterBuilder.contains(AttributeBuilder.build("foo", ""));
-        assertEquals(LdapFilter.forNativeFilter("(foo=*)"), newTranslator().createContainsExpression(filter, false));
+        assertEquals(forNativeFilter("(foo=*)"), newTranslator().createContainsExpression(filter, false));
 
         filter = (ContainsFilter) FilterBuilder.contains(AttributeBuilder.build("foo", "bar"));
-        assertEquals(LdapFilter.forNativeFilter("(foo=*bar*)"), newTranslator().createContainsExpression(filter, false));
+        assertEquals(forNativeFilter("(foo=*bar*)"), newTranslator().createContainsExpression(filter, false));
     }
 
     @Test
-    public void testStartsWith() {
+    public void startsWith() {
         StartsWithFilter filter = (StartsWithFilter) FilterBuilder.startsWith(AttributeBuilder.build("foo", ""));
-        assertEquals(LdapFilter.forNativeFilter("(foo=*)"), newTranslator().createStartsWithExpression(filter, false));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo=*))"), newTranslator().createStartsWithExpression(filter, true));
+        assertEquals(forNativeFilter("(foo=*)"), newTranslator().createStartsWithExpression(filter, false));
+        assertEquals(forNativeFilter("(!(foo=*))"), newTranslator().createStartsWithExpression(filter, true));
 
         filter = (StartsWithFilter) FilterBuilder.startsWith(AttributeBuilder.build("foo", "bar"));
-        assertEquals(LdapFilter.forNativeFilter("(foo=bar*)"), newTranslator().createStartsWithExpression(filter, false));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo=bar*))"), newTranslator().createStartsWithExpression(filter,
-                true));
+        assertEquals(forNativeFilter("(foo=bar*)"), newTranslator().createStartsWithExpression(filter, false));
+        assertEquals(forNativeFilter("(!(foo=bar*))"), newTranslator().createStartsWithExpression(filter, true));
     }
 
     @Test
-    public void testEndsWith() {
+    public void endsWith() {
         EndsWithFilter filter = (EndsWithFilter) FilterBuilder.endsWith(AttributeBuilder.build("foo", ""));
-        assertEquals(LdapFilter.forNativeFilter("(foo=*)"), newTranslator().createEndsWithExpression(filter, false));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo=*))"), newTranslator().createEndsWithExpression(filter, true));
+        assertEquals(forNativeFilter("(foo=*)"), newTranslator().createEndsWithExpression(filter, false));
+        assertEquals(forNativeFilter("(!(foo=*))"), newTranslator().createEndsWithExpression(filter, true));
 
         filter = (EndsWithFilter) FilterBuilder.endsWith(AttributeBuilder.build("foo", "bar"));
-        assertEquals(LdapFilter.forNativeFilter("(foo=*bar)"), newTranslator().createEndsWithExpression(filter, false));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo=*bar))"), newTranslator().createEndsWithExpression(filter, true));
+        assertEquals(forNativeFilter("(foo=*bar)"), newTranslator().createEndsWithExpression(filter, false));
+        assertEquals(forNativeFilter("(!(foo=*bar))"), newTranslator().createEndsWithExpression(filter, true));
     }
 
     @Test
-    public void testEquals() {
+    public void equals() {
         EqualsFilter filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build("foo"));
         assertNull(newTranslator().createEqualsExpression(filter, false));
 
         filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build("foo", ""));
-        assertEquals(LdapFilter.forNativeFilter("(foo=*)"), newTranslator().createEqualsExpression(filter, false));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo=*))"), newTranslator().createEqualsExpression(filter, true));
+        assertEquals(forNativeFilter("(foo=*)"), newTranslator().createEqualsExpression(filter, false));
+        assertEquals(forNativeFilter("(!(foo=*))"), newTranslator().createEqualsExpression(filter, true));
 
         filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build("foo", "bar"));
-        assertEquals(LdapFilter.forNativeFilter("(foo=bar)"), newTranslator().createEqualsExpression(filter, false));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo=bar))"), newTranslator().createEqualsExpression(filter, true));
+        assertEquals(forNativeFilter("(foo=bar)"), newTranslator().createEqualsExpression(filter, false));
+        assertEquals(forNativeFilter("(!(foo=bar))"), newTranslator().createEqualsExpression(filter, true));
 
         filter = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.build("foo", "bar", "baz"));
-        assertEquals(LdapFilter.forNativeFilter("(&(foo=bar)(foo=baz))"), newTranslator().createEqualsExpression(filter,
-                false));
-        assertEquals(LdapFilter.forNativeFilter("(!(&(foo=bar)(foo=baz)))"), newTranslator().createEqualsExpression(
-                filter, true));
+        assertEquals(forNativeFilter("(&(foo=bar)(foo=baz))"), newTranslator().createEqualsExpression(filter, false));
+        assertEquals(forNativeFilter("(!(&(foo=bar)(foo=baz)))"), newTranslator().createEqualsExpression(filter, true));
     }
 
     @Test
-    public void testEqualsIgnoreCase() {
+    public void equalsIgnoreCase() {
         EqualsIgnoreCaseFilter filter = (EqualsIgnoreCaseFilter) FilterBuilder.equalsIgnoreCase(AttributeBuilder.build(
                 "foo", ""));
-        assertEquals(LdapFilter.forNativeFilter("(foo=*)"), newTranslator().createEqualsIgnoreCaseExpression(filter,
-                false));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo=*))"), newTranslator().createEqualsIgnoreCaseExpression(filter,
-                true));
+        assertEquals(forNativeFilter("(foo=*)"), newTranslator().createEqualsIgnoreCaseExpression(filter, false));
+        assertEquals(forNativeFilter("(!(foo=*))"), newTranslator().createEqualsIgnoreCaseExpression(filter, true));
 
         filter = (EqualsIgnoreCaseFilter) FilterBuilder.equalsIgnoreCase(AttributeBuilder.build("foo", "bar"));
-        assertEquals(LdapFilter.forNativeFilter("(foo=bar)"), newTranslator().createEqualsIgnoreCaseExpression(filter,
-                false));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo=bar))"), newTranslator().
-                createEqualsIgnoreCaseExpression(filter, true));
+        assertEquals(forNativeFilter("(foo=bar)"), newTranslator().createEqualsIgnoreCaseExpression(filter, false));
+        assertEquals(forNativeFilter("(!(foo=bar))"), newTranslator().createEqualsIgnoreCaseExpression(filter, true));
     }
 
     @Test
-    public void testGreaterThan() {
+    public void greaterThan() {
         GreaterThanFilter filter = (GreaterThanFilter) FilterBuilder.greaterThan(AttributeBuilder.build("foo", 42));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo<=42))"), newTranslator().createGreaterThanExpression(filter,
-                false));
-        assertEquals(LdapFilter.forNativeFilter("(foo<=42)"), newTranslator().createGreaterThanExpression(filter, true));
+        assertEquals(forNativeFilter("(!(foo<=42))"), newTranslator().createGreaterThanExpression(filter, false));
+        assertEquals(forNativeFilter("(foo<=42)"), newTranslator().createGreaterThanExpression(filter, true));
     }
 
     @Test
-    public void testGreaterThanOrEqual() {
+    public void greaterThanOrEqual() {
         GreaterThanOrEqualFilter filter = (GreaterThanOrEqualFilter) FilterBuilder.greaterThanOrEqualTo(
                 AttributeBuilder.build("foo", 42));
-        assertEquals(LdapFilter.forNativeFilter("(foo>=42)"), newTranslator().createGreaterThanOrEqualExpression(filter,
-                false));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo>=42))"), newTranslator().createGreaterThanOrEqualExpression(
-                filter, true));
+        assertEquals(forNativeFilter("(foo>=42)"), newTranslator().createGreaterThanOrEqualExpression(filter, false));
+        assertEquals(forNativeFilter("(!(foo>=42))"), newTranslator().createGreaterThanOrEqualExpression(filter, true));
     }
 
     @Test
-    public void testLessThan() {
+    public void lessThan() {
         LessThanFilter filter = (LessThanFilter) FilterBuilder.lessThan(AttributeBuilder.build("foo", 42));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo>=42))"), newTranslator().createLessThanExpression(filter, false));
-        assertEquals(LdapFilter.forNativeFilter("(foo>=42)"), newTranslator().createLessThanExpression(filter, true));
+        assertEquals(forNativeFilter("(!(foo>=42))"), newTranslator().createLessThanExpression(filter, false));
+        assertEquals(forNativeFilter("(foo>=42)"), newTranslator().createLessThanExpression(filter, true));
     }
 
     @Test
-    public void testLessThanOrEqual() {
+    public void lessThanOrEqual() {
         LessThanOrEqualFilter filter = (LessThanOrEqualFilter) FilterBuilder.lessThanOrEqualTo(AttributeBuilder.build(
                 "foo", 42));
-        assertEquals(LdapFilter.forNativeFilter("(foo<=42)"), newTranslator().createLessThanOrEqualExpression(filter,
-                false));
-        assertEquals(LdapFilter.forNativeFilter("(!(foo<=42))"), newTranslator().createLessThanOrEqualExpression(filter,
-                true));
+        assertEquals(forNativeFilter("(foo<=42)"), newTranslator().createLessThanOrEqualExpression(filter, false));
+        assertEquals(forNativeFilter("(!(foo<=42))"), newTranslator().createLessThanOrEqualExpression(filter, true));
     }
 
     @Test
-    public void testEntryDN() {
+    public void entryDN() {
         ContainsFilter contains = (ContainsFilter) FilterBuilder.contains(AttributeBuilder.build("entryDN",
                 "dc=example,dc=com"));
-        assertEquals(LdapFilter.forEntryDN("dc=example,dc=com"), newTranslator().createContainsExpression(contains,
-                false));
+        assertEquals(forEntryDN("dc=example,dc=com"), newTranslator().createContainsExpression(contains, false));
 
         StartsWithFilter startsWith = (StartsWithFilter) FilterBuilder.startsWith(AttributeBuilder.build("entryDN",
                 "dc=example,dc=com"));
-        assertEquals(LdapFilter.forEntryDN("dc=example,dc=com"), newTranslator().createStartsWithExpression(startsWith,
-                false));
+        assertEquals(forEntryDN("dc=example,dc=com"), newTranslator().createStartsWithExpression(startsWith, false));
 
         EndsWithFilter endsWith = (EndsWithFilter) FilterBuilder.endsWith(AttributeBuilder.build("entryDN",
                 "dc=example,dc=com"));
-        assertEquals(LdapFilter.forEntryDN("dc=example,dc=com"), newTranslator().createEndsWithExpression(endsWith,
-                false));
+        assertEquals(forEntryDN("dc=example,dc=com"), newTranslator().createEndsWithExpression(endsWith, false));
 
         EqualsFilter equals = (EqualsFilter) FilterBuilder.equalTo(AttributeBuilder.
                 build("entryDN", "dc=example,dc=com"));
-        assertEquals(LdapFilter.forEntryDN("dc=example,dc=com"), newTranslator().createEqualsExpression(equals, false));
+        assertEquals(forEntryDN("dc=example,dc=com"), newTranslator().createEqualsExpression(equals, false));
 
         ContainsAllValuesFilter containsAllValues = (ContainsAllValuesFilter) FilterBuilder.containsAllValues(
                 AttributeBuilder.build("entryDN", "dc=example,dc=com"));
-        assertEquals(LdapFilter.forEntryDN("dc=example,dc=com"), newTranslator().createContainsAllValuesExpression(
+        assertEquals(forEntryDN("dc=example,dc=com"), newTranslator().createContainsAllValuesExpression(
                 containsAllValues, false));
 
         containsAllValues = (ContainsAllValuesFilter) FilterBuilder.containsAllValues(AttributeBuilder.build("entryDN",

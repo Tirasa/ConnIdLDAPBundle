@@ -66,7 +66,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testSimpleAddRemoveAttrs() {
+    public void simpleAddRemoveAttrs() {
         ConnectorFacade facade = newFacade();
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
@@ -101,7 +101,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testRename() {
+    public void rename() {
         ConnectorFacade facade = newFacade();
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
@@ -119,7 +119,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testRenameWhenUidNotDefault() {
+    public void renameWhenUidNotDefault() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
@@ -137,7 +137,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testEmptyAttributeValueRemovesAttribute() {
+    public void emptyAttributeValueRemovesAttribute() {
         ConnectorFacade facade = newFacade();
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT,
                 new Name(BUGS_BUNNY_DN));
@@ -157,7 +157,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testUpdateBinaryAttributes() throws IOException {
+    public void updateBinaryAttributes() throws IOException {
         ConnectorFacade facade = newFacade();
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
@@ -180,7 +180,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAdminCanChangePassword() {
+    public void adminCanChangePassword() {
         ConnectorFacade facade = newFacade();
         ConnectorObject elmer = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(ELMER_FUDD_DN));
 
@@ -199,7 +199,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testUserCanChangePassword() {
+    public void userCanChangePassword() {
         LdapConfiguration config = newConfiguration();
         config.setPrincipal(BUGS_BUNNY_DN);
         config.setCredentials(new GuardedString("carrot".toCharArray()));
@@ -218,7 +218,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testEnableDisable() {
+    public void enableDisable() {
         final LdapConfiguration config = new LdapConfiguration();
         config.setHost("localhost");
         config.setPort(PORT);
@@ -258,7 +258,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testRenameDnAttribute() {
+    public void renameDnAttribute() {
         ConnectorFacade facade = newFacade();
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(RENAME_ONE_TEST_DN));
 

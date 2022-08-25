@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
 public class LdapEntryTests {
 
     @Test
-    public void testEntryDNAttribute() throws Exception {
+    public void entryDNAttribute() throws Exception {
         final String NAME = "uid=admin";
         final String BASE = "dc=example,dc=com";
         final String ENTRY_DN = NAME + "," + BASE;

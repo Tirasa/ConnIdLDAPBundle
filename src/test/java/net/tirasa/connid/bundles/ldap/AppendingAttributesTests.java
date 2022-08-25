@@ -54,7 +54,7 @@ public class AppendingAttributesTests {
     }
 
     @Test
-    public void testAppending() throws Exception {
+    public void appending() throws Exception {
         BasicAttributes existingAttrs = new BasicAttributes(true);
         AppendingAttrImpl appendingAttrs = new AppendingAttrImpl(existingAttrs, foo, bar);
         assertEquals(2, appendingAttrs.size());
@@ -65,7 +65,7 @@ public class AppendingAttributesTests {
     }
 
     @Test
-    public void testAppendAndReplaceCaseInsensitive() throws Exception {
+    public void appendAndReplaceCaseInsensitive() throws Exception {
         BasicAttributes existingAttrs = new BasicAttributes(true);
         existingAttrs.put(existingCapitalFoo);
         AppendingAttrImpl appendingAttrs = new AppendingAttrImpl(existingAttrs, foo, bar);
@@ -77,7 +77,7 @@ public class AppendingAttributesTests {
     }
 
     @Test
-    public void testAppendCaseInsensitive() throws Exception {
+    public void appendCaseInsensitive() throws Exception {
         BasicAttributes existingAttrs = new BasicAttributes(false);
         existingAttrs.put(existingCapitalFoo);
         AppendingAttrImpl appendingAttrs = new AppendingAttrImpl(existingAttrs, foo, bar);
@@ -89,7 +89,7 @@ public class AppendingAttributesTests {
     }
 
     @Test
-    public void testReplace() throws Exception {
+    public void replace() throws Exception {
         BasicAttributes existingAttrs = new BasicAttributes(true);
         existingAttrs.put(existingFoo);
         existingAttrs.put(existingBar);

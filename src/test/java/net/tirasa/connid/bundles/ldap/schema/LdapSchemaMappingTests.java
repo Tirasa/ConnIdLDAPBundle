@@ -58,7 +58,7 @@ public class LdapSchemaMappingTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testObjectClassAttrIsReadOnly() {
+    public void objectClassAttrIsReadOnly() {
         LdapConfiguration config = newConfiguration(true);
         Schema schema = newFacade(config).schema();
         for (ObjectClassInfo oci : schema.getObjectClassInfo()) {
@@ -70,7 +70,7 @@ public class LdapSchemaMappingTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAccountSchema() {
+    public void accountSchema() {
         LdapConfiguration config = newConfiguration(true);
         Schema schema = newFacade(config).schema();
 
@@ -111,7 +111,7 @@ public class LdapSchemaMappingTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAuthenticationOnlyForAccounts() {
+    public void authenticationOnlyForAccounts() {
         LdapConfiguration config = newConfiguration(true);
         Schema schema = newFacade(config).schema();
         Set<ObjectClassInfo> ocis = schema.getSupportedObjectClassesByOperation().get(AuthenticationApiOp.class);
@@ -120,7 +120,7 @@ public class LdapSchemaMappingTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAllObjectClassesInSchema() {
+    public void allObjectClassesInSchema() {
         Schema schema = newFacade(newConfiguration(true)).schema();
         // Well, at least some of the most well-known.
         assertNotNull(schema.findObjectClassInfo("organization"));
@@ -133,7 +133,7 @@ public class LdapSchemaMappingTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testArbitraryObjectClass() {
+    public void arbitraryObjectClass() {
         Schema schema = newFacade(newConfiguration(true)).schema();
 
         ObjectClassInfo dnsDomainInfo = schema.findObjectClassInfo("dNSDomain");
@@ -151,7 +151,7 @@ public class LdapSchemaMappingTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAttributeTypes() {
+    public void attributeTypes() {
         LdapConfiguration config = newConfiguration(true);
         Schema schema = newFacade(config).schema();
         ObjectClassInfo accountInfo = schema.findObjectClassInfo(ObjectClass.ACCOUNT_NAME);

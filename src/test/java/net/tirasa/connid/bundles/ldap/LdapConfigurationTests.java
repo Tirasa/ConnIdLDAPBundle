@@ -54,189 +54,189 @@ public class LdapConfigurationTests {
     }
 
     @Test
-    public void testBaseContextsNotEmpty() {
+    public void baseContextsNotEmpty() {
         config.setBaseContexts();
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testBaseContextsItemNotNull() {
+    public void baseContextsItemNotNull() {
         config.setBaseContexts((String) null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testBaseContextsItemNotBlank() {
+    public void baseContextsItemNotBlank() {
         config.setBaseContexts(" ");
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testBaseContextsValid() {
+    public void baseContextsValid() {
         config.setBaseContexts(LdapConnectorTestBase.ACME_DN, INVALID_DN);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testPasswordAttributeNotNull() {
+    public void passwordAttributeNotNull() {
         config.setPasswordAttribute(null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testPasswordAttributeNotBlank() {
+    public void passwordAttributeNotBlank() {
         config.setPasswordAttribute(" ");
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testAccountObjectClassesNotEmpty() {
+    public void accountObjectClassesNotEmpty() {
         config.setAccountObjectClasses();
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testAccountObjectClassesItemNotNull() {
+    public void accountObjectClassesItemNotNull() {
         config.setAccountObjectClasses((String) null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testAccountUserNameAttributesNotEmpty() {
+    public void accountUserNameAttributesNotEmpty() {
         config.setAccountUserNameAttributes();
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testAccountUserNameAttributesItemNotNull() {
+    public void accountUserNameAttributesItemNotNull() {
         config.setAccountUserNameAttributes((String) null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testGroupMemberAttributeNotNull() {
+    public void groupMemberAttributeNotNull() {
         config.setGroupMemberAttribute(null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testGroupMemberAttributeNotBlank() {
+    public void groupMemberAttributeNotBlank() {
         config.setGroupMemberAttribute(" ");
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testVlvSortAttributeNotNull() {
+    public void vlvSortAttributeNotNull() {
         config.setVlvSortAttribute(null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testVlvSortAttributeNotBlank() {
+    public void vlvSortAttributeNotBlank() {
         config.setVlvSortAttribute(" ");
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testBaseContextsToSynchronizeItemNotNull() {
+    public void baseContextsToSynchronizeItemNotNull() {
         config.setBaseContextsToSynchronize((String) null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testBaseContextsToSynchronizeItemNotBlank() {
+    public void baseContextsToSynchronizeItemNotBlank() {
         config.setBaseContextsToSynchronize(" ");
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testBaseContextsToSyncronizeValid() {
+    public void baseContextsToSyncronizeValid() {
         config.setBaseContextsToSynchronize(LdapConnectorTestBase.ACME_DN, INVALID_DN);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testObjectClassesToSynchronizeNotEmpty() {
+    public void objectClassesToSynchronizeNotEmpty() {
         config.setObjectClassesToSynchronize();
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testObjectClassesToSynchronizeItemNotNull() {
+    public void objectClassesToSynchronizeItemNotNull() {
         config.setObjectClassesToSynchronize((String) null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testObjectClassesToSynchronizeItemNotBlank() {
+    public void objectClassesToSynchronizeItemNotBlank() {
         config.setObjectClassesToSynchronize(" ");
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testAttributesToSynchronizeItemNotNull() {
+    public void attributesToSynchronizeItemNotNull() {
         config.setAttributesToSynchronize((String) null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testAttributesToSynchronizeItemNotBlank() {
+    public void attributesToSynchronizeItemNotBlank() {
         config.setAttributesToSynchronize(" ");
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testModifiersNamesToFilterOutItemNotNull() {
+    public void modifiersNamesToFilterOutItemNotNull() {
         config.setModifiersNamesToFilterOut((String) null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testModifiersNamesToFilterOutItemNotBlank() {
+    public void modifiersNamesToFilterOutItemNotBlank() {
         config.setModifiersNamesToFilterOut(" ");
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testModifiersNamesToFilterOutValid() {
+    public void modifiersNamesToFilterOutValid() {
         config.setModifiersNamesToFilterOut(LdapConnectorTestBase.ACME_DN, INVALID_DN);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testChangeNumberAttributeNotNull() {
+    public void changeNumberAttributeNotNull() {
         config.setChangeNumberAttribute(null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testChangeNumberAttributeNotBlank() {
+    public void changeNumberAttributeNotBlank() {
         config.setChangeNumberAttribute(" ");
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testChangeLogBlockSizeGreatherThanZero() {
+    public void changeLogBlockSizeGreatherThanZero() {
         config.setChangeLogBlockSize(0);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testPasswordAttributeToSynchronizeNotNull() {
+    public void passwordAttributeToSynchronizeNotNull() {
         config.setSynchronizePasswords(true);
         config.setPasswordAttributeToSynchronize(null);
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testPasswordAttributeToSynchronizeNotBlank() {
+    public void passwordAttributeToSynchronizeNotBlank() {
         config.setSynchronizePasswords(true);
         config.setPasswordAttributeToSynchronize(" ");
         assertThrows(ConfigurationException.class, () -> config.validate());
     }
 
     @Test
-    public void testPasswordDecryptionKeyNotNull() {
+    public void passwordDecryptionKeyNotNull() {
         config.setSynchronizePasswords(true);
         config.setPasswordAttributeToSynchronize("somepassword");
         config.setPasswordDecryptionKey(null);
@@ -245,7 +245,7 @@ public class LdapConfigurationTests {
     }
 
     @Test
-    public void testPasswordDecryptionKeyNotBlank() {
+    public void passwordDecryptionKeyNotBlank() {
         config.setSynchronizePasswords(true);
         config.setPasswordAttributeToSynchronize("somepassword");
         config.setPasswordDecryptionKey(new GuardedByteArray(new byte[0]));
@@ -254,7 +254,7 @@ public class LdapConfigurationTests {
     }
 
     @Test
-    public void testPasswordDecryptionInitializationVectorNotNull() {
+    public void passwordDecryptionInitializationVectorNotNull() {
         config.setSynchronizePasswords(true);
         config.setPasswordAttributeToSynchronize("somepassword");
         config.setPasswordDecryptionKey(new GuardedByteArray(new byte[1]));
@@ -263,7 +263,7 @@ public class LdapConfigurationTests {
     }
 
     @Test
-    public void testPasswordDecryptionInitializationVectorNotBlank() {
+    public void passwordDecryptionInitializationVectorNotBlank() {
         config.setSynchronizePasswords(true);
         config.setPasswordAttributeToSynchronize("somepassword");
         config.setPasswordDecryptionKey(new GuardedByteArray(new byte[1]));
@@ -272,7 +272,7 @@ public class LdapConfigurationTests {
     }
 
     @Test
-    public void testDefaultValues() {
+    public void defaultValues() {
         config = new LdapConfiguration();
         assertNull(config.getHost());
         assertEquals(LdapConfiguration.DEFAULT_PORT, config.getPort());

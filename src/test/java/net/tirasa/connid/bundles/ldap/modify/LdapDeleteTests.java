@@ -42,7 +42,7 @@ public class LdapDeleteTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCannotDeleteExistingUidButWrongObjectClass() {
+    public void cannotDeleteExistingUidButWrongObjectClass() {
         ConnectorFacade facade = newFacade();
         ConnectorObject organization = searchByAttribute(
                 facade, new ObjectClass("organization"), new Name(BIG_COMPANY_DN));
@@ -51,7 +51,7 @@ public class LdapDeleteTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCannotDeleteNonEmptyDN() {
+    public void cannotDeleteNonEmptyDN() {
         // TODO: not sure this is the right behavior. Perhaps should instead
         // recursively delete everything under the deleted entry.
         ConnectorFacade facade = newFacade();
@@ -61,7 +61,7 @@ public class LdapDeleteTests extends LdapConnectorTestBase {
     }
 
     @Test()
-    public void testDelete() {
+    public void delete() {
         ConnectorFacade facade = newFacade();
         ConnectorObject account = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
         facade.delete(ObjectClass.ACCOUNT, account.getUid(), null);

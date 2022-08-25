@@ -71,7 +71,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testLdapFilter() {
+    public void ldapFilter() {
         LdapConnection conn = new LdapConnection(newConfiguration());
 
         LdapFilter filter = LdapFilter.forEntryDN(BUGS_BUNNY_DN);
@@ -86,7 +86,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testLdapFilterWithNonExistingEntryDN() {
+    public void ldapFilterWithNonExistingEntryDN() {
         LdapFilter filter = LdapFilter.forEntryDN("dc=foo,dc=bar");
 
         // VLV index.
@@ -104,7 +104,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testLdapFilterWithInvalidEntryDN() {
+    public void ldapFilterWithInvalidEntryDN() {
         LdapFilter filter = LdapFilter.forEntryDN("dc=foo,,");
 
         // VLV index.
@@ -132,7 +132,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCanCancelSearch() {
+    public void canCancelSearch() {
         // VLV Index.
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(ACME_DN, BIG_COMPANY_DN);
@@ -158,7 +158,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testSimplePagedSearch() {
+    public void simplePagedSearch() {
         LdapConfiguration config = newConfiguration();
         ConnectorFacade facade = newFacade(config);
 
@@ -208,7 +208,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testVlvIndexSearch() {
+    public void vlvIndexSearch() {
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(EXAMPLE_COM_DN);
         config.setUidAttribute("entryDN");
@@ -231,7 +231,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         assertTrue(debugsearch.contains("vlv"));
     }
 
-    public void testDefaultStrategy() {
+    public void defaultStrategy() {
         LdapConfiguration config = newConfiguration();
         ConnectorFacade facade = newFacade(config);
 
@@ -254,14 +254,14 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testWithFilter() {
+    public void withFilter() {
         ConnectorFacade facade = newFacade();
         ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
         assertEquals(BUGS_BUNNY_DN, bunny.getName().getNameValue());
     }
 
     @Test
-    public void testWithFilterByBinaryAttribute() {
+    public void withFilterByBinaryAttribute() {
         ConnectorFacade facade = newFacade();
         ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
@@ -275,10 +275,10 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAttributesToGet() {
+    public void attributesToGet() {
         ConnectorFacade facade = newFacade();
-        ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(USER_0_DN), "employeeNumber",
-                "telephoneNumber");
+        ConnectorObject object = searchByAttribute(
+                facade, ObjectClass.ACCOUNT, new Name(USER_0_DN), "employeeNumber", "telephoneNumber");
 
         Set<Attribute> attrs = CollectionUtil.newSet(object.getAttributes());
         assertTrue(attrs.remove(AttributeUtil.find(Uid.NAME, attrs)));
@@ -290,7 +290,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAttributesReturnedByDefaultWithNoValueAreNotReturned() {
+    public void attributesReturnedByDefaultWithNoValueAreNotReturned() {
         LdapConfiguration config = newConfiguration(true);
         ConnectorFacade facade = newFacade(config);
         AttributeInfo attr = AttributeInfoUtil.find("givenName", facade.schema().findObjectClassInfo(
@@ -302,7 +302,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAttributesToGetNotPresentInEntryAreEmpty() {
+    public void attributesToGetNotPresentInEntryAreEmpty() {
         ConnectorFacade facade = newFacade();
         ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN),
                 "employeeNumber");
@@ -311,7 +311,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testScope() {
+    public void scope() {
         ConnectorFacade facade = newFacade();
         // Find an organization to pass in OP_CONTAINER.
         ObjectClass oclass = new ObjectClass("organization");
@@ -333,7 +333,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAccountSearchFilter() {
+    public void accountSearchFilter() {
         ConnectorFacade facade = newFacade();
         // Find an organization to pass in OP_CONTAINER.
         ObjectClass oclass = new ObjectClass("organization");
@@ -357,7 +357,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAccountSearchFilterOnlyAppliesToAccounts() {
+    public void accountSearchFilterOnlyAppliesToAccounts() {
         LdapConfiguration config = newConfiguration();
         config.setAccountSearchFilter("(cn=foobarbaz)");
         ConnectorFacade facade = newFacade(config);
@@ -367,7 +367,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testMissingParenthesesAddedToAccountSearchFilter() {
+    public void missingParenthesesAddedToAccountSearchFilter() {
         LdapConfiguration config = newConfiguration();
         config.setAccountSearchFilter("uid=" + BUGS_BUNNY_UID); // No parentheses enclosing the filter.
         ConnectorFacade facade = newFacade(config);
@@ -377,7 +377,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testGroupSearchFilter() {
+    public void groupSearchFilter() {
         ConnectorFacade facade = newFacade();
         // Find an organization to pass in OP_CONTAINER.
         ObjectClass oclass = new ObjectClass("organization");
@@ -402,7 +402,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testGroupsSearchFilterOnlyAppliesToGroups() {
+    public void groupsSearchFilterOnlyAppliesToGroups() {
         LdapConfiguration config = newConfiguration();
         config.setGroupSearchFilter("(cn=foobarbaz)");
         ConnectorFacade facade = newFacade(config);
@@ -412,7 +412,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testMissingParenthesesAddedToGroupSearchFilter() {
+    public void missingParenthesesAddedToGroupSearchFilter() {
         LdapConfiguration config = newConfiguration();
         config.setGroupSearchFilter("cn=" + UNIQUE_BUGS_AND_FRIENDS_CN); // No parentheses enclosing the filter.
         ConnectorFacade facade = newFacade(config);
@@ -422,7 +422,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testMultipleBaseDNs() {
+    public void multipleBaseDNs() {
         ConnectorFacade facade = newFacade();
 
         // This should find accounts from both base DNs.
@@ -433,7 +433,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testUidAttributeCn() {
+    public void uidAttributeCn() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("cn"));
         config.setUidAttribute("cn");
@@ -445,7 +445,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testUidAttributeEntryDN() {
+    public void uidAttributeEntryDN() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
@@ -457,7 +457,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testSearchArbitraryObjectClass() {
+    public void searchArbitraryObjectClass() {
         ConnectorFacade facade = newFacade();
 
         // Simplest: try w/o filter.
@@ -480,7 +480,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCannotReturnPasswordFromSearch() {
+    public void cannotReturnPasswordFromSearch() {
         ConnectorFacade facade = newFacade();
         ConnectorObject bunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN),
                 OperationalAttributes.PASSWORD_NAME);
@@ -490,7 +490,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testReturnPasswordFromSearch() {
+    public void returnPasswordFromSearch() {
         LdapConfiguration config = newConfiguration();
         config.setRetrievePasswordsWithSearch(true);
         ConnectorFacade facade = newFacade(config);

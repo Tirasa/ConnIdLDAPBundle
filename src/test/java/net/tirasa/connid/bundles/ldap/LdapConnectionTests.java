@@ -46,22 +46,21 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testSSL() throws NamingException {
+    public void sSL() throws NamingException {
         BlindTrustProvider.register();
         LdapConfiguration config = newConfiguration();
         config.setSsl(true);
         config.setPort(SSL_PORT);
-        testConnection(config);
+        checkConnection(config);
     }
 
     @Test
-    public void testFailover()
-            throws NamingException {
+    public void failover() throws NamingException {
         LdapConfiguration config = newConfiguration();
         config.setHost("foobarbaz");
         config.setPort(65535);
         try {
-            testConnection(config);
+            checkConnection(config);
         } catch (ConnectorException e) {
             // OK.
         } catch (NamingException e) {
@@ -73,35 +72,31 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
         config.setHost("foobarbaz");
         config.setPort(65535);
         config.setFailover("ldap://localhost:" + PORT);
-        testConnection(config);
+        checkConnection(config);
     }
 
-    private void testConnection(LdapConfiguration config)
-            throws NamingException {
+    private void checkConnection(LdapConfiguration config) throws NamingException {
         LdapConnection conn = new LdapConnection(config);
         Attributes attrs = conn.getInitialContext().getAttributes(BUGS_BUNNY_DN);
         assertEquals(BUGS_BUNNY_CN, LdapUtil.getStringAttrValue(attrs, "cn"));
     }
 
     @Test
-    public void testDefaultAuthenticationMethodIsInferred()
-            throws NamingException {
+    public void defaultAuthenticationMethodIsInferred() throws NamingException {
         LdapConfiguration config = newConfiguration();
         config.setPrincipal(null);
         LdapConnection conn = new LdapConnection(config);
-        assertEquals("none", conn.getInitialContext().getEnvironment().get(
-                Context.SECURITY_AUTHENTICATION));
+        assertEquals("none", conn.getInitialContext().getEnvironment().get(Context.SECURITY_AUTHENTICATION));
 
         config = newConfiguration();
         config.setPrincipal(ADMIN_DN);
         config.setCredentials(ADMIN_PASSWORD);
         conn = new LdapConnection(config);
-        assertEquals("simple", conn.getInitialContext().getEnvironment().get(
-                Context.SECURITY_AUTHENTICATION));
+        assertEquals("simple", conn.getInitialContext().getEnvironment().get(Context.SECURITY_AUTHENTICATION));
     }
 
     @Test
-    public void testTest() {
+    public void test() {
         LdapConfiguration config = newConfiguration();
         config.setPort(4242);
         LdapConnection conn = new LdapConnection(config);
@@ -148,7 +143,7 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCheckAlive() throws Exception {
+    public void checkAlive() throws Exception {
         // Set readSchema to true since we are calling createNativeSchema() below, and we
         // want to get the server schema, not the static one.
         LdapConfiguration config = newConfiguration(true);
@@ -168,14 +163,14 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testSupportedControls() {
+    public void supportedControls() {
         LdapConnection conn = new LdapConnection(newConfiguration());
         assertTrue(conn.supportsControl(PagedResultsControl.OID));
         assertTrue(conn.supportsControl(VirtualListViewControl.OID));
     }
 
     @Test
-    public void testServerType() {
+    public void serverType() {
         LdapConnection conn = new LdapConnection(newConfiguration());
         assertEquals(ServerType.OPENDJ, conn.getServerType());
     }

@@ -48,7 +48,7 @@ public class LdapAuthenticateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAuthenticateWithDefaultConfiguration() {
+    public void authenticateWithDefaultConfiguration() {
         ConnectorFacade facade = newFacade();
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
         Uid uid = facade.authenticate(ObjectClass.ACCOUNT, BUGS_BUNNY_CN,
@@ -66,7 +66,7 @@ public class LdapAuthenticateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAuthenticateWithCustomAttributes() {
+    public void authenticateWithCustomAttributes() {
         ConnectorFacade facade = newFacade();
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
@@ -111,7 +111,7 @@ public class LdapAuthenticateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAuthenticateWithEntryDN() {
+    public void authenticateWithEntryDN() {
         LdapConfiguration config = newConfiguration();
         config.setAccountUserNameAttributes("entryDN");
         ConnectorFacade facade = newFacade(config);
@@ -125,7 +125,7 @@ public class LdapAuthenticateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAuthenticateInvalidPassword() {
+    public void authenticateInvalidPassword() {
         ConnectorFacade facade = newFacade();
         assertThrows(
                 ConnectorSecurityException.class,
@@ -134,7 +134,7 @@ public class LdapAuthenticateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAuthenticateUnknownAccount() {
+    public void authenticateUnknownAccount() {
         ConnectorFacade facade = newFacade();
         try {
             facade.authenticate(ObjectClass.ACCOUNT,
@@ -152,7 +152,7 @@ public class LdapAuthenticateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAuthenticateExpiredPassword() {
+    public void authenticateExpiredPassword() {
         LdapConfiguration config = newConfiguration();
         config.setRespectResourcePasswordPolicyChangeAfterReset(false);
         ConnectorFacade facade = newFacade(config);

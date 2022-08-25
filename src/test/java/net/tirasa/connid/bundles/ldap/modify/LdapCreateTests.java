@@ -59,7 +59,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateAccount() {
+    public void createAccount() {
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
@@ -68,7 +68,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateAccountWhenReadingSchema() {
+    public void createAccountWhenReadingSchema() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.isReadSchema());
         config.setReadSchema(true);
@@ -80,7 +80,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateAccountWhenUidNotDefault() {
+    public void createAccountWhenUidNotDefault() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
@@ -111,7 +111,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateGroup() {
+    public void createGroup() {
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
@@ -120,7 +120,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateGroupWhenReadingSchema() {
+    public void createGroupWhenReadingSchema() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.isReadSchema());
         config.setReadSchema(true);
@@ -132,7 +132,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateGroupWhenUidNotDefault() {
+    public void createGroupWhenUidNotDefault() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
@@ -155,7 +155,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateArbitrary() {
+    public void createArbitrary() {
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
@@ -164,7 +164,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateArbitraryWhenReadingSchema() {
+    public void createArbitraryWhenReadingSchema() {
         LdapConfiguration config = newConfiguration(true);
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
@@ -173,7 +173,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateArbitraryWhenUidNotDefault() {
+    public void createArbitraryWhenUidNotDefault() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
@@ -198,7 +198,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateBinaryAttributes() throws IOException {
+    public void createBinaryAttributes() throws IOException {
         ConnectorFacade facade = newFacade();
 
         Set<Attribute> attributes = new HashSet<>();
@@ -223,7 +223,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreatePassword() {
+    public void createPassword() {
         ConnectorFacade facade = newFacade();
 
         Set<Attribute> attributes = new HashSet<>();
@@ -240,8 +240,8 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateDisabled() {
-        final LdapConfiguration config = new LdapConfiguration();
+    public void createDisabled() {
+        LdapConfiguration config = new LdapConfiguration();
 
         config.setHost("localhost");
         config.setPort(PORT);

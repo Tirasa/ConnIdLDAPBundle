@@ -47,19 +47,16 @@ import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Line;
 import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.NameValue;
 import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Separator;
 import org.identityconnectors.common.logging.Log;
-import org.junit.jupiter.api.Test;
 
 /**
  * A simple, and in no way complete, way to modify an LDAP server
  * based on an LDIF file.
  */
-public class LdapModifyForTests {
+public class LdapModifyUtils {
 
-    private static final Log LOG = Log.getLog(LdapModifyForTests.class);
+    private static final Log LOG = Log.getLog(LdapModifyUtils.class);
 
-    public static void modify(LdapConnection conn, String ldif)
-            throws NamingException {
-
+    public static void modify(LdapConnection conn, String ldif) throws NamingException {
         LdifParser parser = new LdifParser(ldif);
         Iterator<Line> lines = parser.iterator();
 
@@ -150,6 +147,7 @@ public class LdapModifyForTests {
     private static void performChange(LdapConnection conn, String dn, String changeType,
             Map<String, List<String>> added, Map<String, List<String>> deleted, String newRdn, String deleteOldRdn)
             throws NamingException {
+
         if ("add".equalsIgnoreCase(changeType)) {
             BasicAttributes attrs = new BasicAttributes();
             for (Entry<String, List<String>> entry : added.entrySet()) {
@@ -191,8 +189,8 @@ public class LdapModifyForTests {
         }
     }
 
-    private static void addModificationItems(int operation, Map<String, List<String>> map,
-            List<ModificationItem> toList) {
+    private static void addModificationItems(
+            int operation, Map<String, List<String>> map, List<ModificationItem> toList) {
 
         for (Entry<String, List<String>> entry : map.entrySet()) {
             Attribute attr = new BasicAttribute(entry.getKey());
@@ -201,11 +199,5 @@ public class LdapModifyForTests {
             }
             toList.add(new ModificationItem(operation, attr));
         }
-    }
-
-    @Test
-    public void dummy() {
-        // This is here because the class needs to end in "Tests" for it not to be
-        // included in the jar, but then JUnit complains about no runnable methods.
     }
 }

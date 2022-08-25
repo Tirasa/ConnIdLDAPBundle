@@ -67,7 +67,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAccountOperationalAttributes() {
+    public void accountOperationalAttributes() {
         ConnectorFacade facade = newFacade();
         ObjectClassInfo oci = facade.schema().findObjectClassInfo(ObjectClass.ACCOUNT_NAME);
 
@@ -76,7 +76,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAccountAttributes() {
+    public void accountAttributes() {
         ConnectorFacade facade = newFacade();
         ConnectorObject user0 = searchByAttribute(
                 facade, ObjectClass.ACCOUNT, new Name(USER_0_DN), "uid", "cn", "givenName", "sn");
@@ -89,7 +89,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testGroupAttributes() {
+    public void groupAttributes() {
         ConnectorFacade facade = newFacade();
         ConnectorObject object = searchByAttribute(
                 facade, ObjectClass.GROUP, new Name(UNIQUE_BUGS_AND_FRIENDS_DN), "cn", "uniqueMember");
@@ -100,7 +100,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testOrganizationAttributes() {
+    public void organizationAttributes() {
         ConnectorFacade facade = newFacade();
         ConnectorObject object = searchByAttribute(
                 facade, new ObjectClass("organization"), new Name(ACME_DN), "dn", "o", "objectClass");
@@ -111,7 +111,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testInetOrgPersonAttributes() {
+    public void inetOrgPersonAttributes() {
         // The LDAP edit group form does exactly this operation.
 
         LdapConfiguration config = newConfiguration();
@@ -128,7 +128,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateGroupOfUniqueNamesWithoutMembers() {
+    public void createGroupOfUniqueNamesWithoutMembers() {
         LdapConfiguration config = newConfiguration();
         ConnectorFacade facade = newFacade(config);
 
@@ -147,7 +147,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testRetriveLdapGroups() {
+    public void retriveLdapGroups() {
         ConnectorFacade facade = newFacade();
         ConnectorObject object = searchByAttribute(
                 facade, ObjectClass.ACCOUNT, new Name(SYLVESTER_DN), LdapConstants.LDAP_GROUPS_NAME);
@@ -166,7 +166,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testRetrivePosixGroups() {
+    public void retrivePosixGroups() {
         ConnectorFacade facade = newFacade();
         ConnectorObject object = searchByAttribute(
                 facade, ObjectClass.ACCOUNT, new Name(SYLVESTER_DN), LdapConstants.POSIX_GROUPS_NAME);
@@ -176,7 +176,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateWithUniqueLdapGroups() {
+    public void createWithUniqueLdapGroups() {
         ConnectorFacade facade = newFacade();
 
         Attribute groupsAttr = AttributeBuilder.build(
@@ -186,7 +186,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateWithLdapGroups() {
+    public void createWithLdapGroups() {
         LdapConfiguration config = newConfiguration();
         config.setGroupMemberAttribute("member"); // For groupOfNames.
         ConnectorFacade facade = newFacade(config);
@@ -198,7 +198,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCreateWithPosixGroups() {
+    public void createWithPosixGroups() {
         ConnectorFacade facade = newFacade();
 
         Attribute groupsAttr = AttributeBuilder.build(
@@ -221,7 +221,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAddLdapGroups() {
+    public void addLdapGroups() {
         ConnectorFacade facade = newFacade();
 
         Attribute groupsAttr = AttributeBuilder.build(LdapConstants.LDAP_GROUPS_NAME, UNIQUE_EMPTY_GROUP_DN);
@@ -229,7 +229,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testAddPosixGroups() {
+    public void addPosixGroups() {
         ConnectorFacade facade = newFacade();
 
         Attribute groupsAttr = AttributeBuilder.build(LdapConstants.POSIX_GROUPS_NAME, POSIX_EMPTY_GROUP_DN);
@@ -250,7 +250,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testUpdateUniqueLdapGroups() {
+    public void updateUniqueLdapGroups() {
         ConnectorFacade facade = newFacade();
 
         Attribute groupsAttr = AttributeBuilder.build(LdapConstants.LDAP_GROUPS_NAME, UNIQUE_EXTERNAL_PEERS_DN);
@@ -258,7 +258,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testUpdatePosixGroups() {
+    public void updatePosixGroups() {
         ConnectorFacade facade = newFacade();
 
         Attribute groupsAttr = AttributeBuilder.build(LdapConstants.LDAP_GROUPS_NAME, UNIQUE_EXTERNAL_PEERS_DN);
@@ -275,7 +275,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testRemoveUniqueLdapGroups() {
+    public void removeUniqueLdapGroups() {
         ConnectorFacade facade = newFacade();
 
         Attribute groupsAttr = AttributeBuilder.build(LdapConstants.LDAP_GROUPS_NAME, UNIQUE_EXTERNAL_PEERS_DN);
@@ -283,7 +283,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testRemovePosixGroups() {
+    public void removePosixGroups() {
         ConnectorFacade facade = newFacade();
 
         Attribute groupsAttr = AttributeBuilder.build(LdapConstants.POSIX_GROUPS_NAME, POSIX_EXTERNAL_PEERS_DN);
@@ -303,7 +303,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCannotRemoveUidWhenInPosixGroups() {
+    public void cannotRemoveUidWhenInPosixGroups() {
         ConnectorFacade facade = newFacade();
 
         ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
@@ -315,7 +315,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testCannotUpdateUidToNoneWhenInPosixGroups() {
+    public void cannotUpdateUidToNoneWhenInPosixGroups() {
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(ACME_DN, SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
@@ -328,7 +328,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testRenameMaintainsGroupMemberships() {
+    public void renameMaintainsGroupMemberships() {
         LdapConfiguration config = newConfiguration();
         config.setMaintainLdapGroupMembership(true);
         config.setMaintainPosixGroupMembership(true);
@@ -366,7 +366,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testRenameAndUpdateGroupMemberships() {
+    public void renameAndUpdateGroupMemberships() {
         LdapConfiguration config = newConfiguration();
         config.setMaintainLdapGroupMembership(true);
         config.setMaintainPosixGroupMembership(true);
@@ -408,7 +408,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testRenameDoesNotMaintainGroupMembershipsUnlessConfigured() {
+    public void renameDoesNotMaintainGroupMembershipsUnlessConfigured() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.isMaintainLdapGroupMembership());
         assertFalse(config.isMaintainPosixGroupMembership());
@@ -447,7 +447,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testDeleteMaintainsGroupMemberships() {
+    public void deleteMaintainsGroupMemberships() {
         LdapConfiguration config = newConfiguration();
         config.setMaintainLdapGroupMembership(true);
         config.setMaintainPosixGroupMembership(true);
@@ -476,7 +476,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testDeleteDoesNotMaintainGroupMembershipsUnlessConfigured() {
+    public void deleteDoesNotMaintainGroupMembershipsUnlessConfigured() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.isMaintainLdapGroupMembership());
         assertFalse(config.isMaintainPosixGroupMembership());
@@ -507,7 +507,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testPasswordHashing() throws Exception {
+    public void passwordHashing() throws Exception {
         LdapConfiguration config = newConfiguration();
         config.setPasswordHashAlgorithm("SHA");
         ConnectorFacade facade = newFacade(config);
@@ -516,7 +516,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testSaltedPasswordHashing() throws Exception {
+    public void saltedPasswordHashing() throws Exception {
         LdapConfiguration config = newConfiguration();
         config.setPasswordHashAlgorithm("SSHA");
         ConnectorFacade facade = newFacade(config);
@@ -557,7 +557,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testSearchAnyObjectClass() {
+    public void searchAnyObjectClass() {
         ConnectorFacade facade = newFacade();
 
         Filter filter = FilterBuilder.equalTo(AttributeBuilder.build(Name.NAME, BUGS_BUNNY_DN));
@@ -573,7 +573,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     }
 
     @Test
-    public void testSearchFilter() {
+    public void searchFilter() {
         ConnectorFacade facade = newFacade();
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setOption(LdapConstants.SEARCH_FILTER_NAME, "(uid=" + BUGS_BUNNY_UID + ")");
