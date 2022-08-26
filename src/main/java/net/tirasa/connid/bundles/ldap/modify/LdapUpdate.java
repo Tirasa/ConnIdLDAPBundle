@@ -26,6 +26,7 @@ package net.tirasa.connid.bundles.ldap.modify;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -42,12 +43,13 @@ import net.tirasa.connid.bundles.ldap.commons.LdapModifyOperation;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.StatusManagement;
 import net.tirasa.connid.bundles.ldap.schema.GuardedPasswordAttribute;
-import net.tirasa.connid.bundles.ldap.schema.GuardedPasswordAttribute.Accessor;
 import net.tirasa.connid.bundles.ldap.search.LdapSearches;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.Pair;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
+import org.identityconnectors.framework.common.objects.AttributeDeltaUtil;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -60,11 +62,7 @@ public class LdapUpdate extends LdapModifyOperation {
 
     private final Uid uid;
 
-    public LdapUpdate(
-            final LdapConnection conn,
-            final ObjectClass oclass,
-            final Uid uid) {
-
+    public LdapUpdate(final LdapConnection conn, final ObjectClass oclass, final Uid uid) {
         super(conn);
         this.oclass = oclass;
         this.uid = uid;
@@ -80,7 +78,7 @@ public class LdapUpdate extends LdapModifyOperation {
         Name newName = AttributeUtil.getNameFromAttributes(attrs);
 
         // serach for status attribute
-        final Attribute status = AttributeUtil.find(OperationalAttributes.ENABLE_NAME, attrs);
+        Attribute status = AttributeUtil.find(OperationalAttributes.ENABLE_NAME, attrs);
 
         String newEntryDN = null;
 
@@ -91,34 +89,30 @@ public class LdapUpdate extends LdapModifyOperation {
             newEntryDN = conn.getSchemaMapping().getEntryDN(oclass, newName);
         }
 
-        final List<String> ldapGroups = getStringListValue(updateAttrs, LdapConstants.LDAP_GROUPS_NAME);
+        List<String> ldapGroups = getStringListValue(updateAttrs, LdapConstants.LDAP_GROUPS_NAME);
 
-        final List<String> posixGroups = getStringListValue(updateAttrs, LdapConstants.POSIX_GROUPS_NAME);
+        List<String> posixGroups = getStringListValue(updateAttrs, LdapConstants.POSIX_GROUPS_NAME);
 
-        final Pair<Attributes, GuardedPasswordAttribute> attrToModify = getAttributesToModify(updateAttrs);
+        Pair<Attributes, GuardedPasswordAttribute> attrToModify = getAttributesToModify(updateAttrs);
 
-        final Attributes ldapAttrs = attrToModify.first;
+        Attributes ldapAttrs = attrToModify.first;
 
         // If we are removing all POSIX ref attributes, check they are not used
         // in POSIX groups. Note it is OK to update the POSIX ref attribute instead of
         // removing them -- we will update the groups to refer to the new attributes.
-        final Set<String> newPosixRefAttrs = getAttributeValues(
+        Set<String> newPosixRefAttrs = getAttributeValues(
                 GroupHelper.getPosixRefAttribute(),
-                LdapUtil.quietCreateLdapName(newEntryDN != null ? newEntryDN : entryDN),
+                LdapUtil.quietCreateLdapName(newEntryDN == null ? entryDN : newEntryDN),
                 ldapAttrs);
 
         if (newPosixRefAttrs != null && newPosixRefAttrs.isEmpty()) {
-            checkRemovedPosixRefAttrs(posixMember.getPosixRefAttributes(),
-                    posixMember.getPosixGroupMemberships());
+            checkRemovedPosixRefAttrs(posixMember.getPosixRefAttributes(), posixMember.getPosixGroupMemberships());
         }
 
         if (status != null && status.getValue() != null && !status.getValue().isEmpty()) {
             StatusManagement.getInstance(
                     conn.getConfiguration().getStatusManagementClass()).
-                    setStatus((Boolean) status.getValue().get(0),
-                            ldapAttrs,
-                            posixGroups,
-                            ldapGroups);
+                    setStatus((Boolean) status.getValue().get(0), ldapAttrs, posixGroups, ldapGroups);
         }
 
         // Update the attributes.
@@ -128,8 +122,10 @@ public class LdapUpdate extends LdapModifyOperation {
         String oldEntryDN = null;
 
         if (newName != null) {
-            if (newPosixRefAttrs != null && conn.getConfiguration().
-                    isMaintainPosixGroupMembership() || posixGroups != null) {
+            if (newPosixRefAttrs != null
+                    && conn.getConfiguration().isMaintainPosixGroupMembership()
+                    || posixGroups != null) {
+
                 posixMember.getPosixRefAttributes();
             }
             oldEntryDN = entryDN;
@@ -137,7 +133,7 @@ public class LdapUpdate extends LdapModifyOperation {
         }
 
         // Update the LDAP groups.
-        final Modification<GroupMembership> ldapGroupMod = new Modification<GroupMembership>();
+        Modification<GroupMembership> ldapGroupMod = new Modification<GroupMembership>();
 
         if (oldEntryDN != null && conn.getConfiguration().isMaintainLdapGroupMembership()) {
             Set<GroupMembership> members = groupHelper.getLdapGroupMemberships(oldEntryDN);
@@ -148,8 +144,7 @@ public class LdapUpdate extends LdapModifyOperation {
         }
 
         if (ldapGroups != null) {
-            Set<GroupMembership> members = groupHelper.getLdapGroupMemberships(entryDN);
-            ldapGroupMod.removeAll(members);
+            ldapGroupMod.removeAll(groupHelper.getLdapGroupMemberships(entryDN));
             ldapGroupMod.clearAdded(); // Since we will be replacing with the new groups.
             for (String ldapGroup : ldapGroups) {
                 ldapGroupMod.add(new GroupMembership(entryDN, ldapGroup));
@@ -159,7 +154,7 @@ public class LdapUpdate extends LdapModifyOperation {
         groupHelper.modifyLdapGroupMemberships(ldapGroupMod);
 
         // Update the POSIX groups.
-        final Modification<GroupMembership> posixGroupMod = new Modification<GroupMembership>();
+        Modification<GroupMembership> posixGroupMod = new Modification<GroupMembership>();
 
         if (newPosixRefAttrs != null && conn.getConfiguration().isMaintainPosixGroupMembership()) {
             Set<String> removedPosixRefAttrs = new HashSet<String>(posixMember.getPosixRefAttributes());
@@ -175,8 +170,7 @@ public class LdapUpdate extends LdapModifyOperation {
         }
 
         if (posixGroups != null) {
-            Set<GroupMembership> members = posixMember.getPosixGroupMemberships();
-            posixGroupMod.removeAll(members);
+            posixGroupMod.removeAll(posixMember.getPosixGroupMemberships());
             posixGroupMod.clearAdded(); // Since we will be replacing with the new groups.
             if (!posixGroups.isEmpty()) {
                 String firstPosixRefAttr = getFirstPosixRefAttr(entryDN, newPosixRefAttrs);
@@ -189,6 +183,112 @@ public class LdapUpdate extends LdapModifyOperation {
         groupHelper.modifyPosixGroupMemberships(posixGroupMod);
 
         return conn.getSchemaMapping().createUid(oclass, entryDN);
+    }
+
+    public Set<AttributeDelta> updateDelta(final Set<AttributeDelta> modifications) {
+        String entryDN = LdapSearches.findEntryDN(conn, oclass, uid);
+        PosixGroupMember posixMember = new PosixGroupMember(entryDN);
+
+        // 1. modify attributes
+        List<ModificationItem> modItems = new ArrayList<>();
+        for (AttributeDelta attrDelta : modifications) {
+            if (attrDelta.is(Uid.NAME) || attrDelta.is(Name.NAME)) {
+                throw new IllegalArgumentException("Unable to modify an object's name");
+            } else if (LdapConstants.isLdapGroups(attrDelta.getName())) {
+                // Handled elsewhere.
+            } else if (LdapConstants.isPosixGroups(attrDelta.getName())) {
+                // Handled elsewhere.
+            } else if (attrDelta.is(OperationalAttributes.PASSWORD_NAME)) {
+                conn.getSchemaMapping().encodePassword(oclass, attrDelta).
+                        forEach((ldapModifyOp, encoded) -> encoded.access(passwordAttr -> {
+
+                    hashPassword(passwordAttr, entryDN);
+                    modItems.add(new ModificationItem(ldapModifyOp, passwordAttr));
+                    modifyAttributes(entryDN, modItems);
+                }));
+            } else {
+                modItems.addAll(conn.getSchemaMapping().encodeAttribute(oclass, attrDelta));
+            }
+        }
+
+        modifyAttributes(entryDN, modItems);
+
+        // 2. modify ldap group memberships
+        Optional.ofNullable(AttributeDeltaUtil.find(LdapConstants.LDAP_GROUPS_NAME, modifications)).
+                ifPresent(ldapGroups -> {
+                    Modification<GroupMembership> ldapGroupMod = new Modification<>();
+
+                    if (CollectionUtil.isEmpty(ldapGroups.getValuesToReplace())) {
+                        if (!CollectionUtil.isEmpty(ldapGroups.getValuesToAdd())) {
+                            for (String ldapGroup : LdapUtil.checkedListByFilter(
+                                    CollectionUtil.nullAsEmpty(ldapGroups.getValuesToAdd()), String.class)) {
+
+                                ldapGroupMod.add(new GroupMembership(entryDN, ldapGroup));
+                            }
+                        }
+
+                        if (!CollectionUtil.isEmpty(ldapGroups.getValuesToRemove())) {
+                            for (String ldapGroup : LdapUtil.checkedListByFilter(
+                                    CollectionUtil.nullAsEmpty(ldapGroups.getValuesToRemove()), String.class)) {
+
+                                ldapGroupMod.remove(new GroupMembership(entryDN, ldapGroup));
+                            }
+                        }
+                    } else {
+                        ldapGroupMod.removeAll(groupHelper.getLdapGroupMemberships(entryDN));
+                        ldapGroupMod.clearAdded(); // Since we will be replacing with the new groups.
+                        for (String ldapGroup : LdapUtil.checkedListByFilter(
+                                CollectionUtil.nullAsEmpty(ldapGroups.getValuesToReplace()), String.class)) {
+
+                            ldapGroupMod.add(new GroupMembership(entryDN, ldapGroup));
+                        }
+                    }
+
+                    if (!ldapGroupMod.isEmpty()) {
+                        groupHelper.modifyLdapGroupMemberships(ldapGroupMod);
+                    }
+                });
+
+        // 3. modify posix group memberships
+        Optional.ofNullable(AttributeDeltaUtil.find(LdapConstants.POSIX_GROUPS_NAME, modifications)).
+                ifPresent(posixGroups -> {
+                    Set<String> posixRefAttrs = posixMember.getPosixRefAttributes();
+                    String firstPosixRefAttr = getFirstPosixRefAttr(entryDN, posixRefAttrs);
+
+                    Modification<GroupMembership> posixGroupMod = new Modification<>();
+
+                    if (CollectionUtil.isEmpty(posixGroups.getValuesToReplace())) {
+                        if (!CollectionUtil.isEmpty(posixGroups.getValuesToAdd())) {
+                            for (String posixGroup : LdapUtil.checkedListByFilter(
+                                    CollectionUtil.nullAsEmpty(posixGroups.getValuesToAdd()), String.class)) {
+
+                                posixGroupMod.add(new GroupMembership(firstPosixRefAttr, posixGroup));
+                            }
+                        }
+
+                        if (!CollectionUtil.isEmpty(posixGroups.getValuesToRemove())) {
+                            for (String posixGroup : LdapUtil.checkedListByFilter(
+                                    CollectionUtil.nullAsEmpty(posixGroups.getValuesToRemove()), String.class)) {
+
+                                posixGroupMod.remove(new GroupMembership(firstPosixRefAttr, posixGroup));
+                            }
+                        }
+                    } else {
+                        posixGroupMod.removeAll(posixMember.getPosixGroupMemberships());
+                        posixGroupMod.clearAdded(); // Since we will be replacing with the new groups.
+                        for (String posixGroup : LdapUtil.checkedListByFilter(
+                                CollectionUtil.nullAsEmpty(posixGroups.getValuesToReplace()), String.class)) {
+
+                            posixGroupMod.add(new GroupMembership(firstPosixRefAttr, posixGroup));
+                        }
+                    }
+
+                    if (!posixGroupMod.isEmpty()) {
+                        groupHelper.modifyPosixGroupMemberships(posixGroupMod);
+                    }
+                });
+
+        return modifications;
     }
 
     public Uid addAttributeValues(final Set<Attribute> attrs) {
@@ -288,28 +388,26 @@ public class LdapUpdate extends LdapModifyOperation {
                 }
             }
         }
-        return new Pair<Attributes, GuardedPasswordAttribute>(ldapAttrs, pwdAttr);
+        return Pair.of(ldapAttrs, pwdAttr);
     }
 
-    private void modifyAttributes(final String entryDN, Pair<Attributes, GuardedPasswordAttribute> attrs,
+    private void modifyAttributes(
+            final String entryDN,
+            final Pair<Attributes, GuardedPasswordAttribute> attrs,
             final int ldapModifyOp) {
 
-        final List<ModificationItem> modItems = new ArrayList<ModificationItem>(attrs.first.size());
+        List<ModificationItem> modItems = new ArrayList<>(attrs.first.size());
         NamingEnumeration<? extends javax.naming.directory.Attribute> attrEnum = attrs.first.getAll();
         while (attrEnum.hasMoreElements()) {
             modItems.add(new ModificationItem(ldapModifyOp, attrEnum.nextElement()));
         }
 
         if (attrs.second != null) {
-            attrs.second.access(new Accessor() {
-
-                @Override
-                public void access(javax.naming.directory.Attribute passwordAttr) {
-                    // Do not add the password to the result Attributes because it is a guarded value.
-                    hashPassword(passwordAttr, entryDN);
-                    modItems.add(new ModificationItem(ldapModifyOp, passwordAttr));
-                    modifyAttributes(entryDN, modItems);
-                }
+            attrs.second.access(passwordAttr -> {
+                // Do not add the password to the result Attributes because it is a guarded value.
+                hashPassword(passwordAttr, entryDN);
+                modItems.add(new ModificationItem(ldapModifyOp, passwordAttr));
+                modifyAttributes(entryDN, modItems);
             });
         } else {
             modifyAttributes(entryDN, modItems);
@@ -318,16 +416,15 @@ public class LdapUpdate extends LdapModifyOperation {
 
     private void modifyAttributes(final String entryDN, final List<ModificationItem> modItems) {
         try {
-            conn.getInitialContext().modifyAttributes(entryDN, modItems.toArray(new ModificationItem[modItems.size()]));
+            conn.getInitialContext().modifyAttributes(entryDN, modItems.toArray(new ModificationItem[0]));
         } catch (NamingException e) {
             throw new ConnectorException(e);
         }
     }
 
-    private List<String> getStringListValue(final Set<Attribute> attrs, final String attrName) {
-        Attribute attr = AttributeUtil.find(attrName, attrs);
-        return attr == null
-                ? null
-                : LdapUtil.checkedListByFilter(CollectionUtil.nullAsEmpty(attr.getValue()), String.class);
+    private static List<String> getStringListValue(final Set<Attribute> attrs, final String attrName) {
+        return Optional.ofNullable(AttributeUtil.find(attrName, attrs)).
+                map(attr -> LdapUtil.checkedListByFilter(CollectionUtil.nullAsEmpty(attr.getValue()), String.class)).
+                orElse(null);
     }
 }

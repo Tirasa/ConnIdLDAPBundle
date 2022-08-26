@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -33,6 +33,7 @@ import net.tirasa.connid.bundles.ldap.search.LdapSearch;
 import net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
@@ -53,12 +54,14 @@ import org.identityconnectors.framework.spi.operations.SearchOp;
 import org.identityconnectors.framework.spi.operations.SyncOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
+import org.identityconnectors.framework.spi.operations.UpdateDeltaOp;
+import org.identityconnectors.framework.spi.operations.UpdateOp;
 
 @ConnectorClass(configurationClass = LdapConfiguration.class, displayNameKey = "LdapConnector")
 public class LdapConnector implements
         TestOp, PoolableConnector, SchemaOp, SearchOp<LdapFilter>,
-        AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp,
-        UpdateAttributeValuesOp, SyncOp {
+        AuthenticateOp, ResolveUsernameOp, CreateOp, UpdateOp, UpdateDeltaOp, UpdateAttributeValuesOp,
+        DeleteOp, SyncOp {
 
     /**
      * The configuration for this connector instance.
@@ -159,6 +162,15 @@ public class LdapConnector implements
             final Set<Attribute> replaceAttributes,
             final OperationOptions options) {
         return new LdapUpdate(conn, oclass, uid).update(replaceAttributes);
+    }
+
+    @Override
+    public Set<AttributeDelta> updateDelta(
+            final ObjectClass oclass,
+            final Uid uid,
+            final Set<AttributeDelta> modifications,
+            final OperationOptions options) {
+        return new LdapUpdate(conn, oclass, uid).updateDelta(modifications);
     }
 
     @Override

@@ -31,7 +31,9 @@ import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveMap
 import static org.identityconnectors.common.CollectionUtil.newCaseInsensitiveSet;
 import static org.identityconnectors.common.CollectionUtil.newReadOnlyList;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -41,16 +43,20 @@ import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.ModificationItem;
 import javax.naming.ldap.LdapName;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.commons.LdapEntry;
 import net.tirasa.connid.bundles.ldap.commons.ObjectClassMappingConfig;
+import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.Name;
@@ -347,8 +353,7 @@ public class LdapSchemaMapping {
 
     public javax.naming.directory.Attribute encodeAttribute(ObjectClass oclass, Attribute attr) {
         if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-            throw new IllegalArgumentException(
-                    "This method should not be used for password attributes");
+            throw new IllegalArgumentException("This method should not be used for password attributes");
         }
 
         String ldapAttrName = getLdapAttribute(oclass, attr.getName(), true);
@@ -356,7 +361,7 @@ public class LdapSchemaMapping {
             return null;
         }
 
-        final BasicAttribute ldapAttr = new BasicAttribute(ldapAttrName);
+        BasicAttribute ldapAttr = new BasicAttribute(ldapAttrName);
         List<Object> value = attr.getValue();
         if (value != null) {
             for (Object each : value) {
@@ -364,6 +369,45 @@ public class LdapSchemaMapping {
             }
         }
         return ldapAttr;
+    }
+
+    public List<ModificationItem> encodeAttribute(ObjectClass oclass, AttributeDelta attr) {
+        if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
+            throw new IllegalArgumentException("This method should not be used for password attributes");
+        }
+
+        String ldapAttrName = getLdapAttribute(oclass, attr.getName(), true);
+        if (ldapAttrName == null) {
+            return Collections.emptyList();
+        }
+
+        List<ModificationItem> result = new ArrayList<>();
+
+        if (CollectionUtil.isEmpty(attr.getValuesToReplace())) {
+            if (!CollectionUtil.isEmpty(attr.getValuesToAdd())) {
+                BasicAttribute ldapAttr = new BasicAttribute(ldapAttrName);
+                for (Object value : attr.getValuesToAdd()) {
+                    ldapAttr.add(value);
+                }
+                result.add(new ModificationItem(DirContext.ADD_ATTRIBUTE, ldapAttr));
+            }
+
+            if (!CollectionUtil.isEmpty(attr.getValuesToRemove())) {
+                BasicAttribute ldapAttr = new BasicAttribute(ldapAttrName);
+                for (Object value : attr.getValuesToRemove()) {
+                    ldapAttr.add(value);
+                }
+                result.add(new ModificationItem(DirContext.REMOVE_ATTRIBUTE, ldapAttr));
+            }
+        } else {
+            BasicAttribute ldapAttr = new BasicAttribute(ldapAttrName);
+            for (Object value : attr.getValuesToReplace()) {
+                ldapAttr.add(value);
+            }
+            result.add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, ldapAttr));
+        }
+
+        return result;
     }
 
     public GuardedPasswordAttribute encodePassword(ObjectClass oclass, Attribute attr) {
@@ -380,12 +424,36 @@ public class LdapSchemaMapping {
         return GuardedPasswordAttribute.create(pwdAttrName);
     }
 
+    public Map<Integer, GuardedPasswordAttribute> encodePassword(ObjectClass oclass, AttributeDelta attr) {
+        assert attr.is(OperationalAttributes.PASSWORD_NAME);
+
+        String pwdAttrName = conn.getConfiguration().getPasswordAttribute();
+
+        Map<Integer, GuardedPasswordAttribute> result = new HashMap<>();
+
+        if (CollectionUtil.isEmpty(attr.getValuesToReplace())) {
+            if (!CollectionUtil.isEmpty(attr.getValuesToAdd())) {
+                result.put(DirContext.ADD_ATTRIBUTE,
+                        GuardedPasswordAttribute.create(pwdAttrName, (GuardedString) attr.getValuesToAdd().get(0)));
+            }
+
+            if (!CollectionUtil.isEmpty(attr.getValuesToRemove())) {
+                result.put(DirContext.REMOVE_ATTRIBUTE,
+                        GuardedPasswordAttribute.create(pwdAttrName, (GuardedString) attr.getValuesToRemove().get(0)));
+            }
+        } else {
+            result.put(DirContext.REPLACE_ATTRIBUTE,
+                    GuardedPasswordAttribute.create(pwdAttrName, (GuardedString) attr.getValuesToReplace().get(0)));
+        }
+
+        return result;
+    }
+
     public String getEntryDN(ObjectClass oclass, Name name) {
         String ldapNameAttr = getLdapNameAttribute(oclass);
         if (!isDNAttribute(ldapNameAttr)) {
             // Not yet implemented.
-            throw new UnsupportedOperationException(
-                    "Name can only be mapped to the entry DN");
+            throw new UnsupportedOperationException("Name can only be mapped to the entry DN");
         }
         return name.getNameValue();
     }
@@ -401,8 +469,7 @@ public class LdapSchemaMapping {
     }
 
     public void removeNonReadableAttributes(ObjectClass oclass, Set<String> attrNames) {
-        ObjectClassInfo oci = schema().findObjectClassInfo(oclass.
-                getObjectClassValue());
+        ObjectClassInfo oci = schema().findObjectClassInfo(oclass.getObjectClassValue());
         if (oci == null) {
             return;
         }

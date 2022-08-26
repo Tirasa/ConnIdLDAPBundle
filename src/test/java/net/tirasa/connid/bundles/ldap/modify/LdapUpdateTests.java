@@ -49,6 +49,8 @@ import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
 import net.tirasa.connid.bundles.ldap.MyStatusManagement;
 import org.identityconnectors.common.CollectionUtil;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
+import org.identityconnectors.framework.common.objects.AttributeDeltaBuilder;
 import org.identityconnectors.test.common.TestHelpers;
 import org.junit.jupiter.api.Test;
 
@@ -60,9 +62,50 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
 
     private static final String NUMBER2 = "+1 800 765 4321";
 
+    private static final String NUMBER3 = "+1 800 765 9876";
+
     @Override
     protected boolean restartServerAfterEachTest() {
         return true;
+    }
+
+    @Test
+    public void updateDelta() {
+        // 1. take user and set attribute
+        ConnectorFacade facade = newFacade();
+        ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
+
+        facade.update(
+                ObjectClass.ACCOUNT,
+                bugs.getUid(),
+                Collections.singleton(AttributeBuilder.build("telephoneNumber", NUMBER1)),
+                null);
+
+        OperationOptions options = new OperationOptionsBuilder().setAttributesToGet("telephoneNumber").build();
+        bugs = facade.getObject(ObjectClass.ACCOUNT, bugs.getUid(), options);
+        List<Object> numberAttr = bugs.getAttributeByName("telephoneNumber").getValue();
+        assertEquals(1, numberAttr.size());
+        assertEquals(NUMBER1, numberAttr.get(0));
+
+        // 2. updateDelta with values to add and to remove
+        AttributeDelta delta = AttributeDeltaBuilder.build(
+                "telephoneNumber", Collections.singletonList(NUMBER2), Collections.singletonList(NUMBER1));
+        facade.updateDelta(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(delta), null);
+
+        bugs = facade.getObject(ObjectClass.ACCOUNT, bugs.getUid(), options);
+        numberAttr = bugs.getAttributeByName("telephoneNumber").getValue();
+        assertEquals(1, numberAttr.size());
+        assertEquals(NUMBER2, numberAttr.get(0));
+
+        // 3. updateDelta with values to replace
+        delta = AttributeDeltaBuilder.build("telephoneNumber", CollectionUtil.newList(NUMBER1, NUMBER3));
+        facade.updateDelta(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(delta), null);
+
+        bugs = facade.getObject(ObjectClass.ACCOUNT, bugs.getUid(), options);
+        numberAttr = bugs.getAttributeByName("telephoneNumber").getValue();
+        assertEquals(2, numberAttr.size());
+        assertTrue(numberAttr.contains(NUMBER1));
+        assertTrue(numberAttr.contains(NUMBER3));
     }
 
     @Test
@@ -128,7 +171,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
         Name name = new Name("uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com");
-        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton((Attribute) name), null);
+        Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(name), null);
 
         // Since they are both the entry DN.
         assertEquals(name.getNameValue(), newUid.getUidValue());
@@ -219,7 +262,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
 
     @Test
     public void enableDisable() {
-        final LdapConfiguration config = new LdapConfiguration();
+        LdapConfiguration config = new LdapConfiguration();
         config.setHost("localhost");
         config.setPort(PORT);
         config.setBaseContexts(ACME_DN, BIG_COMPANY_DN);

@@ -216,8 +216,7 @@ public class GroupHelper {
 
     private void addMemberToGroup(String memberAttr, String memberValue, String groupDN) {
         BasicAttribute attr = new BasicAttribute(memberAttr, memberValue);
-        ModificationItem item = new ModificationItem(DirContext.ADD_ATTRIBUTE,
-                attr);
+        ModificationItem item = new ModificationItem(DirContext.ADD_ATTRIBUTE, attr);
         try {
             conn.getInitialContext().modifyAttributes(groupDN, new ModificationItem[] { item });
         } catch (AttributeInUseException e) {
@@ -268,10 +267,7 @@ public class GroupHelper {
                 if (!memberRef.equals(that.memberRef)) {
                     return false;
                 }
-                if (!groupDN.equals(that.groupDN)) {
-                    return false;
-                }
-                return true;
+                return groupDN.equals(that.groupDN);
             }
             return false;
         }
@@ -284,9 +280,9 @@ public class GroupHelper {
 
     public static final class Modification<T> {
 
-        private final Set<T> removed = new LinkedHashSet<T>();
+        private final Set<T> removed = new LinkedHashSet<>();
 
-        private final Set<T> added = new LinkedHashSet<T>();
+        private final Set<T> added = new LinkedHashSet<>();
 
         private Set<T> effectiveAdded;
 
@@ -311,7 +307,7 @@ public class GroupHelper {
 
         public Set<T> getAdded() {
             if (effectiveAdded == null) {
-                effectiveAdded = new LinkedHashSet<T>(added);
+                effectiveAdded = new LinkedHashSet<>(added);
                 effectiveAdded.removeAll(removed);
             }
             return effectiveAdded;
@@ -331,10 +327,14 @@ public class GroupHelper {
 
         public Set<T> getRemoved() {
             if (effectiveRemoved == null) {
-                effectiveRemoved = new LinkedHashSet<T>(removed);
+                effectiveRemoved = new LinkedHashSet<>(removed);
                 effectiveRemoved.removeAll(added);
             }
             return effectiveRemoved;
+        }
+
+        public boolean isEmpty() {
+            return added.isEmpty() && removed.isEmpty();
         }
 
         private void invalidate() {
@@ -345,7 +345,7 @@ public class GroupHelper {
 
     private static final class ToDNHandler implements LdapSearchResultsHandler {
 
-        private final List<String> results = new ArrayList<String>();
+        private final List<String> results = new ArrayList<>();
 
         @Override
         public boolean handle(String baseDN, SearchResult searchResult)
@@ -362,7 +362,7 @@ public class GroupHelper {
 
     private static final class ToGroupMembershipHandler implements LdapSearchResultsHandler {
 
-        private final Set<GroupMembership> results = new HashSet<GroupMembership>();
+        private final Set<GroupMembership> results = new HashSet<>();
 
         private String memberRef;
 

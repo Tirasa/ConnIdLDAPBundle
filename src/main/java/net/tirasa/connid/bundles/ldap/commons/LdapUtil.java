@@ -30,14 +30,12 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Set;
-
 import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
-
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Name;
@@ -222,7 +220,7 @@ public class LdapUtil {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public static <T> List<T> checkedListByFilter(final List list, final Class<T> clazz) {
-        return new CheckedListByFilter<T>(list, clazz);
+        return new CheckedListByFilter<>(list, clazz);
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -241,94 +239,117 @@ public class LdapUtil {
             return clazz.cast(o);
         }
 
+        @Override
         public boolean add(E o) {
             return list.add(o);
         }
 
+        @Override
         public void add(int index, E element) {
             list.add(index, element);
         }
 
+        @Override
         public boolean addAll(Collection<? extends E> c) {
             return list.addAll(c);
         }
 
+        @Override
         public boolean addAll(int index, Collection<? extends E> c) {
             return list.addAll(index, c);
         }
 
+        @Override
         public void clear() {
             list.clear();
         }
 
+        @Override
         public boolean contains(Object o) {
             return list.contains(o);
         }
 
+        @Override
         public boolean containsAll(Collection<?> c) {
             return list.containsAll(c);
         }
 
+        @Override
         public E get(int index) {
             return cast(list.get(index));
         }
 
+        @Override
         public int indexOf(Object o) {
             return list.indexOf(o);
         }
 
+        @Override
         public boolean isEmpty() {
             return list.isEmpty();
         }
 
+        @Override
         public Iterator<E> iterator() {
             return new Itr(list.iterator());
         }
 
+        @Override
         public int lastIndexOf(Object o) {
             return list.lastIndexOf(o);
         }
 
+        @Override
         public ListIterator<E> listIterator() {
             return new ListItr(list.listIterator());
         }
 
+        @Override
         public ListIterator<E> listIterator(int index) {
             return new ListItr(list.listIterator(index));
         }
 
+        @Override
         public boolean remove(Object o) {
             return list.remove(o);
         }
 
+        @Override
         public E remove(int index) {
             return cast(list.remove(index));
         }
 
+        @Override
         public boolean removeAll(Collection<?> c) {
             return list.removeAll(c);
         }
 
+        @Override
         public boolean retainAll(Collection<?> c) {
             return list.retainAll(c);
         }
 
+        @Override
         public E set(int index, E element) {
             return cast(list.set(index, element));
         }
 
+        @Override
         public int size() {
             return list.size();
         }
 
+        @Override
         public List<E> subList(int fromIndex, int toIndex) {
             return list.subList(fromIndex, toIndex);
         }
 
+        @Override
         public Object[] toArray() {
             return list.toArray();
         }
 
+        @Override
         public <T> T[] toArray(T[] a) {
             Object[] result = list.toArray(a);
             for (Object o : result) {
@@ -360,14 +381,17 @@ public class LdapUtil {
                 this.iter = iter;
             }
 
+            @Override
             public boolean hasNext() {
                 return iter.hasNext();
             }
 
+            @Override
             public E next() {
                 return cast(iter.next());
             }
 
+            @Override
             public void remove() {
                 iter.remove();
             }

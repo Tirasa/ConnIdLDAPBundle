@@ -66,8 +66,7 @@ public abstract class LdapModifyOperation {
         try {
             byte[] password = (byte[]) passwordAttr.get();
             if (password != null) {
-                String newPassword = hashBytes(password, hashAlgorithm,
-                        entryDN != null ? entryDN.hashCode() : 0);
+                String newPassword = hashBytes(password, hashAlgorithm, entryDN == null ? 0: entryDN.hashCode());
                 passwordAttr.clear();
                 passwordAttr.add(newPassword);
             }
@@ -78,7 +77,7 @@ public abstract class LdapModifyOperation {
 
     private String hashBytes(final byte[] plain, final String algorithm, final long randSeed) {
         String plainPassword = new String(plain);
-        if (plainPassword != null && plainPassword.startsWith("{")) {
+        if (plainPassword.startsWith("{")) {
             String digest = plainPassword.substring(1, plainPassword.indexOf('}'));
             if (digest != null && algorithm.equalsIgnoreCase(digest)) {
                 return plainPassword;
