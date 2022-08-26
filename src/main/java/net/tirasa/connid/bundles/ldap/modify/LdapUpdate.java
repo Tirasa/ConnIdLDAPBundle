@@ -46,6 +46,7 @@ import net.tirasa.connid.bundles.ldap.schema.GuardedPasswordAttribute;
 import net.tirasa.connid.bundles.ldap.search.LdapSearches;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.Pair;
+import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
@@ -57,6 +58,8 @@ import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 
 public class LdapUpdate extends LdapModifyOperation {
+
+    private static final Log LOG = Log.getLog(LdapUpdate.class);
 
     private final ObjectClass oclass;
 
@@ -415,6 +418,8 @@ public class LdapUpdate extends LdapModifyOperation {
     }
 
     private void modifyAttributes(final String entryDN, final List<ModificationItem> modItems) {
+        LOG.ok("About to apply to {0} the following modifications: {1}", entryDN, modItems);
+
         try {
             conn.getInitialContext().modifyAttributes(entryDN, modItems.toArray(new ModificationItem[0]));
         } catch (NamingException e) {

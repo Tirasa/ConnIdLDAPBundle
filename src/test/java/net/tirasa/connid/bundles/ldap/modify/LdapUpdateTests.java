@@ -97,7 +97,18 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         assertEquals(1, numberAttr.size());
         assertEquals(NUMBER2, numberAttr.get(0));
 
-        // 3. updateDelta with values to replace
+        // 3. updateDelta with values to add
+        delta = AttributeDeltaBuilder.build(
+                "telephoneNumber", Collections.singletonList(NUMBER1), Collections.emptyList());
+        facade.updateDelta(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(delta), null);
+
+        bugs = facade.getObject(ObjectClass.ACCOUNT, bugs.getUid(), options);
+        numberAttr = bugs.getAttributeByName("telephoneNumber").getValue();
+        assertEquals(2, numberAttr.size());
+        assertTrue(numberAttr.contains(NUMBER1));
+        assertTrue(numberAttr.contains(NUMBER2));
+
+        // 4. updateDelta with values to replace
         delta = AttributeDeltaBuilder.build("telephoneNumber", CollectionUtil.newList(NUMBER1, NUMBER3));
         facade.updateDelta(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(delta), null);
 

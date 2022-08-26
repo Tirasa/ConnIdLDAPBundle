@@ -51,7 +51,7 @@ public class GroupHelper {
     private static final List<String> OBJECT_CLASSES_WITH_MANDATORY_MEMB_ATTR =
             Arrays.asList("groupOfNames", "groupOfUniqueNames");
 
-    private static final Log log = Log.getLog(GroupHelper.class);
+    private static final Log LOG = Log.getLog(GroupHelper.class);
 
     private final LdapConnection conn;
 
@@ -78,7 +78,7 @@ public class GroupHelper {
     }
 
     public List<String> getLdapGroups(String entryDN) {
-        log.ok("Retrieving LDAP groups for {0}", entryDN);
+        LOG.ok("Retrieving LDAP groups for {0}", entryDN);
         String filter = createAttributeFilter(getLdapGroupMemberAttribute(), Collections.singletonList(entryDN));
         ToDNHandler handler = new ToDNHandler();
         LdapSearches.findEntries(handler, conn, filter);
@@ -86,7 +86,7 @@ public class GroupHelper {
     }
 
     public Set<GroupMembership> getLdapGroupMemberships(String entryDN) {
-        log.ok("Retrieving LDAP group memberships for {0}", entryDN);
+        LOG.ok("Retrieving LDAP group memberships for {0}", entryDN);
         String filter = createAttributeFilter(getLdapGroupMemberAttribute(), Collections.singletonList(entryDN));
         ToGroupMembershipHandler handler = new ToGroupMembershipHandler();
         handler.setMemberRef(entryDN);
@@ -95,7 +95,7 @@ public class GroupHelper {
     }
 
     public void addLdapGroupMemberships(String entryDN, Collection<String> groupDNs) {
-        log.ok("Adding {0} to LDAP groups {1}", entryDN, groupDNs);
+        LOG.ok("Adding {0} to LDAP groups {1}", entryDN, groupDNs);
         String ldapGroupMemberAttribute = getLdapGroupMemberAttribute();
         for (String groupDN : groupDNs) {
             addMemberToGroup(ldapGroupMemberAttribute, entryDN, groupDN);
@@ -103,7 +103,7 @@ public class GroupHelper {
     }
 
     public void removeLdapGroupMemberships(String entryDN, Collection<String> groupDNs) {
-        log.ok("Removing {0} from LDAP groups {1}", entryDN, groupDNs);
+        LOG.ok("Removing {0} from LDAP groups {1}", entryDN, groupDNs);
         String ldapGroupMemberAttribute = getLdapGroupMemberAttribute();
         for (String groupDN : groupDNs) {
             removeMemberFromGroup(ldapGroupMemberAttribute, entryDN, groupDN);
@@ -111,7 +111,7 @@ public class GroupHelper {
     }
 
     public void modifyLdapGroupMemberships(Modification<GroupMembership> mod) {
-        log.ok("Modifying LDAP group memberships: removing {0}, adding {1}", mod.getRemoved(), mod.getAdded());
+        LOG.ok("Modifying LDAP group memberships: removing {0}, adding {1}", mod.getRemoved(), mod.getAdded());
         String ldapGroupMemberAttribute = getLdapGroupMemberAttribute();
         for (GroupMembership membership : mod.getRemoved()) {
             removeMemberFromGroup(ldapGroupMemberAttribute, membership.getMemberRef(), membership.getGroupDN());
@@ -122,7 +122,7 @@ public class GroupHelper {
     }
 
     public List<String> getPosixGroups(Collection<String> posixRefAttrs) {
-        log.ok("Retrieving POSIX groups for {0}", posixRefAttrs);
+        LOG.ok("Retrieving POSIX groups for {0}", posixRefAttrs);
         String filter = createAttributeFilter("memberUid", posixRefAttrs);
         ToDNHandler handler = new ToDNHandler();
         LdapSearches.findEntries(handler, conn, filter);
@@ -130,7 +130,7 @@ public class GroupHelper {
     }
 
     public Set<GroupMembership> getPosixGroupMemberships(Collection<String> posixRefAttrs) {
-        log.ok("Retrieving POSIX group memberships for ", posixRefAttrs);
+        LOG.ok("Retrieving POSIX group memberships for ", posixRefAttrs);
         ToGroupMembershipHandler handler = new ToGroupMembershipHandler();
         for (String posixRefAttr : posixRefAttrs) {
             String filter = createAttributeFilter("memberUid", Collections.singletonList(posixRefAttr));
@@ -141,21 +141,21 @@ public class GroupHelper {
     }
 
     public void addPosixGroupMemberships(String posixRefAttr, Collection<String> groupDNs) {
-        log.ok("Adding {0} to POSIX groups {1}", posixRefAttr, groupDNs);
+        LOG.ok("Adding {0} to POSIX groups {1}", posixRefAttr, groupDNs);
         for (String groupDN : groupDNs) {
             addMemberToGroup("memberUid", posixRefAttr, groupDN);
         }
     }
 
     public void removePosixGroupMemberships(Set<GroupMembership> memberships) {
-        log.ok("Removing POSIX group memberships {0}", memberships);
+        LOG.ok("Removing POSIX group memberships {0}", memberships);
         for (GroupMembership membership : memberships) {
             removeMemberFromGroup("memberUid", membership.getMemberRef(), membership.getGroupDN());
         }
     }
 
     public void modifyPosixGroupMemberships(Modification<GroupMembership> mod) {
-        log.ok("Modifying POSIX group memberships: removing {0}, adding {1}",
+        LOG.ok("Modifying POSIX group memberships: removing {0}, adding {1}",
                 mod.getRemoved(), mod.getAdded());
         for (GroupMembership membership : mod.getRemoved()) {
             removeMemberFromGroup("memberUid", membership.getMemberRef(), membership.getGroupDN());

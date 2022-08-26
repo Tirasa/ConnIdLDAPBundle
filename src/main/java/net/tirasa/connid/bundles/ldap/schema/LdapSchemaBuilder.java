@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -47,10 +46,12 @@ import net.tirasa.connid.bundles.ldap.LdapConnection.ServerType;
 
 class LdapSchemaBuilder {
 
-    private static final Log log = Log.getLog(LdapSchemaBuilder.class);
+    private static final Log LOG = Log.getLog(LdapSchemaBuilder.class);
 
     private final LdapConnection conn;
+
     private final LdapNativeSchema nativeSchema;
+
     private Schema schema;
 
     public LdapSchemaBuilder(LdapConnection conn) {
@@ -84,7 +85,8 @@ class LdapSchemaBuilder {
             if (!oci.is(ObjectClass.ACCOUNT_NAME)) {
                 schemaBld.removeSupportedObjectClass(AuthenticateOp.class, oci);
             }
-            // Since we are not sure we can detect Sun DSEE correctly, only disable sync() for servers known not to support it.
+            // Since we are not sure we can detect Sun DSEE correctly, only disable sync() for servers known not 
+            // to support it.
             if (conn.getServerType() == ServerType.OPENDJ) {
                 schemaBld.removeSupportedObjectClass(SyncOp.class, oci);
             }
@@ -100,7 +102,8 @@ class LdapSchemaBuilder {
             schemaBld.defineObjectClass(oci);
 
             schemaBld.removeSupportedObjectClass(AuthenticateOp.class, oci);
-            // Since we are not sure we can detect Sun DSEE correctly, only disable sync() for servers known not to support it.
+            // Since we are not sure we can detect Sun DSEE correctly, only disable sync() for servers known not 
+            // to support it.
             if (conn.getServerType() == ServerType.OPENDJ) {
                 schemaBld.removeSupportedObjectClass(SyncOp.class, oci);
             }
@@ -139,18 +142,31 @@ class LdapSchemaBuilder {
         return result;
     }
 
-    private void addAttributeInfos(Collection<String> ldapClasses, Set<String> attrs, Set<Flags> add, Set<Flags> remove, Set<AttributeInfo> toSet) {
+    private void addAttributeInfos(
+            Collection<String> ldapClasses,
+            Set<String> attrs,
+            Set<Flags> add,
+            Set<Flags> remove,
+            Set<AttributeInfo> toSet) {
+
         for (String attr : attrs) {
             addAttributeInfo(ldapClasses, attr, attr, add, remove, toSet);
         }
     }
 
-    private void addAttributeInfo(Collection<String> ldapClasses, String ldapAttrName, String realName, Set<Flags> add, Set<Flags> remove, Set<AttributeInfo> toSet) {
+    private void addAttributeInfo(
+            Collection<String> ldapClasses,
+            String ldapAttrName,
+            String realName,
+            Set<Flags> add,
+            Set<Flags> remove,
+            Set<AttributeInfo> toSet) {
+
         LdapAttributeType attrDesc = nativeSchema.getAttributeDescription(ldapAttrName);
         if (attrDesc != null) {
             toSet.add(attrDesc.createAttributeInfo(realName, add, remove));
         } else {
-            log.warn("Could not find attribute {0} in object classes {1}", ldapAttrName, ldapClasses);
+            LOG.warn("Could not find attribute {0} in object classes {1}", ldapAttrName, ldapClasses);
         }
     }
 }
