@@ -33,7 +33,6 @@ import static org.identityconnectors.common.CollectionUtil.newReadOnlyList;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -410,7 +409,7 @@ public class LdapSchemaMapping {
         return result;
     }
 
-    public GuardedPasswordAttribute encodePassword(ObjectClass oclass, Attribute attr) {
+    public GuardedPasswordAttribute encodePassword(Attribute attr) {
         assert attr.is(OperationalAttributes.PASSWORD_NAME);
 
         String pwdAttrName = conn.getConfiguration().getPasswordAttribute();
@@ -424,29 +423,14 @@ public class LdapSchemaMapping {
         return GuardedPasswordAttribute.create(pwdAttrName);
     }
 
-    public Map<Integer, GuardedPasswordAttribute> encodePassword(ObjectClass oclass, AttributeDelta attr) {
+    public GuardedPasswordAttribute encodePassword(AttributeDelta attr) {
         assert attr.is(OperationalAttributes.PASSWORD_NAME);
 
         String pwdAttrName = conn.getConfiguration().getPasswordAttribute();
 
-        Map<Integer, GuardedPasswordAttribute> result = new HashMap<>();
-
-        if (CollectionUtil.isEmpty(attr.getValuesToReplace())) {
-            if (!CollectionUtil.isEmpty(attr.getValuesToAdd())) {
-                result.put(DirContext.ADD_ATTRIBUTE,
-                        GuardedPasswordAttribute.create(pwdAttrName, (GuardedString) attr.getValuesToAdd().get(0)));
-            }
-
-            if (!CollectionUtil.isEmpty(attr.getValuesToRemove())) {
-                result.put(DirContext.REMOVE_ATTRIBUTE,
-                        GuardedPasswordAttribute.create(pwdAttrName, (GuardedString) attr.getValuesToRemove().get(0)));
-            }
-        } else {
-            result.put(DirContext.REPLACE_ATTRIBUTE,
-                    GuardedPasswordAttribute.create(pwdAttrName, (GuardedString) attr.getValuesToReplace().get(0)));
-        }
-
-        return result;
+        return CollectionUtil.isEmpty(attr.getValuesToReplace())
+                ? null
+                : GuardedPasswordAttribute.create(pwdAttrName, (GuardedString) attr.getValuesToReplace().get(0));
     }
 
     public String getEntryDN(ObjectClass oclass, Name name) {

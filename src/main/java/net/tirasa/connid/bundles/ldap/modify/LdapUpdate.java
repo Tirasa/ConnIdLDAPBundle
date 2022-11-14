@@ -136,7 +136,7 @@ public class LdapUpdate extends LdapModifyOperation {
         }
 
         // Update the LDAP groups.
-        Modification<GroupMembership> ldapGroupMod = new Modification<GroupMembership>();
+        Modification<GroupMembership> ldapGroupMod = new Modification<>();
 
         if (oldEntryDN != null && conn.getConfiguration().isMaintainLdapGroupMembership()) {
             Set<GroupMembership> members = groupHelper.getLdapGroupMemberships(oldEntryDN);
@@ -157,10 +157,10 @@ public class LdapUpdate extends LdapModifyOperation {
         groupHelper.modifyLdapGroupMemberships(ldapGroupMod);
 
         // Update the POSIX groups.
-        Modification<GroupMembership> posixGroupMod = new Modification<GroupMembership>();
+        Modification<GroupMembership> posixGroupMod = new Modification<>();
 
         if (newPosixRefAttrs != null && conn.getConfiguration().isMaintainPosixGroupMembership()) {
-            Set<String> removedPosixRefAttrs = new HashSet<String>(posixMember.getPosixRefAttributes());
+            Set<String> removedPosixRefAttrs = new HashSet<>(posixMember.getPosixRefAttributes());
             removedPosixRefAttrs.removeAll(newPosixRefAttrs);
             Set<GroupMembership> members = posixMember.getPosixGroupMembershipsByAttrs(removedPosixRefAttrs);
             posixGroupMod.removeAll(members);
@@ -193,6 +193,7 @@ public class LdapUpdate extends LdapModifyOperation {
         PosixGroupMember posixMember = new PosixGroupMember(entryDN);
 
         // 1. modify attributes
+        GuardedPasswordAttribute guardedPasswordAttribute = null;
         List<ModificationItem> modItems = new ArrayList<>();
         for (AttributeDelta attrDelta : modifications) {
             if (attrDelta.is(Uid.NAME) || attrDelta.is(Name.NAME)) {
@@ -202,19 +203,22 @@ public class LdapUpdate extends LdapModifyOperation {
             } else if (LdapConstants.isPosixGroups(attrDelta.getName())) {
                 // Handled elsewhere.
             } else if (attrDelta.is(OperationalAttributes.PASSWORD_NAME)) {
-                conn.getSchemaMapping().encodePassword(oclass, attrDelta).
-                        forEach((ldapModifyOp, encoded) -> encoded.access(passwordAttr -> {
-
-                    hashPassword(passwordAttr, entryDN);
-                    modItems.add(new ModificationItem(ldapModifyOp, passwordAttr));
-                    modifyAttributes(entryDN, modItems);
-                }));
+                guardedPasswordAttribute = conn.getSchemaMapping().encodePassword(attrDelta);
             } else {
                 modItems.addAll(conn.getSchemaMapping().encodeAttribute(oclass, attrDelta));
             }
         }
 
-        modifyAttributes(entryDN, modItems);
+        if (guardedPasswordAttribute != null) {
+            guardedPasswordAttribute.access(passwordAttr -> {
+                hashPassword(passwordAttr, entryDN);
+                modItems.add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, passwordAttr));
+
+                modifyAttributes(entryDN, modItems);
+            });
+        } else {
+            modifyAttributes(entryDN, modItems);
+        }
 
         // 2. modify ldap group memberships
         Optional.ofNullable(AttributeDeltaUtil.find(LdapConstants.LDAP_GROUPS_NAME, modifications)).
@@ -371,7 +375,7 @@ public class LdapUpdate extends LdapModifyOperation {
             } else if (LdapConstants.isPosixGroups(attr.getName())) {
                 // Handled elsewhere.
             } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-                pwdAttr = conn.getSchemaMapping().encodePassword(oclass, attr);
+                pwdAttr = conn.getSchemaMapping().encodePassword(attr);
             } else {
                 ldapAttr = conn.getSchemaMapping().encodeAttribute(oclass, attr);
             }
@@ -410,6 +414,7 @@ public class LdapUpdate extends LdapModifyOperation {
                 // Do not add the password to the result Attributes because it is a guarded value.
                 hashPassword(passwordAttr, entryDN);
                 modItems.add(new ModificationItem(ldapModifyOp, passwordAttr));
+
                 modifyAttributes(entryDN, modItems);
             });
         } else {

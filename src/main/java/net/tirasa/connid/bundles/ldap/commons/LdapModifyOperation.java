@@ -23,15 +23,10 @@
  */
 package net.tirasa.connid.bundles.ldap.commons;
 
-import static java.util.Collections.min;
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.addStringAttrValues;
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapName;
-import static org.identityconnectors.common.CollectionUtil.isEmpty;
-import static org.identityconnectors.common.StringUtil.isBlank;
-
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -45,6 +40,8 @@ import javax.naming.ldap.Rdn;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.commons.GroupHelper.GroupMembership;
 import net.tirasa.connid.bundles.ldap.search.LdapSearches;
+import org.identityconnectors.common.CollectionUtil;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 
 public abstract class LdapModifyOperation {
@@ -60,13 +57,13 @@ public abstract class LdapModifyOperation {
 
     protected final void hashPassword(final Attribute passwordAttr, final String entryDN) {
         String hashAlgorithm = conn.getConfiguration().getPasswordHashAlgorithm();
-        if (isBlank(hashAlgorithm) || "NONE".equalsIgnoreCase(hashAlgorithm)) {
+        if (StringUtil.isBlank(hashAlgorithm) || "NONE".equalsIgnoreCase(hashAlgorithm)) {
             return;
         }
         try {
             byte[] password = (byte[]) passwordAttr.get();
             if (password != null) {
-                String newPassword = hashBytes(password, hashAlgorithm, entryDN == null ? 0: entryDN.hashCode());
+                String newPassword = hashBytes(password, hashAlgorithm, entryDN == null ? 0 : entryDN.hashCode());
                 passwordAttr.clear();
                 passwordAttr.add(newPassword);
             }
@@ -135,7 +132,7 @@ public abstract class LdapModifyOperation {
         final Set<String> result = new HashSet<>();
         if (entryDN != null && !entryDN.isEmpty()) {
             Rdn rdn = entryDN.getRdn(entryDN.size() - 1);
-            addStringAttrValues(rdn.toAttributes(), attrName, result);
+            LdapUtil.addStringAttrValues(rdn.toAttributes(), attrName, result);
         }
         Attribute attr = attrs.get(attrName);
         if (attr != null) {
@@ -156,11 +153,11 @@ public abstract class LdapModifyOperation {
     }
 
     protected final String getFirstPosixRefAttr(final String entryDN, final Set<String> posixRefAttrs) {
-        if (isEmpty(posixRefAttrs)) {
-            throw new ConnectorException(conn.format("cannotAddToPosixGroup",
-                    null, entryDN, GroupHelper.getPosixRefAttribute()));
+        if (CollectionUtil.isEmpty(posixRefAttrs)) {
+            throw new ConnectorException(
+                    conn.format("cannotAddToPosixGroup", null, entryDN, GroupHelper.getPosixRefAttribute()));
         }
-        return min(posixRefAttrs);
+        return Collections.min(posixRefAttrs);
     }
 
     /**
@@ -202,11 +199,11 @@ public abstract class LdapModifyOperation {
         public Set<GroupMembership> getPosixGroupMembershipsByGroups(final List<String> groupDNs) {
             Set<LdapName> groupNames = new HashSet<>();
             for (String groupDN : groupDNs) {
-                groupNames.add(quietCreateLdapName(groupDN));
+                groupNames.add(LdapUtil.quietCreateLdapName(groupDN));
             }
             Set<GroupMembership> result = new HashSet<>();
             for (GroupMembership member : getPosixGroupMemberships()) {
-                if (groupNames.contains(quietCreateLdapName(member.getGroupDN()))) {
+                if (groupNames.contains(LdapUtil.quietCreateLdapName(member.getGroupDN()))) {
                     result.add(member);
                 }
             }
@@ -223,7 +220,8 @@ public abstract class LdapModifyOperation {
 
         private LdapEntry getLdapEntry() {
             if (entry == null) {
-                entry = LdapSearches.getEntry(conn, quietCreateLdapName(entryDN), GroupHelper.getPosixRefAttribute());
+                entry = LdapSearches.getEntry(
+                        conn, LdapUtil.quietCreateLdapName(entryDN), GroupHelper.getPosixRefAttribute());
             }
             return entry;
         }

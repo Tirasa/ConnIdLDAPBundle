@@ -96,11 +96,11 @@ public class LdapCreate extends LdapModifyOperation {
                 posixGroups.addAll(
                         LdapUtil.checkedListByFilter(CollectionUtil.nullAsEmpty(attr.getValue()), String.class));
             } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-                pwdAttr = conn.getSchemaMapping().encodePassword(oclass, attr);
+                pwdAttr = conn.getSchemaMapping().encodePassword(attr);
             } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
                 // manage enable/disable status
                 if (attr.getValue() != null && !attr.getValue().isEmpty()) {
-                    status = Boolean.parseBoolean(attr.getValue().get(0).toString());
+                    status = Boolean.valueOf(attr.getValue().get(0).toString());
                 }
             } else {
                 ldapAttr = conn.getSchemaMapping().encodeAttribute(oclass, attr);

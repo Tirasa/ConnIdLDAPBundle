@@ -23,6 +23,7 @@
  */
 package net.tirasa.connid.bundles.ldap.modify;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -109,14 +110,24 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         assertTrue(numberAttr.contains(NUMBER2));
 
         // 4. updateDelta with values to replace
+        assertDoesNotThrow(() -> facade.authenticate(
+                ObjectClass.ACCOUNT, BUGS_BUNNY_UID, new GuardedString("carrot".toCharArray()), null));
+
         delta = AttributeDeltaBuilder.build("telephoneNumber", CollectionUtil.newList(NUMBER1, NUMBER3));
-        facade.updateDelta(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(delta), null);
+        GuardedString newPwd = new GuardedString("newPwd".toCharArray());
+        facade.updateDelta(
+                ObjectClass.ACCOUNT,
+                bugs.getUid(),
+                CollectionUtil.newSet(delta, AttributeDeltaBuilder.buildPassword(newPwd)),
+                null);
 
         bugs = facade.getObject(ObjectClass.ACCOUNT, bugs.getUid(), options);
         numberAttr = bugs.getAttributeByName("telephoneNumber").getValue();
         assertEquals(2, numberAttr.size());
         assertTrue(numberAttr.contains(NUMBER1));
         assertTrue(numberAttr.contains(NUMBER3));
+
+        assertDoesNotThrow(() -> facade.authenticate(ObjectClass.ACCOUNT, BUGS_BUNNY_UID, newPwd, null));
     }
 
     @Test
