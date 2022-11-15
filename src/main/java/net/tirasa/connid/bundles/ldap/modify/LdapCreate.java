@@ -114,7 +114,7 @@ public class LdapCreate extends LdapModifyOperation {
 
         if (status != null) {
             StatusManagement.getInstance(conn.getConfiguration().getStatusManagementClass()).
-                    setStatus(status, ldapAttrs, posixGroups, ldapGroups);
+                    setStatus(status, ldapAttrs);
         }
 
         if (ObjectClass.GROUP.equals(oclass)) {

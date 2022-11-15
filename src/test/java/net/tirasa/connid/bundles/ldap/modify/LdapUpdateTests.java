@@ -57,6 +57,8 @@ import org.junit.jupiter.api.Test;
 
 public class LdapUpdateTests extends LdapConnectorTestBase {
 
+    private static final String DAFFY_DUCK_DN = "uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com";
+
     // XXX need tests for the case when the one of the modified (or removed)
     // attribute is the Name or especially Uid.
     private static final String NUMBER1 = "+1 800 123 4567";
@@ -170,13 +172,11 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade();
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
-        Name name = new Name(
-                "uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com");
+        Name name = new Name(DAFFY_DUCK_DN);
         Attribute number = AttributeBuilder.build("telephoneNumber", NUMBER1);
         Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), CollectionUtil.newSet(name, number), null);
 
-        OperationOptionsBuilder builder = new OperationOptionsBuilder();
-        builder.setAttributesToGet("telephoneNumber");
+        OperationOptionsBuilder builder = new OperationOptionsBuilder().setAttributesToGet("telephoneNumber");
 
         ConnectorObject daffy = facade.getObject(ObjectClass.ACCOUNT, newUid, builder.build());
         assertEquals(name, daffy.getName());
@@ -192,7 +192,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
-        Name name = new Name("uid=daffy.duck,ou=Users,o=Acme,dc=example,dc=com");
+        Name name = new Name(DAFFY_DUCK_DN);
         Uid newUid = facade.update(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(name), null);
 
         // Since they are both the entry DN.

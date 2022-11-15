@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -24,13 +24,14 @@
 package net.tirasa.connid.bundles.ldap.commons;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import org.identityconnectors.common.logging.Log;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
+import org.identityconnectors.framework.common.objects.AttributeDeltaBuilder;
 
 /**
  * Simple attribute-based status management implementation, meant for easy override.
@@ -52,30 +53,35 @@ public class AttributeStatusManagement extends StatusManagement {
     }
 
     @Override
-    public void setStatus(final boolean status, final Attributes attributes,
-            final List<String> posixGroups, final List<String> ldapGroups) {
-
+    public void setStatus(final boolean status, final Attributes attributes) {
         LOG.ok("Calling setStatus {0}", status);
 
-        Attribute statusAttrr = attributes.get(getStatusAttrName());
-        if (statusAttrr == null) {
-            statusAttrr = new BasicAttribute(getStatusAttrName());
-            attributes.put(statusAttrr);
+        Attribute statusAttr = attributes.get(getStatusAttrName());
+        if (statusAttr == null) {
+            statusAttr = new BasicAttribute(getStatusAttrName());
+            attributes.put(statusAttr);
         }
 
-        statusAttrr.add(status ? getStatusAttrActiveValue() : getStatusAttrInactiveValue());
+        statusAttr.add(status ? getStatusAttrActiveValue() : getStatusAttrInactiveValue());
     }
 
     @Override
-    public Boolean getStatus(final Attributes attributes,
-            final List<String> posixGroups, final List<String> ldapGroups) {
+    public void setStatus(final boolean status, final Set<AttributeDelta> modifications) {
+        LOG.ok("Calling setStatus {0}", status);
 
-        Boolean status = null;
+        modifications.add(AttributeDeltaBuilder.build(
+                getStatusAttrName(),
+                status ? getStatusAttrActiveValue() : getStatusAttrInactiveValue()));
+    }
 
-        final Attribute description = attributes.get(getStatusAttrName());
-        if (description != null) {
+    @Override
+    public Boolean getStatus(final Attributes attributes) {
+        Boolean status = Boolean.TRUE;
+
+        Attribute statusAttr = attributes.get(getStatusAttrName());
+        if (statusAttr != null) {
             try {
-                final Object value = description.get();
+                Object value = statusAttr.get();
                 if (value != null) {
                     status = getStatusAttrActiveValue().equals(value.toString());
                 }
@@ -84,12 +90,12 @@ public class AttributeStatusManagement extends StatusManagement {
             }
         }
 
+        LOG.ok("Returning getStatus {0}", status);
         return status;
     }
 
     @Override
     public Set<String> getOperationalAttributes() {
         return Collections.singleton(getStatusAttrName());
-
     }
 }

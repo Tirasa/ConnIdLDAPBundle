@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -24,23 +24,19 @@
 package net.tirasa.connid.bundles.ldap;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import net.tirasa.connid.bundles.ldap.commons.StatusManagement;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
+import org.identityconnectors.framework.common.objects.AttributeDeltaBuilder;
 
 public class MyStatusManagement extends StatusManagement {
 
     @Override
-    public void setStatus(
-            final boolean status,
-            final Attributes attributes,
-            final List<String> posixGroups,
-            final List<String> ldapGroups) {
-
+    public void setStatus(final boolean status, final Attributes attributes) {
         Attribute description = attributes.get("description");
         if (description == null) {
             description = new BasicAttribute("description");
@@ -52,11 +48,14 @@ public class MyStatusManagement extends StatusManagement {
     }
 
     @Override
-    public Boolean getStatus(
-            final Attributes attributes,
-            final List<String> posixGroups,
-            final List<String> ldapGroups) {
+    public void setStatus(final boolean status, final Set<AttributeDelta> modifications) {
+        modifications.add(AttributeDeltaBuilder.build(
+                "description",
+                Collections.singleton(status ? "1" : "0")));
+    }
 
+    @Override
+    public Boolean getStatus(final Attributes attributes) {
         Boolean status = null;
 
         Attribute description = attributes.get("description");

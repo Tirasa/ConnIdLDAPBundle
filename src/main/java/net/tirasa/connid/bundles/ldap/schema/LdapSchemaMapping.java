@@ -56,6 +56,7 @@ import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
+import org.identityconnectors.framework.common.objects.AttributeDeltaUtil;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.Name;
@@ -442,7 +443,26 @@ public class LdapSchemaMapping {
         return name.getNameValue();
     }
 
+    public String getEntryDN(ObjectClass oclass, AttributeDelta name) {
+        String ldapNameAttr = getLdapNameAttribute(oclass);
+        if (!isDNAttribute(ldapNameAttr)) {
+            // Not yet implemented.
+            throw new UnsupportedOperationException("Name can only be mapped to the entry DN");
+        }
+        return AttributeDeltaUtil.getStringValue(name);
+    }
+
     public String rename(ObjectClass oclass, String entryDN, Name newName) {
+        String newEntryDN = getEntryDN(oclass, newName);
+        try {
+            conn.getInitialContext().rename(entryDN, newEntryDN);
+            return newEntryDN;
+        } catch (NamingException e) {
+            throw new ConnectorException(e);
+        }
+    }
+
+    public String rename(ObjectClass oclass, String entryDN, AttributeDelta newName) {
         String newEntryDN = getEntryDN(oclass, newName);
         try {
             conn.getInitialContext().rename(entryDN, newEntryDN);

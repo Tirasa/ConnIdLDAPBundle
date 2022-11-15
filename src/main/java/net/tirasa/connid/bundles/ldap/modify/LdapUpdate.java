@@ -115,7 +115,7 @@ public class LdapUpdate extends LdapModifyOperation {
         if (status != null && status.getValue() != null && !status.getValue().isEmpty()) {
             StatusManagement.getInstance(
                     conn.getConfiguration().getStatusManagementClass()).
-                    setStatus((Boolean) status.getValue().get(0), ldapAttrs, posixGroups, ldapGroups);
+                    setStatus((Boolean) status.getValue().get(0), ldapAttrs);
         }
 
         // Update the attributes.
@@ -192,12 +192,22 @@ public class LdapUpdate extends LdapModifyOperation {
         String entryDN = LdapSearches.findEntryDN(conn, oclass, uid);
         PosixGroupMember posixMember = new PosixGroupMember(entryDN);
 
+        // 0. manage status
+        Optional.ofNullable(AttributeDeltaUtil.find(OperationalAttributes.ENABLE_NAME, modifications)).
+                filter(status -> !CollectionUtil.isEmpty(status.getValuesToReplace())).
+                ifPresent(status -> {
+                    StatusManagement.getInstance(
+                            conn.getConfiguration().getStatusManagementClass()).
+                            setStatus((Boolean) status.getValuesToReplace().get(0), modifications);
+                    modifications.remove(status);
+                });
+
         // 1. modify attributes
         GuardedPasswordAttribute guardedPasswordAttribute = null;
         List<ModificationItem> modItems = new ArrayList<>();
         for (AttributeDelta attrDelta : modifications) {
             if (attrDelta.is(Uid.NAME) || attrDelta.is(Name.NAME)) {
-                throw new IllegalArgumentException("Unable to modify an object's name");
+                throw new IllegalArgumentException("Do not perform rename via updateDelta, use standard update");
             } else if (LdapConstants.isLdapGroups(attrDelta.getName())) {
                 // Handled elsewhere.
             } else if (LdapConstants.isPosixGroups(attrDelta.getName())) {

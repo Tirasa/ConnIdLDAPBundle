@@ -38,6 +38,8 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.objects.AttributeDelta;
+import org.identityconnectors.framework.common.objects.AttributeDeltaUtil;
 import org.identityconnectors.framework.common.objects.Name;
 
 public class LdapUtil {
@@ -205,6 +207,15 @@ public class LdapUtil {
     public static String getDNAttributeName(final Name entry) {
         try {
             LdapName name = new LdapName(entry.getNameValue());
+            return name.getRdn(name.size() - 1).getType();
+        } catch (InvalidNameException ex) {
+            throw new ConnectorException(ex);
+        }
+    }
+
+    public static String getDNAttributeName(final AttributeDelta entry) {
+        try {
+            LdapName name = new LdapName(AttributeDeltaUtil.getStringValue(entry));
             return name.getRdn(name.size() - 1).getType();
         } catch (InvalidNameException ex) {
             throw new ConnectorException(ex);
