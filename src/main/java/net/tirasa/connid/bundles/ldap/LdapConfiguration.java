@@ -267,6 +267,13 @@ public class LdapConfiguration extends AbstractConfiguration {
         checkNotEmpty(groupConfig.getShortNameLdapAttributes(), "groupNameAttributes.notEmpty");
         checkNoBlankValues(groupConfig.getShortNameLdapAttributes(), "groupNameAttributes.noBlankValues");
 
+        checkNotEmpty(allConfig.getLdapClasses(), "anyObjectClasses.notEmpty");
+        checkNoBlankValues(allConfig.getLdapClasses(), "anyObjectClasses.noBlankValues");
+
+        checkNotEmpty(allConfig.getShortNameLdapAttributes(), "anyObjectNameAttributes.notEmpty");
+        checkNoBlankValues(allConfig.getShortNameLdapAttributes(), "anyObjectNameAttributes.noBlankValues");
+
+
         checkNotBlank(groupMemberAttribute, "groupMemberAttribute.notBlank");
 
         checkNotBlank(vlvSortAttribute, "vlvSortAttribute.notBlank");
@@ -562,6 +569,30 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(order = 18,
+            displayMessageKey = "anyObjectClasses.display",
+            helpMessageKey = "anyObjectClasses.help")
+    public String[] getAnyObjectClasses() {
+        List<String> ldapClasses = allConfig.getLdapClasses();
+        return ldapClasses.toArray(new String[ldapClasses.size()]);
+    }
+
+    public void setAnyObjectClasses(String... anyObjectClasses) {
+        allConfig.setLdapClasses(Arrays.asList(anyObjectClasses));
+    }
+
+    @ConfigurationProperty(order = 19,
+            displayMessageKey = "anyObjectNameAttributes.display",
+            helpMessageKey = "anyObjectNameAttributes.help")
+    public String[] getAnyObjectNameAttributes() {
+        List<String> shortNameLdapAttributes = allConfig.getShortNameLdapAttributes();
+        return shortNameLdapAttributes.toArray(new String[shortNameLdapAttributes.size()]);
+    }
+
+    public void setAnyObjectNameAttributes(String... anyObjectNameAttributes) {
+        allConfig.setShortNameLdapAttributes(Arrays.asList(anyObjectNameAttributes));
+    }
+
+    @ConfigurationProperty(order = 20,
             displayMessageKey = "passwordHashAlgorithm.display",
             helpMessageKey = "passwordHashAlgorithm.help")
     public String getPasswordHashAlgorithm() {
@@ -572,7 +603,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.passwordHashAlgorithm = passwordHashAlgorithm;
     }
 
-    @ConfigurationProperty(order = 19,
+    @ConfigurationProperty(order = 21,
             displayMessageKey = "respectResourcePasswordPolicyChangeAfterReset.display",
             helpMessageKey = "respectResourcePasswordPolicyChangeAfterReset.help")
     public boolean isRespectResourcePasswordPolicyChangeAfterReset() {
@@ -583,7 +614,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.respectResourcePasswordPolicyChangeAfterReset = respectResourcePasswordPolicyChangeAfterReset;
     }
 
-    @ConfigurationProperty(order = 20,
+    @ConfigurationProperty(order = 22,
             displayMessageKey = "useVlvControls.display",
             helpMessageKey = "useVlvControls.help")
     public boolean isUseVlvControls() {
@@ -594,7 +625,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.useVlvControls = useVlvControls;
     }
 
-    @ConfigurationProperty(order = 21,
+    @ConfigurationProperty(order = 23,
             displayMessageKey = "vlvSortAttribute.display",
             helpMessageKey = "vlvSortAttribute.help")
     public String getVlvSortAttribute() {
@@ -605,7 +636,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.vlvSortAttribute = vlvSortAttribute;
     }
 
-    @ConfigurationProperty(order = 22,
+    @ConfigurationProperty(order = 24,
             displayMessageKey = "uidAttribute.display",
             helpMessageKey = "uidAttribute.help")
     public String getUidAttribute() {
@@ -616,7 +647,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.uidAttribute = uidAttribute;
     }
 
-    @ConfigurationProperty(order = 23,
+    @ConfigurationProperty(order = 25,
             displayMessageKey = "gidAttribute.display",
             helpMessageKey = "gidAttribute.help")
     public String getGidAttribute() {
@@ -627,7 +658,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.gidAttribute = gidAttribute;
     }
 
-    @ConfigurationProperty(order = 23,
+    @ConfigurationProperty(order = 26,
             displayMessageKey = "readSchema.display",
             helpMessageKey = "readSchema.help")
     public boolean isReadSchema() {
@@ -639,7 +670,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     // Sync properties getters and setters.
-    @ConfigurationProperty(order = 24, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 27, operations = { SyncOp.class },
             displayMessageKey = "baseContextsToSynchronize.display",
             helpMessageKey = "baseContextsToSynchronize.help")
     public String[] getBaseContextsToSynchronize() {
@@ -650,7 +681,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.baseContextsToSynchronize = baseContextsToSynchronize.clone();
     }
 
-    @ConfigurationProperty(order = 25, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 28, operations = { SyncOp.class },
             displayMessageKey = "objectClassesToSynchronize.display",
             helpMessageKey = "objectClassesToSynchronize.help")
     public String[] getObjectClassesToSynchronize() {
@@ -661,7 +692,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.objectClassesToSynchronize = objectClassesToSynchronize.clone();
     }
 
-    @ConfigurationProperty(order = 26, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 29, operations = { SyncOp.class },
             displayMessageKey = "attributesToSynchronize.display",
             helpMessageKey = "attributesToSynchronize.help")
     public String[] getAttributesToSynchronize() {
@@ -672,7 +703,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.attributesToSynchronize = attributesToSynchronize.clone();
     }
 
-    @ConfigurationProperty(order = 27, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 30, operations = { SyncOp.class },
             displayMessageKey = "modifiersNamesToFilterOut.display",
             helpMessageKey = "modifiersNamesToFilterOut.help")
     public String[] getModifiersNamesToFilterOut() {
@@ -683,7 +714,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.modifiersNamesToFilterOut = modifiersNamesToFilterOut.clone();
     }
 
-    @ConfigurationProperty(order = 28, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 31, operations = { SyncOp.class },
             displayMessageKey = "accountSynchronizationFilter.display",
             helpMessageKey = "accountSynchronizationFilter.help")
     public String getAccountSynchronizationFilter() {
@@ -694,7 +725,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.accountSynchronizationFilter = accountSynchronizationFilter;
     }
 
-    @ConfigurationProperty(order = 29, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 32, operations = { SyncOp.class },
             displayMessageKey = "changeLogBlockSize.display",
             helpMessageKey = "changeLogBlockSize.help")
     public int getChangeLogBlockSize() {
@@ -705,7 +736,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.changeLogBlockSize = changeLogBlockSize;
     }
 
-    @ConfigurationProperty(order = 30, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 33, operations = { SyncOp.class },
             displayMessageKey = "changeNumberAttribute.display",
             helpMessageKey = "changeNumberAttribute.help")
     public String getChangeNumberAttribute() {
@@ -716,7 +747,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.changeNumberAttribute = changeNumberAttribute;
     }
 
-    @ConfigurationProperty(order = 31, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 34, operations = { SyncOp.class },
             displayMessageKey = "filterWithOrInsteadOfAnd.display",
             helpMessageKey = "filterWithOrInsteadOfAnd.help")
     public boolean isFilterWithOrInsteadOfAnd() {
@@ -727,7 +758,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.filterWithOrInsteadOfAnd = filterWithOrInsteadOfAnd;
     }
 
-    @ConfigurationProperty(order = 32, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 35, operations = { SyncOp.class },
             displayMessageKey = "removeLogEntryObjectClassFromFilter.display",
             helpMessageKey = "removeLogEntryObjectClassFromFilter.help")
     public boolean isRemoveLogEntryObjectClassFromFilter() {
@@ -738,7 +769,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.removeLogEntryObjectClassFromFilter = removeLogEntryObjectClassFromFilter;
     }
 
-    @ConfigurationProperty(order = 33, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 36, operations = { SyncOp.class },
             displayMessageKey = "synchronizePasswords.display",
             helpMessageKey = "synchronizePasswords.help")
     public boolean isSynchronizePasswords() {
@@ -749,7 +780,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.synchronizePasswords = synchronizePasswords;
     }
 
-    @ConfigurationProperty(order = 34, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 37, operations = { SyncOp.class },
             displayMessageKey = "passwordAttributeToSynchronize.display",
             helpMessageKey = "passwordAttributeToSynchronize.help")
     public String getPasswordAttributeToSynchronize() {
@@ -760,7 +791,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.passwordAttributeToSynchronize = passwordAttributeToSynchronize;
     }
 
-    @ConfigurationProperty(order = 35, operations = { SyncOp.class }, confidential = true,
+    @ConfigurationProperty(order = 38, operations = { SyncOp.class }, confidential = true,
             displayMessageKey = "passwordDecryptionKey.display",
             helpMessageKey = "passwordDecryptionKey.help")
     public GuardedByteArray getPasswordDecryptionKey() {
@@ -772,7 +803,7 @@ public class LdapConfiguration extends AbstractConfiguration {
                 copy() : null;
     }
 
-    @ConfigurationProperty(order = 36, operations = { SyncOp.class }, confidential = true,
+    @ConfigurationProperty(order = 39, operations = { SyncOp.class }, confidential = true,
             displayMessageKey = "passwordDecryptionInitializationVector.display",
             helpMessageKey = "passwordDecryptionInitializationVector.help")
     public GuardedByteArray getPasswordDecryptionInitializationVector() {
@@ -785,7 +816,7 @@ public class LdapConfiguration extends AbstractConfiguration {
                         copy() : null;
     }
 
-    @ConfigurationProperty(order = 37,
+    @ConfigurationProperty(order = 40,
             displayMessageKey = "statusManagementClass.display",
             helpMessageKey = "statusManagementClass.help")
     public String getStatusManagementClass() {
@@ -796,7 +827,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.statusManagementClass = statusManagementClass;
     }
 
-    @ConfigurationProperty(order = 38,
+    @ConfigurationProperty(order = 41,
             displayMessageKey = "retrievePasswordsWithSearch.display",
             helpMessageKey = "retrievePasswordsWithSearch.help")
     public boolean getRetrievePasswordsWithSearch() {
@@ -807,7 +838,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.retrievePasswordsWithSearch = retrievePasswordsWithSearch;
     }
 
-    @ConfigurationProperty(order = 39,
+    @ConfigurationProperty(order = 42,
             displayMessageKey = "dnAttribute.display",
             helpMessageKey = "dnAttribute.help")
     public String getDnAttribute() {
@@ -818,7 +849,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.dnAttribute = dnAttribute;
     }
 
-    @ConfigurationProperty(order = 40,
+    @ConfigurationProperty(order = 43,
             displayMessageKey = "groupSearchFilter.display",
             helpMessageKey = "groupSearchFilter.help")
     public String getGroupSearchFilter() {
@@ -829,7 +860,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.groupSearchFilter = groupSearchFilter;
     }
 
-    @ConfigurationProperty(order = 41,
+    @ConfigurationProperty(order = 44,
             displayMessageKey = "readTimeout.display",
             helpMessageKey = "readTimeout.help")
     public long getReadTimeout() {
@@ -840,7 +871,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.readTimeout = readTimeout;
     }
 
-    @ConfigurationProperty(order = 42,
+    @ConfigurationProperty(order = 45,
             displayMessageKey = "connectTimeout.display",
             helpMessageKey = "connectTimeout.help")
     public long getConnectTimeout() {

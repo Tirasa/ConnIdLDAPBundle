@@ -149,6 +149,12 @@ public abstract class LdapConnectorTestBase {
 
     public static final String USER_0_GIVEN_NAME = "Aaccf";
 
+    public static final String DEVICE_0_DN = "cn=Laptop,o=Small Company,dc=example,dc=com";
+
+    public static final String DEVICE_0_CN = "Laptop";
+
+    public static final String DEVICE_0_SERIALNUMBER = "42";
+
     @BeforeAll
     public static void init() throws IOException {
         InputStream propStream = null;
