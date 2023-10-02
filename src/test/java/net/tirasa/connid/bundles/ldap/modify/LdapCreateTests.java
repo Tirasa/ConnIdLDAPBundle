@@ -198,6 +198,44 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     }
 
     @Test
+    public void createArbitraryWhenNameAttributesNotDefault() {
+        LdapConfiguration config = newConfiguration();
+        assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
+        config.setAnyObjectNameAttributes("cn");
+        config.setBaseContexts(SMALL_COMPANY_DN);
+        ConnectorFacade facade = newFacade(config);
+
+        doCreateDevice(facade);
+    }
+
+    @Test
+    public void createArbitraryWhenObjectClassesNotDefault() {
+        LdapConfiguration config = newConfiguration();
+        assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
+        config.setAnyObjectClasses("top", "organization");
+        config.setBaseContexts(SMALL_COMPANY_DN);
+        ConnectorFacade facade = newFacade(config);
+
+        doCreateDevice(facade);
+    }
+
+    private void doCreateDevice(ConnectorFacade facade) {
+        Set<Attribute> attributes = new HashSet<>();
+        Name name = new Name(DEVICE_0_DN);
+        attributes.add(name);
+        attributes.add(AttributeBuilder.build("cn", DEVICE_0_CN));
+        attributes.add(AttributeBuilder.build("serialNumber", DEVICE_0_SERIALNUMBER));
+
+        ObjectClass oclass = new ObjectClass("device");
+        Uid uid = facade.create(oclass, attributes, null);
+
+        ConnectorObject newObject = facade.getObject(oclass, uid, null);
+        assertEquals(name, newObject.getName());
+
+    }
+
+
+    @Test
     public void createBinaryAttributes() throws IOException {
         ConnectorFacade facade = newFacade();
 

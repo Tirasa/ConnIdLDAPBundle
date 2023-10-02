@@ -114,6 +114,42 @@ public class LdapConfigurationTests {
     }
 
     @Test
+    public void anyObjectNameAttributesNotEmpty() {
+        config.setAnyObjectNameAttributes();
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void anyObjectNameAttributesNotNull() {
+        config.setAnyObjectNameAttributes((String) null);
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void anyObjectNameAttributesNotBlank() {
+        config.setAnyObjectNameAttributes(" ");
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void anyObjectClassesNotEmpty() {
+        config.setAnyObjectClasses();
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void anyObjectClassesNotNull() {
+        config.setAnyObjectClasses((String) null);
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void anyObjectClassesNotBlank() {
+        config.setAnyObjectClasses(" ");
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
     public void groupMemberAttributeNotNull() {
         config.setGroupMemberAttribute(null);
         assertThrows(ConfigurationException.class, () -> config.validate());
@@ -311,6 +347,8 @@ public class LdapConfigurationTests {
         assertNull(config.getGroupSearchFilter());
         assertEquals(0, config.getReadTimeout());
         assertEquals(0, config.getConnectTimeout());
+        assertEquals(CollectionUtil.newList("top"), Arrays.asList(config.getAnyObjectClasses()));
+        assertEquals(CollectionUtil.newList("entryUUID"), Arrays.asList(config.getAnyObjectNameAttributes()));
     }
 
     private static void assertCanValidate(LdapConfiguration config) {
