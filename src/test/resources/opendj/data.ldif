@@ -44,6 +44,16 @@ objectClass: top
 objectClass: organizationalUnit
 ou: Users
 
+dn: ou=Groups,o=Acme,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Groups
+
+dn: ou=Devices,o=Acme,dc=example,dc=com
+objectClass: top
+objectClass: organizationalUnit
+ou: Devices
+
 dn: uid=bugs.bunny,ou=Users,o=Acme,dc=example,dc=com
 objectClass: top
 objectClass: person
@@ -86,7 +96,7 @@ ds-pwp-password-policy-dn: cn=Quickly Expiring Password Policy,cn=Password Polic
 
 # Non-unique groups.
 
-dn: cn=Bugs and Friends,o=Acme,dc=example,dc=com
+dn: cn=Bugs and Friends,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
 objectClass: groupOfNames
 cn: Bugs and Friends
@@ -94,7 +104,7 @@ member: uid=bugs.bunny,ou=Users,o=Acme,dc=example,dc=com
 member: uid=elmer.fudd,ou=Users,o=Acme,dc=example,dc=com
 member: uid=sylvester,ou=Users,o=Acme,dc=example,dc=com
 
-dn: cn=External Peers,o=Acme,dc=example,dc=com
+dn: cn=External Peers,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
 objectClass: groupOfNames
 cn: External Peers
@@ -103,7 +113,7 @@ member: uid=sylvester,ou=Users,o=Acme,dc=example,dc=com
 
 # Unique groups.
 
-dn: cn=Unique Bugs and Friends,o=Acme,dc=example,dc=com
+dn: cn=Unique Bugs and Friends,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
 objectClass: groupOfUniqueNames
 cn: Unique Bugs and Friends
@@ -111,21 +121,21 @@ uniqueMember: uid=bugs.bunny,ou=Users,o=Acme,dc=example,dc=com
 uniqueMember: uid=elmer.fudd,ou=Users,o=Acme,dc=example,dc=com
 uniqueMember: uid=sylvester,ou=Users,o=Acme,dc=example,dc=com
 
-dn: cn=Unique External Peers,o=Acme,dc=example,dc=com
+dn: cn=Unique External Peers,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
 objectClass: groupOfUniqueNames
 cn: Unique External Peers
 uniqueMember: uid=single.account,o=Small Company,dc=example,dc=com
 uniqueMember: uid=sylvester,ou=Users,o=Acme,dc=example,dc=com
 
-dn: cn=Unique Empty Group,o=Acme,dc=example,dc=com
+dn: cn=Unique Empty Group,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
 objectClass: groupOfUniqueNames
 cn: Unique Empty Group
 
 # POSIX groups.
 
-dn: cn=POSIX Bugs and Friends,o=Acme,dc=example,dc=com
+dn: cn=POSIX Bugs and Friends,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
 objectClass: namedObject
 objectClass: posixGroup
@@ -135,7 +145,7 @@ memberUid: bugs.bunny
 memberUid: elmer.fudd
 memberUid: sylvester
 
-dn: cn=POSIX External Peers,o=Acme,dc=example,dc=com
+dn: cn=POSIX External Peers,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
 objectClass: namedObject
 objectClass: posixGroup
@@ -145,20 +155,26 @@ memberUid: single.account
 memberUid: owner
 memberUid: sylvester
 
-dn: cn=POSIX Empty Group,o=Acme,dc=example,dc=com
+dn: cn=POSIX Empty Group,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
 objectClass: namedObject
 objectClass: posixGroup
 cn: POSIX Empty Group
 gidNumber: 3
 
-dn: cn=POSIX Bugs Bunny Group,o=Acme,dc=example,dc=com
+dn: cn=POSIX Bugs Bunny Group,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
 objectClass: namedObject
 objectClass: posixGroup
 cn: POSIX Bugs Bunny Group
 gidNumber: 4
 memberUid: bbunny
+
+dn: cn=Carrot Laptop,ou=Devices,o=Acme,dc=example,dc=com
+objectclass: top
+objectClass: device
+cn: Carrot Laptop
+serialNumber: carrot
 
 # A small company with an account and a person.
 

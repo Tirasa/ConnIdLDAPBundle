@@ -210,6 +210,8 @@ public class LdapSearch {
             searchFilter = conn.getConfiguration().getAccountSearchFilter();
         } else if (oclass.equals(ObjectClass.GROUP)) {
             searchFilter = conn.getConfiguration().getGroupSearchFilter();
+        } else {
+            searchFilter = conn.getConfiguration().getAnyObjectSearchFilter();
         }
         String nativeFilter = filter == null ? null : filter.getNativeFilter();
         return new LdapInternalSearch(conn,
@@ -451,13 +453,24 @@ public class LdapSearch {
     private int getLdapSearchScope() {
         String scope = options.getScope();
 
-        if (OperationOptions.SCOPE_OBJECT.equals(scope)) {
+        if (scope == null) {
+            if (oclass.is(ObjectClass.ACCOUNT_NAME)) {
+                scope = conn.getConfiguration().getUserSearchScope();
+            } else if (oclass.is(ObjectClass.GROUP_NAME)) {
+                scope = conn.getConfiguration().getGroupSearchScope();
+            } else {
+                scope = conn.getConfiguration().getAnyObjectSearchScope();
+            }
+        }
+
+        switch (scope) {
+            case OperationOptions.SCOPE_OBJECT:
             return SearchControls.OBJECT_SCOPE;
-        } else if (OperationOptions.SCOPE_ONE_LEVEL.equals(scope)) {
+            case OperationOptions.SCOPE_ONE_LEVEL:
             return SearchControls.ONELEVEL_SCOPE;
-        } else if (OperationOptions.SCOPE_SUBTREE.equals(scope) || scope == null) {
+            case OperationOptions.SCOPE_SUBTREE:
             return SearchControls.SUBTREE_SCOPE;
-        } else {
+            default:
             throw new IllegalArgumentException("Invalid search scope " + scope);
         }
     }

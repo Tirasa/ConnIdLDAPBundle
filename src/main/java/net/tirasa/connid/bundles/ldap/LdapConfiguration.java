@@ -45,6 +45,7 @@ import org.identityconnectors.common.security.GuardedByteArray.Accessor;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
 import org.identityconnectors.framework.spi.ConfigurationProperty;
 import org.identityconnectors.framework.spi.operations.SyncOp;
@@ -111,6 +112,11 @@ public class LdapConfiguration extends AbstractConfiguration {
      * A search filter that any group needs to match in order to be returned
      */
     private String groupSearchFilter = null;
+
+    /**
+     * A search filter that any anyObject needs to match in order to be returned
+     */
+    private String anyObjectSearchFilter = null;
 
     /**
      * The LDAP attribute holding the member for non-POSIX static groups.
@@ -200,6 +206,21 @@ public class LdapConfiguration extends AbstractConfiguration {
     private String dnAttribute = "entryDN";
 
     /**
+     * The SearchScope for user objects
+     */
+    private SearchScope userSearchScope = SearchScope.subtree;
+
+    /**
+     * The SearchScope for group objects
+     */
+    private SearchScope groupSearchScope = SearchScope.subtree;
+
+    /**
+     * The SearchScope for anyObject objects
+     */
+    private SearchScope anyObjectSearchScope = SearchScope.subtree;
+
+    /**
      * Whether to retrieve passwords when searching. The default is "false".
      */
     private boolean retrievePasswordsWithSearch;
@@ -273,6 +294,14 @@ public class LdapConfiguration extends AbstractConfiguration {
         checkNotEmpty(allConfig.getShortNameLdapAttributes(), "anyObjectNameAttributes.notEmpty");
         checkNoBlankValues(allConfig.getShortNameLdapAttributes(), "anyObjectNameAttributes.noBlankValues");
 
+        checkNotBlank(getUserSearchScope(), "userSearchScope.notBlank");
+        checkValidScope(getUserSearchScope(), "userSearchScope.invalidScope");
+
+        checkNotBlank(getGroupSearchScope(), "groupSearchScope.notBlank");
+        checkValidScope(getGroupSearchScope(), "groupSearchScope.invalidScope");
+
+        checkNotBlank(getAnyObjectSearchScope(), "anyObjectSearchScope.notBlank");
+        checkValidScope(getAnyObjectSearchScope(), "anyObjectSearchScope.invalidScope");
 
         checkNotBlank(groupMemberAttribute, "groupMemberAttribute.notBlank");
 
@@ -365,6 +394,17 @@ public class LdapConfiguration extends AbstractConfiguration {
             } catch (InvalidNameException e) {
                 failValidation(errorMessage, each);
             }
+        }
+    }
+
+    private void checkValidScope(String scope, String errorMessage) {
+        switch (scope) {
+            case OperationOptions.SCOPE_OBJECT:
+            case OperationOptions.SCOPE_ONE_LEVEL:
+            case OperationOptions.SCOPE_SUBTREE:
+                break;
+            default:
+                failValidation(errorMessage);
         }
     }
 
@@ -490,6 +530,17 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     @ConfigurationProperty(order = 11,
+            displayMessageKey = "userSearchScope.display",
+            helpMessageKey = "userSearchScope.help")
+    public String getUserSearchScope() {
+        return userSearchScope.toString();
+    }
+
+    public void setUserSearchScope(String userSearchScope) {
+        this.userSearchScope = SearchScope.valueOf(userSearchScope.toLowerCase());
+    }
+
+    @ConfigurationProperty(order = 12,
             displayMessageKey = "accountSearchFilter.display",
             helpMessageKey = "accountSearchFilter.help")
     public String getAccountSearchFilter() {
@@ -500,7 +551,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.accountSearchFilter = accountSearchFilter;
     }
 
-    @ConfigurationProperty(order = 12,
+    @ConfigurationProperty(order = 13,
             displayMessageKey = "groupObjectClasses.display",
             helpMessageKey = "groupObjectClasses.help")
     public String[] getGroupObjectClasses() {
@@ -512,7 +563,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         groupConfig.setLdapClasses(Arrays.asList(groupObjectClasses));
     }
 
-    @ConfigurationProperty(order = 13,
+    @ConfigurationProperty(order = 14,
             displayMessageKey = "groupNameAttributes.display",
             helpMessageKey = "groupNameAttributes.help")
     public String[] getGroupNameAttributes() {
@@ -524,7 +575,18 @@ public class LdapConfiguration extends AbstractConfiguration {
         groupConfig.setShortNameLdapAttributes(Arrays.asList(groupNameAttributes));
     }
 
-    @ConfigurationProperty(order = 14,
+    @ConfigurationProperty(order = 15,
+            displayMessageKey = "groupSearchScope.display",
+            helpMessageKey = "groupSearchScope.help")
+    public String getGroupSearchScope() {
+        return groupSearchScope.toString();
+    }
+
+    public void setGroupSearchScope(String groupSearchScope) {
+        this.groupSearchScope = SearchScope.valueOf(groupSearchScope.toLowerCase());
+    }
+
+    @ConfigurationProperty(order = 16,
             displayMessageKey = "groupMemberAttribute.display",
             helpMessageKey = "groupMemberAttribute.help")
     public String getGroupMemberAttribute() {
@@ -535,7 +597,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.groupMemberAttribute = groupMemberAttribute;
     }
 
-    @ConfigurationProperty(order = 15,
+    @ConfigurationProperty(order = 17,
             displayMessageKey = "maintainLdapGroupMembership.display",
             helpMessageKey = "maintainLdapGroupMembership.help")
     public boolean isMaintainLdapGroupMembership() {
@@ -546,7 +608,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.maintainLdapGroupMembership = maintainLdapGroupMembership;
     }
 
-    @ConfigurationProperty(order = 16,
+    @ConfigurationProperty(order = 18,
             displayMessageKey = "maintainPosixGroupMembership.display",
             helpMessageKey = "maintainPosixGroupMembership.help")
     public boolean isMaintainPosixGroupMembership() {
@@ -557,7 +619,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.maintainPosixGroupMembership = maintainPosixGroupMembership;
     }
 
-    @ConfigurationProperty(order = 17,
+    @ConfigurationProperty(order = 19,
             displayMessageKey = "addPrincipalToNewGroups.display",
             helpMessageKey = "addPrincipalToNewGroups.help")
     public boolean isAddPrincipalToNewGroups() {
@@ -568,7 +630,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.addPrincipalToNewGroups = addPrincipalToNewGroups;
     }
 
-    @ConfigurationProperty(order = 18,
+    @ConfigurationProperty(order = 20,
             displayMessageKey = "anyObjectClasses.display",
             helpMessageKey = "anyObjectClasses.help")
     public String[] getAnyObjectClasses() {
@@ -580,7 +642,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         allConfig.setLdapClasses(Arrays.asList(anyObjectClasses));
     }
 
-    @ConfigurationProperty(order = 19,
+    @ConfigurationProperty(order = 21,
             displayMessageKey = "anyObjectNameAttributes.display",
             helpMessageKey = "anyObjectNameAttributes.help")
     public String[] getAnyObjectNameAttributes() {
@@ -592,7 +654,29 @@ public class LdapConfiguration extends AbstractConfiguration {
         allConfig.setShortNameLdapAttributes(Arrays.asList(anyObjectNameAttributes));
     }
 
-    @ConfigurationProperty(order = 20,
+    @ConfigurationProperty(order = 22,
+            displayMessageKey = "anyObjectSearchFilter.display",
+            helpMessageKey = "anyObjectSearchFilter.help")
+    public String getAnyObjectSearchFilter() {
+        return anyObjectSearchFilter;
+    }
+
+    public void setAnyObjectSearchFilter(String anyObjectSearchFilter) {
+        this.anyObjectSearchFilter = anyObjectSearchFilter;
+    }
+
+    @ConfigurationProperty(order = 23,
+            displayMessageKey = "anyObjectSearchScope.display",
+            helpMessageKey = "anyObjectSearchScope.help")
+    public String getAnyObjectSearchScope() {
+        return anyObjectSearchScope.toString();
+    }
+
+    public void setAnyObjectSearchScope(String anyObjectSearchScope) {
+        this.anyObjectSearchScope = SearchScope.valueOf(anyObjectSearchScope.toLowerCase());
+    }
+    
+    @ConfigurationProperty(order = 24,
             displayMessageKey = "passwordHashAlgorithm.display",
             helpMessageKey = "passwordHashAlgorithm.help")
     public String getPasswordHashAlgorithm() {
@@ -603,7 +687,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.passwordHashAlgorithm = passwordHashAlgorithm;
     }
 
-    @ConfigurationProperty(order = 21,
+    @ConfigurationProperty(order = 25,
             displayMessageKey = "respectResourcePasswordPolicyChangeAfterReset.display",
             helpMessageKey = "respectResourcePasswordPolicyChangeAfterReset.help")
     public boolean isRespectResourcePasswordPolicyChangeAfterReset() {
@@ -614,7 +698,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.respectResourcePasswordPolicyChangeAfterReset = respectResourcePasswordPolicyChangeAfterReset;
     }
 
-    @ConfigurationProperty(order = 22,
+    @ConfigurationProperty(order = 26,
             displayMessageKey = "useVlvControls.display",
             helpMessageKey = "useVlvControls.help")
     public boolean isUseVlvControls() {
@@ -625,7 +709,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.useVlvControls = useVlvControls;
     }
 
-    @ConfigurationProperty(order = 23,
+    @ConfigurationProperty(order = 27,
             displayMessageKey = "vlvSortAttribute.display",
             helpMessageKey = "vlvSortAttribute.help")
     public String getVlvSortAttribute() {
@@ -636,7 +720,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.vlvSortAttribute = vlvSortAttribute;
     }
 
-    @ConfigurationProperty(order = 24,
+    @ConfigurationProperty(order = 28,
             displayMessageKey = "uidAttribute.display",
             helpMessageKey = "uidAttribute.help")
     public String getUidAttribute() {
@@ -647,7 +731,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.uidAttribute = uidAttribute;
     }
 
-    @ConfigurationProperty(order = 25,
+    @ConfigurationProperty(order = 29,
             displayMessageKey = "gidAttribute.display",
             helpMessageKey = "gidAttribute.help")
     public String getGidAttribute() {
@@ -658,7 +742,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.gidAttribute = gidAttribute;
     }
 
-    @ConfigurationProperty(order = 26,
+    @ConfigurationProperty(order = 30,
             displayMessageKey = "readSchema.display",
             helpMessageKey = "readSchema.help")
     public boolean isReadSchema() {
@@ -670,7 +754,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     // Sync properties getters and setters.
-    @ConfigurationProperty(order = 27, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 31, operations = { SyncOp.class },
             displayMessageKey = "baseContextsToSynchronize.display",
             helpMessageKey = "baseContextsToSynchronize.help")
     public String[] getBaseContextsToSynchronize() {
@@ -681,7 +765,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.baseContextsToSynchronize = baseContextsToSynchronize.clone();
     }
 
-    @ConfigurationProperty(order = 28, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 32, operations = { SyncOp.class },
             displayMessageKey = "objectClassesToSynchronize.display",
             helpMessageKey = "objectClassesToSynchronize.help")
     public String[] getObjectClassesToSynchronize() {
@@ -692,7 +776,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.objectClassesToSynchronize = objectClassesToSynchronize.clone();
     }
 
-    @ConfigurationProperty(order = 29, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 33, operations = { SyncOp.class },
             displayMessageKey = "attributesToSynchronize.display",
             helpMessageKey = "attributesToSynchronize.help")
     public String[] getAttributesToSynchronize() {
@@ -703,7 +787,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.attributesToSynchronize = attributesToSynchronize.clone();
     }
 
-    @ConfigurationProperty(order = 30, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 34, operations = { SyncOp.class },
             displayMessageKey = "modifiersNamesToFilterOut.display",
             helpMessageKey = "modifiersNamesToFilterOut.help")
     public String[] getModifiersNamesToFilterOut() {
@@ -714,7 +798,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.modifiersNamesToFilterOut = modifiersNamesToFilterOut.clone();
     }
 
-    @ConfigurationProperty(order = 31, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 35, operations = { SyncOp.class },
             displayMessageKey = "accountSynchronizationFilter.display",
             helpMessageKey = "accountSynchronizationFilter.help")
     public String getAccountSynchronizationFilter() {
@@ -725,7 +809,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.accountSynchronizationFilter = accountSynchronizationFilter;
     }
 
-    @ConfigurationProperty(order = 32, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 36, operations = { SyncOp.class },
             displayMessageKey = "changeLogBlockSize.display",
             helpMessageKey = "changeLogBlockSize.help")
     public int getChangeLogBlockSize() {
@@ -736,7 +820,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.changeLogBlockSize = changeLogBlockSize;
     }
 
-    @ConfigurationProperty(order = 33, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 37, operations = { SyncOp.class },
             displayMessageKey = "changeNumberAttribute.display",
             helpMessageKey = "changeNumberAttribute.help")
     public String getChangeNumberAttribute() {
@@ -747,7 +831,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.changeNumberAttribute = changeNumberAttribute;
     }
 
-    @ConfigurationProperty(order = 34, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 38, operations = { SyncOp.class },
             displayMessageKey = "filterWithOrInsteadOfAnd.display",
             helpMessageKey = "filterWithOrInsteadOfAnd.help")
     public boolean isFilterWithOrInsteadOfAnd() {
@@ -758,7 +842,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.filterWithOrInsteadOfAnd = filterWithOrInsteadOfAnd;
     }
 
-    @ConfigurationProperty(order = 35, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 39, operations = { SyncOp.class },
             displayMessageKey = "removeLogEntryObjectClassFromFilter.display",
             helpMessageKey = "removeLogEntryObjectClassFromFilter.help")
     public boolean isRemoveLogEntryObjectClassFromFilter() {
@@ -769,7 +853,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.removeLogEntryObjectClassFromFilter = removeLogEntryObjectClassFromFilter;
     }
 
-    @ConfigurationProperty(order = 36, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 40, operations = { SyncOp.class },
             displayMessageKey = "synchronizePasswords.display",
             helpMessageKey = "synchronizePasswords.help")
     public boolean isSynchronizePasswords() {
@@ -780,7 +864,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.synchronizePasswords = synchronizePasswords;
     }
 
-    @ConfigurationProperty(order = 37, operations = { SyncOp.class },
+    @ConfigurationProperty(order = 41, operations = { SyncOp.class },
             displayMessageKey = "passwordAttributeToSynchronize.display",
             helpMessageKey = "passwordAttributeToSynchronize.help")
     public String getPasswordAttributeToSynchronize() {
@@ -791,7 +875,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.passwordAttributeToSynchronize = passwordAttributeToSynchronize;
     }
 
-    @ConfigurationProperty(order = 38, operations = { SyncOp.class }, confidential = true,
+    @ConfigurationProperty(order = 42, operations = { SyncOp.class }, confidential = true,
             displayMessageKey = "passwordDecryptionKey.display",
             helpMessageKey = "passwordDecryptionKey.help")
     public GuardedByteArray getPasswordDecryptionKey() {
@@ -803,7 +887,7 @@ public class LdapConfiguration extends AbstractConfiguration {
                 copy() : null;
     }
 
-    @ConfigurationProperty(order = 39, operations = { SyncOp.class }, confidential = true,
+    @ConfigurationProperty(order = 43, operations = { SyncOp.class }, confidential = true,
             displayMessageKey = "passwordDecryptionInitializationVector.display",
             helpMessageKey = "passwordDecryptionInitializationVector.help")
     public GuardedByteArray getPasswordDecryptionInitializationVector() {
@@ -816,7 +900,7 @@ public class LdapConfiguration extends AbstractConfiguration {
                         copy() : null;
     }
 
-    @ConfigurationProperty(order = 40,
+    @ConfigurationProperty(order = 44,
             displayMessageKey = "statusManagementClass.display",
             helpMessageKey = "statusManagementClass.help")
     public String getStatusManagementClass() {
@@ -827,7 +911,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.statusManagementClass = statusManagementClass;
     }
 
-    @ConfigurationProperty(order = 41,
+    @ConfigurationProperty(order = 45,
             displayMessageKey = "retrievePasswordsWithSearch.display",
             helpMessageKey = "retrievePasswordsWithSearch.help")
     public boolean getRetrievePasswordsWithSearch() {
@@ -838,7 +922,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.retrievePasswordsWithSearch = retrievePasswordsWithSearch;
     }
 
-    @ConfigurationProperty(order = 42,
+    @ConfigurationProperty(order = 46,
             displayMessageKey = "dnAttribute.display",
             helpMessageKey = "dnAttribute.help")
     public String getDnAttribute() {
@@ -849,7 +933,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.dnAttribute = dnAttribute;
     }
 
-    @ConfigurationProperty(order = 43,
+    @ConfigurationProperty(order = 47,
             displayMessageKey = "groupSearchFilter.display",
             helpMessageKey = "groupSearchFilter.help")
     public String getGroupSearchFilter() {
@@ -860,7 +944,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.groupSearchFilter = groupSearchFilter;
     }
 
-    @ConfigurationProperty(order = 44,
+    @ConfigurationProperty(order = 48,
             displayMessageKey = "readTimeout.display",
             helpMessageKey = "readTimeout.help")
     public long getReadTimeout() {
@@ -871,7 +955,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.readTimeout = readTimeout;
     }
 
-    @ConfigurationProperty(order = 45,
+    @ConfigurationProperty(order = 49,
             displayMessageKey = "connectTimeout.display",
             helpMessageKey = "connectTimeout.help")
     public long getConnectTimeout() {
@@ -1008,5 +1092,11 @@ public class LdapConfiguration extends AbstractConfiguration {
                     createHashCodeBuilder());
         }
         return false;
+    }
+
+    public enum SearchScope {
+        object,
+        onelevel,
+        subtree;
     }
 }

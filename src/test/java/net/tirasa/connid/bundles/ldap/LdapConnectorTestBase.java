@@ -81,6 +81,10 @@ public abstract class LdapConnectorTestBase {
 
     public static final String ACME_USERS_DN = "ou=Users,o=Acme,dc=example,dc=com";
 
+    public static final String ACME_GROUPS_DN = "ou=Groups,o=Acme,dc=example,dc=com";
+
+    public static final String ACME_DEVICES_DN = "ou=Devices,o=Acme,dc=example,dc=com";
+
     public static final String BUGS_BUNNY_DN = "uid=bugs.bunny,ou=Users,o=Acme,dc=example,dc=com";
 
     public static final String RENAME_ONE_TEST_DN = "uid=rename.one,ou=Users,o=Acme,dc=example,dc=com";
@@ -105,25 +109,29 @@ public abstract class LdapConnectorTestBase {
 
     public static final String EXPIRED_UID = "expired";
 
-    public static final String BUGS_AND_FRIENDS_DN = "cn=Bugs and Friends,o=Acme,dc=example,dc=com";
+    public static final String BUGS_AND_FRIENDS_DN = "cn=Bugs and Friends,ou=Groups,o=Acme,dc=example,dc=com";
 
-    public static final String EXTERNAL_PEERS_DN = "cn=External Peers,o=Acme,dc=example,dc=com";
+    public static final String EXTERNAL_PEERS_DN = "cn=External Peers,ou=Groups,o=Acme,dc=example,dc=com";
 
-    public static final String UNIQUE_BUGS_AND_FRIENDS_DN = "cn=Unique Bugs and Friends,o=Acme,dc=example,dc=com";
+    public static final String UNIQUE_BUGS_AND_FRIENDS_DN = "cn=Unique Bugs and Friends,ou=Groups,o=Acme,dc=example,dc=com";
 
     public static final String UNIQUE_BUGS_AND_FRIENDS_CN = "Unique Bugs and Friends";
 
-    public static final String UNIQUE_EXTERNAL_PEERS_DN = "cn=Unique External Peers,o=Acme,dc=example,dc=com";
+    public static final String UNIQUE_EXTERNAL_PEERS_DN = "cn=Unique External Peers,ou=Groups,o=Acme,dc=example,dc=com";
 
-    public static final String UNIQUE_EMPTY_GROUP_DN = "cn=Unique Empty Group,o=Acme,dc=example,dc=com";
+    public static final String UNIQUE_EMPTY_GROUP_DN = "cn=Unique Empty Group,ou=Groups,o=Acme,dc=example,dc=com";
 
-    public static final String POSIX_BUGS_AND_FRIENDS_DN = "cn=POSIX Bugs and Friends,o=Acme,dc=example,dc=com";
+    public static final String POSIX_BUGS_AND_FRIENDS_DN = "cn=POSIX Bugs and Friends,ou=Groups,o=Acme,dc=example,dc=com";
 
-    public static final String POSIX_EXTERNAL_PEERS_DN = "cn=POSIX External Peers,o=Acme,dc=example,dc=com";
+    public static final String POSIX_EXTERNAL_PEERS_DN = "cn=POSIX External Peers,ou=Groups,o=Acme,dc=example,dc=com";
 
-    public static final String POSIX_EMPTY_GROUP_DN = "cn=POSIX Empty Group,o=Acme,dc=example,dc=com";
+    public static final String POSIX_EMPTY_GROUP_DN = "cn=POSIX Empty Group,ou=Groups,o=Acme,dc=example,dc=com";
 
-    public static final String POSIX_BUGS_BUNNY_GROUP = "cn=POSIX Bugs Bunny Group,o=Acme,dc=example,dc=com";
+    public static final String POSIX_BUGS_BUNNY_GROUP = "cn=POSIX Bugs Bunny Group,ou=Groups,o=Acme,dc=example,dc=com";
+
+    public static final String CARROT_LAPTOP_DN = "cn=Carrot Laptop,ou=Devices,o=Acme,dc=example,dc=com";
+
+    public static final String CARROT_LAPTOP_CN = "Carrot Laptop";
 
     public static final String SMALL_COMPANY_DN = "o=Small Company,dc=example,dc=com";
 

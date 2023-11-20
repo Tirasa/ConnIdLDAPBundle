@@ -333,6 +333,126 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     }
 
     @Test
+    public void configurableUserScope() {
+        LdapConfiguration configuration = newConfiguration();
+        configuration.setUserSearchScope("object");
+        ConnectorFacade facade = newFacade(configuration);
+        
+        // Find an organization to pass in OP_CONTAINER.
+        ObjectClass oclass = new ObjectClass("organization");
+        ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
+        
+        // Prepare options
+        OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+        optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
+        optionsBuilder.setPageSize(100);
+        OperationOptions options = optionsBuilder.build();
+        
+        // We can get bugs bunny with an 'object' search by DN
+        ConnectorObject bugsBunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
+        assertNotNull(bugsBunny);
+
+        // Reconfigure for 'onelevel' search
+        configuration.setUserSearchScope("onelevel");
+        configuration.setAccountSearchFilter("(uid=" + BUGS_BUNNY_UID + ")");
+        facade = newFacade(configuration);
+
+        // Bugs Bunny doesn't exist directly under the organisation..
+        List<ConnectorObject> objects = TestHelpers.searchToList(
+                facade, ObjectClass.ACCOUNT, null, options);
+        assertTrue(objects.isEmpty());
+
+        // Reconfigure for 'subtree' search
+        configuration.setUserSearchScope("subtree");
+        facade = newFacade(configuration);
+
+        // ... but does in the organisation subtree
+        objects = TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null, options);
+        assertFalse(objects.isEmpty());
+    }
+    
+    @Test
+    public void configurableGroupScope() {
+        LdapConfiguration configuration = newConfiguration();
+        configuration.setGroupSearchScope("object");
+        ConnectorFacade facade = newFacade(configuration);
+        
+        // Find an organization to pass in OP_CONTAINER.
+        ObjectClass oclass = new ObjectClass("organization");
+        ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
+        
+        // Prepare options
+        OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+        optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
+        optionsBuilder.setPageSize(100);
+        OperationOptions options = optionsBuilder.build();
+
+        // We can get 'unique bugs and friends' with an 'object' search by DN
+        ConnectorObject uniqueBugsAndFriends = searchByAttribute(facade, ObjectClass.GROUP, new Name(UNIQUE_BUGS_AND_FRIENDS_DN));
+        assertNotNull(uniqueBugsAndFriends);
+        
+        // Reconfigure for 'onelevel' search
+        configuration.setGroupSearchScope("onelevel");
+        configuration.setGroupSearchFilter("(cn=" + UNIQUE_BUGS_AND_FRIENDS_CN + ")");
+        facade = newFacade(configuration);
+
+        // Bugs Bunny doesn't exist directly under the organisation..
+        List<ConnectorObject> objects = TestHelpers.searchToList(
+                facade, ObjectClass.GROUP, null, options);
+        assertTrue(objects.isEmpty());
+
+        // Reconfigure for 'subtree' search
+        configuration.setGroupSearchScope("subtree");
+        facade = newFacade(configuration);
+
+        // ... but does in the organisation subtree
+        objects = TestHelpers.searchToList(facade, ObjectClass.GROUP, null, options);
+        assertFalse(objects.isEmpty());
+    }
+    
+    @Test
+    public void configurableAnyObjectScope() {
+        LdapConfiguration configuration = newConfiguration();
+        configuration.setAnyObjectSearchScope("object");
+        ConnectorFacade facade = newFacade(configuration);
+
+        // Find an organization to pass in OP_CONTAINER.
+        ObjectClass oclass = new ObjectClass("organization");
+        ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
+        
+        // Prepare options
+        OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+        optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
+        optionsBuilder.setPageSize(100);
+        OperationOptions options = optionsBuilder.build();
+
+        // Set up for 'device' search
+        ObjectClass deviceObjectClass = new ObjectClass("device");
+
+        // We can get the 'carrot laptop' device with an 'object' search by DN
+        ConnectorObject carrotLaptop = searchByAttribute(facade, deviceObjectClass, new Name(CARROT_LAPTOP_DN));
+        assertNotNull(carrotLaptop);
+
+        // Reconfigure for 'onelevel' search
+        configuration.setAnyObjectSearchScope("onelevel");
+        configuration.setAnyObjectSearchFilter("(cn=" + CARROT_LAPTOP_CN + ")");
+        facade = newFacade(configuration);
+
+        // 'carrot laptop'' doesn't exist directly under the organisation..
+        List<ConnectorObject> objects = TestHelpers.searchToList(
+                facade, deviceObjectClass, null, options);
+        assertTrue(objects.isEmpty());
+                
+        // Reconfigure for 'subtree' search
+        configuration.setAnyObjectSearchScope("subtree");
+        facade = newFacade(configuration);
+        
+        // ... but does in the organisation subtree
+        objects = TestHelpers.searchToList(facade, deviceObjectClass, null, options);
+        assertFalse(objects.isEmpty());
+    }
+
+    @Test
     public void accountSearchFilter() {
         ConnectorFacade facade = newFacade();
         // Find an organization to pass in OP_CONTAINER.
@@ -419,6 +539,53 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         // If parentheses were not added, the search would fail.
         assertNotNull(searchByAttribute(facade, ObjectClass.GROUP, new Name(UNIQUE_BUGS_AND_FRIENDS_DN)));
+    }
+
+    @Test
+    public void anyObjectSearchFilter() {
+        ConnectorFacade facade = newFacade();
+        // Find an organization to pass in OP_CONTAINER.
+        ObjectClass oclass = new ObjectClass("organization");
+        ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
+
+        // First just check that there really are some anyObjects (devices in this case).
+        ObjectClass deviceObjectClass = new ObjectClass("device");
+        
+        OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+        optionsBuilder.setScope(OperationOptions.SCOPE_SUBTREE);
+        optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
+        List<ConnectorObject> objects = TestHelpers.searchToList(
+                facade, deviceObjectClass, null, optionsBuilder.build());
+        assertNotNull(getObjectByName(objects, CARROT_LAPTOP_DN));
+
+        // Test the anyObject search filter
+        LdapConfiguration config = newConfiguration();
+        config.setAnyObjectSearchFilter("(cn=" + CARROT_LAPTOP_CN + ")");
+        facade = newFacade(config);
+        objects = TestHelpers.searchToList(facade, deviceObjectClass, null, optionsBuilder.build());
+        assertEquals(1, objects.size());
+        assertNotNull(getObjectByName(objects, CARROT_LAPTOP_DN));
+    }
+
+    @Test
+    public void anyObjectSearchFilterOnlyAppliesToAnyObjects() {
+        LdapConfiguration config = newConfiguration();
+        config.setAnyObjectSearchFilter("(cn=foobarbaz)");
+        ConnectorFacade facade = newFacade(config);
+        ConnectorObject bugsBunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
+
+        // If the (cn=foobarbaz) filter above applied, the search would return nothing.
+        assertNotNull(bugsBunny);
+    }
+
+    @Test
+    public void missingParenthesesAddedToAnyObjectSearchFilter() {
+        LdapConfiguration config = newConfiguration();
+        config.setAnyObjectSearchFilter("cn=" + CARROT_LAPTOP_CN); // No parentheses enclosing the filter.
+        ConnectorFacade facade = newFacade(config);
+
+        // If parentheses were not added, the search would fail.
+        assertNotNull(searchByAttribute(facade, new ObjectClass("device"), new Name(CARROT_LAPTOP_DN)));
     }
 
     @Test

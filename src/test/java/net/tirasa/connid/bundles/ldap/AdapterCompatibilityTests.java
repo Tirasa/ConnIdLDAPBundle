@@ -134,7 +134,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
         ObjectClass oclass = new ObjectClass("groupOfUniqueNames");
         Set<Attribute> attributes = new HashSet<>();
-        Name name = new Name("cn=Another Group," + ACME_DN);
+        Name name = new Name("cn=Another Group," + ACME_GROUPS_DN);
         attributes.add(name);
         attributes.add(AttributeBuilder.build("cn", "Another Group"));
         // If "uniqueMember" is sent to the server as an empty attribute, the server complains.
