@@ -72,11 +72,11 @@ public final class LdapSearches {
         return findEntryDN(conn, oclass, uid, true, false);
     }
 
-    public static String getEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid, boolean ignoreCustomAnyObjectConfig)
-    {
-    	return findEntryDN(conn, oclass, uid, true, ignoreCustomAnyObjectConfig);
+    public static String getEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid,
+            boolean ignoreCustomAnyObjectConfig) {
+        return findEntryDN(conn, oclass, uid, true, ignoreCustomAnyObjectConfig);
     }
-    
+
     /**
      * Returns the DN of the entry identified by the given Uid. May throw <code>UnknownUidException</code>
      * if such an entry does not exists, but not necessarily.
@@ -84,11 +84,16 @@ public final class LdapSearches {
     public static String findEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid) {
         return findEntryDN(conn, oclass, uid, false, false);
     }
-    
-    public static String findEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid, boolean ignoreCustomAnyObjectConfig) {
-    	return findEntryDN(conn, oclass, uid, false, ignoreCustomAnyObjectConfig);
+
+    public static String findEntryDN(
+            LdapConnection conn,
+            ObjectClass oclass,
+            Uid uid,
+            boolean ignoreCustomAnyObjectConfig) {
+
+        return findEntryDN(conn, oclass, uid, false, ignoreCustomAnyObjectConfig);
     }
-    
+
     /**
      * Finds the DN of the entry corresponding to the given Uid. If the <code>check</code>
      * parameter is false, the method will take the quickest path to return the DN, but will not necessarily
@@ -96,10 +101,16 @@ public final class LdapSearches {
      * the method will throw a <code>UnknownUidException</code> if the entry identified
      * by the Uid does not exist.
      */
-    private static String findEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid, boolean check, boolean ignoreCustomAnyObjectConfig) {
+    private static String findEntryDN(
+            LdapConnection conn,
+            ObjectClass oclass,
+            Uid uid,
+            boolean check,
+            boolean ignoreCustomAnyObjectConfig) {
+
         LOG.ok("Searching for object {0} of class {1}", uid.getUidValue(), oclass.getObjectClassValue());
 
-        LdapFilter ldapFilter = null;
+        LdapFilter ldapFilter;
 
         // If the Uid is actually the entry DN, we do not need to do a search do find the entry DN.
         String uidAttr = conn.getSchemaMapping().getLdapUidAttribute(oclass);
@@ -137,7 +148,7 @@ public final class LdapSearches {
         LOG.ok("Searching for object with attribute {0} of class {1} in {2}",
                 attr, oclass.getObjectClassValue(), baseDN);
 
-        final List<ConnectorObject> result = new ArrayList<ConnectorObject>();
+        final List<ConnectorObject> result = new ArrayList<>();
 
         EqualsFilter filter = (EqualsFilter) FilterBuilder.equalTo(attr);
         LdapFilter ldapFilter = new LdapFilterTranslator(conn.getSchemaMapping(), oclass).
@@ -177,7 +188,7 @@ public final class LdapSearches {
     public static LdapEntry getEntry(LdapConnection conn, LdapName entryDN, String... ldapAttrsToGet) {
         LOG.ok("Searching for entry {0}", entryDN);
 
-        final List<LdapEntry> result = new ArrayList<LdapEntry>();
+        final List<LdapEntry> result = new ArrayList<>();
         if (!LdapUtil.isUnderContexts(entryDN, conn.getConfiguration().
                 getBaseContextsAsLdapNames())) {
             return null;

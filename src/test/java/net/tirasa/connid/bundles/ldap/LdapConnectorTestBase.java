@@ -113,7 +113,8 @@ public abstract class LdapConnectorTestBase {
 
     public static final String EXTERNAL_PEERS_DN = "cn=External Peers,ou=Groups,o=Acme,dc=example,dc=com";
 
-    public static final String UNIQUE_BUGS_AND_FRIENDS_DN = "cn=Unique Bugs and Friends,ou=Groups,o=Acme,dc=example,dc=com";
+    public static final String UNIQUE_BUGS_AND_FRIENDS_DN =
+            "cn=Unique Bugs and Friends,ou=Groups,o=Acme,dc=example,dc=com";
 
     public static final String UNIQUE_BUGS_AND_FRIENDS_CN = "Unique Bugs and Friends";
 
@@ -121,7 +122,8 @@ public abstract class LdapConnectorTestBase {
 
     public static final String UNIQUE_EMPTY_GROUP_DN = "cn=Unique Empty Group,ou=Groups,o=Acme,dc=example,dc=com";
 
-    public static final String POSIX_BUGS_AND_FRIENDS_DN = "cn=POSIX Bugs and Friends,ou=Groups,o=Acme,dc=example,dc=com";
+    public static final String POSIX_BUGS_AND_FRIENDS_DN =
+            "cn=POSIX Bugs and Friends,ou=Groups,o=Acme,dc=example,dc=com";
 
     public static final String POSIX_EXTERNAL_PEERS_DN = "cn=POSIX External Peers,ou=Groups,o=Acme,dc=example,dc=com";
 

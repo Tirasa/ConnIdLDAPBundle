@@ -66,6 +66,7 @@ import org.identityconnectors.framework.spi.SearchResultsHandler;
  * @author Andrei Badea
  */
 public class LdapSearch {
+
     // An Operation Option specific for usage with LDAP
     public static final String OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG = "IGNORE_CUSTOM_ANY_OBJECT_CONFIG";
 
@@ -169,7 +170,7 @@ public class LdapSearch {
 
         return results[0];
     }
-    
+
     private LdapInternalSearch getInternalSearch(final Set<String> attrsToGet) {
         // This is a bit tricky. If the LdapFilter has an entry DN,
         // we only need to look at that entry and check whether it matches
@@ -190,8 +191,7 @@ public class LdapSearch {
         if (filterEntryDN == null) {
             strategy = getSearchStrategy();
             dns = getBaseDNs();
-            if (options.getOptions().containsKey(OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG))
-            {
+            if (options.getOptions().containsKey(OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG)) {
                 ignoreUserAnyObjectConfig = (boolean) options.getOptions().get(OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG);
             }
             searchScope = getLdapSearchScope(ignoreUserAnyObjectConfig);
@@ -207,9 +207,9 @@ public class LdapSearch {
         SearchControls controls = LdapInternalSearch.createDefaultSearchControls();
         Set<String> ldapAttrsToGet = getLdapAttributesToGet(attrsToGet);
 
-        controls.setReturningAttributes(ldapAttrsToGet.toArray(new String[ldapAttrsToGet.size()]));
+        controls.setReturningAttributes(ldapAttrsToGet.toArray(new String[0]));
 
-        controls.setSearchScope(searchScope);       
+        controls.setSearchScope(searchScope);
 
         String optionsFilter = LdapConstants.getSearchFilter(options);
         String searchFilter = null;
@@ -217,7 +217,7 @@ public class LdapSearch {
             searchFilter = conn.getConfiguration().getAccountSearchFilter();
         } else if (oclass.equals(ObjectClass.GROUP)) {
             searchFilter = conn.getConfiguration().getGroupSearchFilter();
-        } else if (!ignoreUserAnyObjectConfig){
+        } else if (!ignoreUserAnyObjectConfig) {
             searchFilter = conn.getConfiguration().getAnyObjectSearchFilter();
         }
         String nativeFilter = filter == null ? null : filter.getNativeFilter();
@@ -271,8 +271,8 @@ public class LdapSearch {
         builder.setUid(conn.getSchemaMapping().createUid(oclass, entry));
         builder.setName(conn.getSchemaMapping().createName(oclass, entry));
 
-        final List<String> ldapGroups = new ArrayList<String>();
-        final List<String> posixGroups = new ArrayList<String>();
+        final List<String> ldapGroups = new ArrayList<>();
+        final List<String> posixGroups = new ArrayList<>();
 
         for (String attrName : attrsToGet) {
             Attribute attribute;

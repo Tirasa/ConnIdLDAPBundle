@@ -366,7 +366,7 @@ public class LdapConfigurationTests {
     public void userSearchScopeNotBlank() {
         assertThrows(IllegalArgumentException.class, () -> config.setUserSearchScope(" "));
     }
-    
+
     @Test
     public void userSearchScopeInvalid() {
         assertThrows(IllegalArgumentException.class, () -> config.setUserSearchScope("abc"));
@@ -388,7 +388,7 @@ public class LdapConfigurationTests {
     public void groupSearchScopeNotBlank() {
         assertThrows(IllegalArgumentException.class, () -> config.setGroupSearchScope(" "));
     }
-    
+
     @Test
     public void groupSearchScopeInvalid() {
         assertThrows(IllegalArgumentException.class, () -> config.setGroupSearchScope("abc"));
@@ -410,7 +410,7 @@ public class LdapConfigurationTests {
     public void anyObjectSearchScopeNotBlank() {
         assertThrows(IllegalArgumentException.class, () -> config.setAnyObjectSearchScope(" "));
     }
-    
+
     @Test
     public void anyObjectSearchScopeInvalid() {
         assertThrows(IllegalArgumentException.class, () -> config.setAnyObjectSearchScope("abc"));

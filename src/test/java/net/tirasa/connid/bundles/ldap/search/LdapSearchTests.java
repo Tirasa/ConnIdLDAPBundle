@@ -337,17 +337,17 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         LdapConfiguration configuration = newConfiguration();
         configuration.setUserSearchScope("object");
         ConnectorFacade facade = newFacade(configuration);
-        
+
         // Find an organization to pass in OP_CONTAINER.
         ObjectClass oclass = new ObjectClass("organization");
         ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
-        
+
         // Prepare options
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
         optionsBuilder.setPageSize(100);
         OperationOptions options = optionsBuilder.build();
-        
+
         // We can get bugs bunny with an 'object' search by DN
         ConnectorObject bugsBunny = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
         assertNotNull(bugsBunny);
@@ -370,17 +370,17 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         objects = TestHelpers.searchToList(facade, ObjectClass.ACCOUNT, null, options);
         assertFalse(objects.isEmpty());
     }
-    
+
     @Test
     public void configurableGroupScope() {
         LdapConfiguration configuration = newConfiguration();
         configuration.setGroupSearchScope("object");
         ConnectorFacade facade = newFacade(configuration);
-        
+
         // Find an organization to pass in OP_CONTAINER.
         ObjectClass oclass = new ObjectClass("organization");
         ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
-        
+
         // Prepare options
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
@@ -388,9 +388,10 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         OperationOptions options = optionsBuilder.build();
 
         // We can get 'unique bugs and friends' with an 'object' search by DN
-        ConnectorObject uniqueBugsAndFriends = searchByAttribute(facade, ObjectClass.GROUP, new Name(UNIQUE_BUGS_AND_FRIENDS_DN));
+        ConnectorObject uniqueBugsAndFriends = searchByAttribute(
+                facade, ObjectClass.GROUP, new Name(UNIQUE_BUGS_AND_FRIENDS_DN));
         assertNotNull(uniqueBugsAndFriends);
-        
+
         // Reconfigure for 'onelevel' search
         configuration.setGroupSearchScope("onelevel");
         configuration.setGroupSearchFilter("(cn=" + UNIQUE_BUGS_AND_FRIENDS_CN + ")");
@@ -409,7 +410,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         objects = TestHelpers.searchToList(facade, ObjectClass.GROUP, null, options);
         assertFalse(objects.isEmpty());
     }
-    
+
     @Test
     public void configurableAnyObjectScope() {
         LdapConfiguration configuration = newConfiguration();
@@ -419,7 +420,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         // Find an organization to pass in OP_CONTAINER.
         ObjectClass oclass = new ObjectClass("organization");
         ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
-        
+
         // Prepare options
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
@@ -442,11 +443,11 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         List<ConnectorObject> objects = TestHelpers.searchToList(
                 facade, deviceObjectClass, null, options);
         assertTrue(objects.isEmpty());
-                
+
         // Reconfigure for 'subtree' search
         configuration.setAnyObjectSearchScope("subtree");
         facade = newFacade(configuration);
-        
+
         // ... but does in the organisation subtree
         objects = TestHelpers.searchToList(facade, deviceObjectClass, null, options);
         assertFalse(objects.isEmpty());
@@ -550,7 +551,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         // First just check that there really are some anyObjects (devices in this case).
         ObjectClass deviceObjectClass = new ObjectClass("device");
-        
+
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setScope(OperationOptions.SCOPE_SUBTREE);
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));

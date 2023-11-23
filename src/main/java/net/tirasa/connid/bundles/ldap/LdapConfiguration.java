@@ -57,6 +57,13 @@ import org.identityconnectors.framework.spi.operations.SyncOp;
  */
 public class LdapConfiguration extends AbstractConfiguration {
 
+    public enum SearchScope {
+        object,
+        onelevel,
+        subtree;
+
+    }
+
     // XXX should try to connect to the resource.
     public static final int DEFAULT_PORT = 389;
 
@@ -675,7 +682,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     public void setAnyObjectSearchScope(String anyObjectSearchScope) {
         this.anyObjectSearchScope = SearchScope.valueOf(anyObjectSearchScope.toLowerCase());
     }
-    
+
     @ConfigurationProperty(order = 24,
             displayMessageKey = "passwordHashAlgorithm.display",
             helpMessageKey = "passwordHashAlgorithm.help")
@@ -1092,11 +1099,5 @@ public class LdapConfiguration extends AbstractConfiguration {
                     createHashCodeBuilder());
         }
         return false;
-    }
-
-    public enum SearchScope {
-        object,
-        onelevel,
-        subtree;
     }
 }
