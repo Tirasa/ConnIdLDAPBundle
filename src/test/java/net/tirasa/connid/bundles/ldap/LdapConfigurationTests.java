@@ -23,6 +23,7 @@
  */
 package net.tirasa.connid.bundles.ldap;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -34,6 +35,7 @@ import java.util.Arrays;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
+import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.test.common.TestHelpers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -349,6 +351,76 @@ public class LdapConfigurationTests {
         assertEquals(0, config.getConnectTimeout());
         assertEquals(CollectionUtil.newList("top"), Arrays.asList(config.getAnyObjectClasses()));
         assertEquals(CollectionUtil.newList("entryUUID"), Arrays.asList(config.getAnyObjectNameAttributes()));
+        assertEquals(OperationOptions.SCOPE_SUBTREE, config.getUserSearchScope());
+        assertEquals(OperationOptions.SCOPE_SUBTREE, config.getGroupSearchScope());
+        assertEquals(OperationOptions.SCOPE_SUBTREE, config.getAnyObjectSearchScope());
+        assertNull(config.getAnyObjectSearchFilter());
+    }
+
+    @Test
+    public void userSearchScopeNotNull() {
+        assertThrows(NullPointerException.class, () -> config.setUserSearchScope((String) null));
+    }
+
+    @Test
+    public void userSearchScopeNotBlank() {
+        assertThrows(IllegalArgumentException.class, () -> config.setUserSearchScope(" "));
+    }
+
+    @Test
+    public void userSearchScopeInvalid() {
+        assertThrows(IllegalArgumentException.class, () -> config.setUserSearchScope("abc"));
+    }
+
+    @Test
+    public void userSearchScopeValid() {
+        assertDoesNotThrow(() -> config.setUserSearchScope("object"));
+        assertDoesNotThrow(() -> config.setUserSearchScope("onelevel"));
+        assertDoesNotThrow(() -> config.setUserSearchScope("subtree"));
+    }
+
+    @Test
+    public void groupSearchScopeNotNull() {
+        assertThrows(NullPointerException.class, () -> config.setGroupSearchScope((String) null));
+    }
+
+    @Test
+    public void groupSearchScopeNotBlank() {
+        assertThrows(IllegalArgumentException.class, () -> config.setGroupSearchScope(" "));
+    }
+
+    @Test
+    public void groupSearchScopeInvalid() {
+        assertThrows(IllegalArgumentException.class, () -> config.setGroupSearchScope("abc"));
+    }
+
+    @Test
+    public void groupSearchScopeValid() {
+        assertDoesNotThrow(() -> config.setGroupSearchScope("object"));
+        assertDoesNotThrow(() -> config.setGroupSearchScope("onelevel"));
+        assertDoesNotThrow(() -> config.setGroupSearchScope("subtree"));
+    }
+
+    @Test
+    public void anyObjectSearchScopeNotNull() {
+        assertThrows(NullPointerException.class, () -> config.setAnyObjectSearchScope((String) null));
+    }
+
+    @Test
+    public void anyObjectSearchScopeNotBlank() {
+        assertThrows(IllegalArgumentException.class, () -> config.setAnyObjectSearchScope(" "));
+    }
+
+    @Test
+    public void anyObjectSearchScopeInvalid() {
+        assertThrows(IllegalArgumentException.class, () -> config.setAnyObjectSearchScope("abc"));
+    }
+
+    @Test
+    public void anyObjectSearchScopeValid() {
+        assertDoesNotThrow(() -> config.setAnyObjectSearchScope("object"));
+        assertDoesNotThrow(() -> config.setAnyObjectSearchScope("onelevel"));
+        assertDoesNotThrow(() -> config.setAnyObjectSearchScope("subtree"));
     }
 
     private static void assertCanValidate(LdapConfiguration config) {

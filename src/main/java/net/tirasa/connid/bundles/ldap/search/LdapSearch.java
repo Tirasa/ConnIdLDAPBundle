@@ -67,6 +67,9 @@ import org.identityconnectors.framework.spi.SearchResultsHandler;
  */
 public class LdapSearch {
 
+    // An Operation Option specific for usage with LDAP
+    public static final String OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG = "IGNORE_CUSTOM_ANY_OBJECT_CONFIG";
+
     private static final Log LOG = Log.getLog(LdapSearch.class);
 
     private final LdapConnection conn;
@@ -182,12 +185,16 @@ public class LdapSearch {
         LdapSearchStrategy strategy;
         List<String> dns;
         int searchScope;
+        boolean ignoreUserAnyObjectConfig = false;
 
         String filterEntryDN = filter == null ? null : filter.getEntryDN();
         if (filterEntryDN == null) {
             strategy = getSearchStrategy();
             dns = getBaseDNs();
-            searchScope = getLdapSearchScope();
+            if (options.getOptions().containsKey(OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG)) {
+                ignoreUserAnyObjectConfig = (boolean) options.getOptions().get(OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG);
+            }
+            searchScope = getLdapSearchScope(ignoreUserAnyObjectConfig);
         } else {
             // Would be good to check that filterEntryDN is under the configured base contexts.
             // However, the adapter is likely to pass entries outside the base contexts,
@@ -200,7 +207,7 @@ public class LdapSearch {
         SearchControls controls = LdapInternalSearch.createDefaultSearchControls();
         Set<String> ldapAttrsToGet = getLdapAttributesToGet(attrsToGet);
 
-        controls.setReturningAttributes(ldapAttrsToGet.toArray(new String[ldapAttrsToGet.size()]));
+        controls.setReturningAttributes(ldapAttrsToGet.toArray(new String[0]));
 
         controls.setSearchScope(searchScope);
 
@@ -210,6 +217,8 @@ public class LdapSearch {
             searchFilter = conn.getConfiguration().getAccountSearchFilter();
         } else if (oclass.equals(ObjectClass.GROUP)) {
             searchFilter = conn.getConfiguration().getGroupSearchFilter();
+        } else if (!ignoreUserAnyObjectConfig) {
+            searchFilter = conn.getConfiguration().getAnyObjectSearchFilter();
         }
         String nativeFilter = filter == null ? null : filter.getNativeFilter();
         return new LdapInternalSearch(conn,
@@ -262,8 +271,8 @@ public class LdapSearch {
         builder.setUid(conn.getSchemaMapping().createUid(oclass, entry));
         builder.setName(conn.getSchemaMapping().createName(oclass, entry));
 
-        final List<String> ldapGroups = new ArrayList<String>();
-        final List<String> posixGroups = new ArrayList<String>();
+        final List<String> ldapGroups = new ArrayList<>();
+        final List<String> posixGroups = new ArrayList<>();
 
         for (String attrName : attrsToGet) {
             Attribute attribute;
@@ -375,7 +384,7 @@ public class LdapSearch {
 
         if (container != null) {
             result = Collections.singletonList(
-                    LdapSearches.findEntryDN(conn, container.getObjectClass(), container.getUid()));
+                    LdapSearches.findEntryDN(conn, container.getObjectClass(), container.getUid(), true));
         } else {
             result = Arrays.asList(baseDNs);
         }
@@ -448,17 +457,30 @@ public class LdapSearch {
         }
     }
 
-    private int getLdapSearchScope() {
+    private int getLdapSearchScope(boolean ignoreUserAnyObjectConfig) {
         String scope = options.getScope();
 
-        if (OperationOptions.SCOPE_OBJECT.equals(scope)) {
-            return SearchControls.OBJECT_SCOPE;
-        } else if (OperationOptions.SCOPE_ONE_LEVEL.equals(scope)) {
-            return SearchControls.ONELEVEL_SCOPE;
-        } else if (OperationOptions.SCOPE_SUBTREE.equals(scope) || scope == null) {
-            return SearchControls.SUBTREE_SCOPE;
-        } else {
-            throw new IllegalArgumentException("Invalid search scope " + scope);
+        if (scope == null) {
+            if (oclass.is(ObjectClass.ACCOUNT_NAME)) {
+                scope = conn.getConfiguration().getUserSearchScope();
+            } else if (oclass.is(ObjectClass.GROUP_NAME)) {
+                scope = conn.getConfiguration().getGroupSearchScope();
+            } else if (!ignoreUserAnyObjectConfig) {
+                scope = conn.getConfiguration().getAnyObjectSearchScope();
+            } else {
+                scope = OperationOptions.SCOPE_SUBTREE;
+            }
+        }
+
+        switch (scope) {
+            case OperationOptions.SCOPE_OBJECT:
+                return SearchControls.OBJECT_SCOPE;
+            case OperationOptions.SCOPE_ONE_LEVEL:
+                return SearchControls.ONELEVEL_SCOPE;
+            case OperationOptions.SCOPE_SUBTREE:
+                return SearchControls.SUBTREE_SCOPE;
+            default:
+                throw new IllegalArgumentException("Invalid search scope " + scope);
         }
     }
 }
