@@ -69,17 +69,26 @@ public final class LdapSearches {
      * if such an entry does not exists.
      */
     public static String getEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid) {
-        return findEntryDN(conn, oclass, uid, true);
+        return findEntryDN(conn, oclass, uid, true, false);
     }
 
+    public static String getEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid, boolean ignoreCustomAnyObjectConfig)
+    {
+    	return findEntryDN(conn, oclass, uid, true, ignoreCustomAnyObjectConfig);
+    }
+    
     /**
      * Returns the DN of the entry identified by the given Uid. May throw <code>UnknownUidException</code>
      * if such an entry does not exists, but not necessarily.
      */
     public static String findEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid) {
-        return findEntryDN(conn, oclass, uid, false);
+        return findEntryDN(conn, oclass, uid, false, false);
     }
-
+    
+    public static String findEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid, boolean ignoreCustomAnyObjectConfig) {
+    	return findEntryDN(conn, oclass, uid, false, ignoreCustomAnyObjectConfig);
+    }
+    
     /**
      * Finds the DN of the entry corresponding to the given Uid. If the <code>check</code>
      * parameter is false, the method will take the quickest path to return the DN, but will not necessarily
@@ -87,7 +96,7 @@ public final class LdapSearches {
      * the method will throw a <code>UnknownUidException</code> if the entry identified
      * by the Uid does not exist.
      */
-    private static String findEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid, boolean check) {
+    private static String findEntryDN(LdapConnection conn, ObjectClass oclass, Uid uid, boolean check, boolean ignoreCustomAnyObjectConfig) {
         LOG.ok("Searching for object {0} of class {1}", uid.getUidValue(), oclass.getObjectClassValue());
 
         LdapFilter ldapFilter = null;
@@ -112,6 +121,7 @@ public final class LdapSearches {
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet(conn.getConfiguration().getDnAttribute());
+        builder.setOption(LdapSearch.OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG, ignoreCustomAnyObjectConfig);
 
         LdapSearch search = new LdapSearch(conn, oclass, ldapFilter, null, builder.build());
         ConnectorObject object = search.getSingleResult();

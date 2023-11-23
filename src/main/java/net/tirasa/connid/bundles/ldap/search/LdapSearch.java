@@ -66,6 +66,8 @@ import org.identityconnectors.framework.spi.SearchResultsHandler;
  * @author Andrei Badea
  */
 public class LdapSearch {
+    // An Operation Option specific for usage with LDAP
+    public static final String OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG = "IGNORE_CUSTOM_ANY_OBJECT_CONFIG";
 
     private static final Log LOG = Log.getLog(LdapSearch.class);
 
@@ -167,7 +169,7 @@ public class LdapSearch {
 
         return results[0];
     }
-
+    
     private LdapInternalSearch getInternalSearch(final Set<String> attrsToGet) {
         // This is a bit tricky. If the LdapFilter has an entry DN,
         // we only need to look at that entry and check whether it matches
@@ -182,12 +184,17 @@ public class LdapSearch {
         LdapSearchStrategy strategy;
         List<String> dns;
         int searchScope;
+        boolean ignoreUserAnyObjectConfig = false;
 
         String filterEntryDN = filter == null ? null : filter.getEntryDN();
         if (filterEntryDN == null) {
             strategy = getSearchStrategy();
             dns = getBaseDNs();
-            searchScope = getLdapSearchScope();
+            if (options.getOptions().containsKey(OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG))
+            {
+                ignoreUserAnyObjectConfig = (boolean) options.getOptions().get(OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG);
+            }
+            searchScope = getLdapSearchScope(ignoreUserAnyObjectConfig);
         } else {
             // Would be good to check that filterEntryDN is under the configured base contexts.
             // However, the adapter is likely to pass entries outside the base contexts,
@@ -202,7 +209,7 @@ public class LdapSearch {
 
         controls.setReturningAttributes(ldapAttrsToGet.toArray(new String[ldapAttrsToGet.size()]));
 
-        controls.setSearchScope(searchScope);
+        controls.setSearchScope(searchScope);       
 
         String optionsFilter = LdapConstants.getSearchFilter(options);
         String searchFilter = null;
@@ -210,7 +217,7 @@ public class LdapSearch {
             searchFilter = conn.getConfiguration().getAccountSearchFilter();
         } else if (oclass.equals(ObjectClass.GROUP)) {
             searchFilter = conn.getConfiguration().getGroupSearchFilter();
-        } else {
+        } else if (!ignoreUserAnyObjectConfig){
             searchFilter = conn.getConfiguration().getAnyObjectSearchFilter();
         }
         String nativeFilter = filter == null ? null : filter.getNativeFilter();
@@ -377,7 +384,7 @@ public class LdapSearch {
 
         if (container != null) {
             result = Collections.singletonList(
-                    LdapSearches.findEntryDN(conn, container.getObjectClass(), container.getUid()));
+                    LdapSearches.findEntryDN(conn, container.getObjectClass(), container.getUid(), true));
         } else {
             result = Arrays.asList(baseDNs);
         }
@@ -450,7 +457,7 @@ public class LdapSearch {
         }
     }
 
-    private int getLdapSearchScope() {
+    private int getLdapSearchScope(boolean ignoreUserAnyObjectConfig) {
         String scope = options.getScope();
 
         if (scope == null) {
@@ -458,20 +465,22 @@ public class LdapSearch {
                 scope = conn.getConfiguration().getUserSearchScope();
             } else if (oclass.is(ObjectClass.GROUP_NAME)) {
                 scope = conn.getConfiguration().getGroupSearchScope();
-            } else {
+            } else if (!ignoreUserAnyObjectConfig) {
                 scope = conn.getConfiguration().getAnyObjectSearchScope();
+            } else {
+                scope = OperationOptions.SCOPE_SUBTREE;
             }
         }
 
         switch (scope) {
             case OperationOptions.SCOPE_OBJECT:
-            return SearchControls.OBJECT_SCOPE;
+                return SearchControls.OBJECT_SCOPE;
             case OperationOptions.SCOPE_ONE_LEVEL:
-            return SearchControls.ONELEVEL_SCOPE;
+                return SearchControls.ONELEVEL_SCOPE;
             case OperationOptions.SCOPE_SUBTREE:
-            return SearchControls.SUBTREE_SCOPE;
+                return SearchControls.SUBTREE_SCOPE;
             default:
-            throw new IllegalArgumentException("Invalid search scope " + scope);
+                throw new IllegalArgumentException("Invalid search scope " + scope);
         }
     }
 }
