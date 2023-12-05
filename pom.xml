@@ -166,6 +166,13 @@
         <version>2.7.0</version>
         <configuration>
           <javaVersion>${targetJdk}</javaVersion>
+          <exclusions>
+            <exclusion>java/util/Enumeration</exclusion>
+            <exclusion>java/util/Hashtable."&lt;init&gt;":(IF)V</exclusion>
+            <exclusion>java/util/Hashtable."&lt;init&gt;":(I)V</exclusion>
+            <exclusion>java/util/Hashtable."&lt;init&gt;":()V</exclusion>
+            <exclusion>java/util/Hashtable."&lt;init&gt;":(Ljava/util/Map;)V</exclusion>
+          </exclusions>          
         </configuration>
         <executions>
           <execution>
