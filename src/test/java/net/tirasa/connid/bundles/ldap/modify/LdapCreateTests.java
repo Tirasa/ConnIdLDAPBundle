@@ -239,7 +239,6 @@ public class LdapCreateTests extends LdapConnectorTestBase {
 
     }
 
-
     @Test
     public void createBinaryAttributes() throws IOException {
         ConnectorFacade facade = newFacade();

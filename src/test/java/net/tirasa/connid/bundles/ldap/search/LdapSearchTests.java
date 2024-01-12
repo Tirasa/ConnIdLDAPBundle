@@ -416,7 +416,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     @Test
     public void configurableAnyObjectScope() {
         LdapConfiguration configuration = newConfiguration();
-        configuration.setAnyObjectSearchScope("object");    
+        configuration.setAnyObjectSearchScope("object");
         configuration.setAnyObjectClasses("top", "organization");
         ConnectorFacade facade = newFacade(configuration);
 
@@ -435,7 +435,8 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         facade = newFacade(configuration);
 
         // We can get the 'carrot laptop' device with an 'object' search by DN
-        ConnectorObject carrotLaptop = searchByAttribute(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, new Name(CARROT_LAPTOP_DN));
+        ConnectorObject carrotLaptop = searchByAttribute(
+                facade, LdapSchemaMapping.ANY_OBJECT_CLASS, new Name(CARROT_LAPTOP_DN));
         assertNotNull(carrotLaptop);
 
         // Reconfigure for 'onelevel' search
@@ -554,7 +555,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         // Find an organization to pass in OP_CONTAINER.
         ObjectClass oclass = new ObjectClass("organization");
         ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
-        
+
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setScope(OperationOptions.SCOPE_SUBTREE);
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));

@@ -246,7 +246,7 @@ public class LdapConfiguration extends AbstractConfiguration {
             false, CollectionUtil.newList("cn"));
 
     private final ObjectClassMappingConfig anyObjectConfig = new ObjectClassMappingConfig(
-            LdapSchemaMapping.ANY_OBJECT_CLASS, 
+            LdapSchemaMapping.ANY_OBJECT_CLASS,
             CollectionUtil.newList("top"),
             false, CollectionUtil.newList(DEFAULT_ID_ATTRIBUTE));
 
