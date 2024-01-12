@@ -416,16 +416,17 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     @Test
     public void configurableAnyObjectScope() {
         LdapConfiguration configuration = newConfiguration();
-        configuration.setAnyObjectSearchScope("object");
+        configuration.setAnyObjectSearchScope("object");    
         configuration.setAnyObjectClasses("top", "organization");
         ConnectorFacade facade = newFacade(configuration);
 
         // Find an organization to pass in OP_CONTAINER.
-        ConnectorObject organization = searchByAttribute(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, new Name(ACME_DN));
+        ObjectClass oclass = new ObjectClass("organization");
+        ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
 
         // Prepare options
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-        optionsBuilder.setContainer(new QualifiedUid(LdapSchemaMapping.ANY_OBJECT_CLASS, organization.getUid()));
+        optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
         optionsBuilder.setPageSize(100);
         OperationOptions options = optionsBuilder.build();
 
@@ -548,25 +549,29 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     @Test
     public void anyObjectSearchFilter() {
         LdapConfiguration configuration = newConfiguration();
-        configuration.setAnyObjectClasses("top","organization");
+        configuration.setAnyObjectClasses("top", "organization");
         ConnectorFacade facade = newFacade(configuration);
         // Find an organization to pass in OP_CONTAINER.
-        ConnectorObject organization = searchByAttribute(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, new Name(ACME_DN));
-
+        ObjectClass oclass = new ObjectClass("organization");
+        ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
+        
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setScope(OperationOptions.SCOPE_SUBTREE);
-        optionsBuilder.setContainer(new QualifiedUid(LdapSchemaMapping.ANY_OBJECT_CLASS, organization.getUid()));
+        optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
 
         // First just check that there really are some anyObjects (devices in this case).
         configuration.setAnyObjectClasses("top", "device");
+        configuration.setAnyObjectNameAttributes("cn");
+        facade = newFacade(configuration);
         List<ConnectorObject> objects = TestHelpers.searchToList(
                 facade, LdapSchemaMapping.ANY_OBJECT_CLASS, null, optionsBuilder.build());
         assertNotNull(getObjectByName(objects, CARROT_LAPTOP_DN));
 
         // Test the anyObject search filter
-        LdapConfiguration config = newConfiguration();
-        config.setAnyObjectSearchFilter("(cn=" + CARROT_LAPTOP_CN + ")");
-        facade = newFacade(config);
+        configuration = newConfiguration();
+        configuration.setAnyObjectSearchFilter("(cn=" + CARROT_LAPTOP_CN + ")");
+        configuration.setAnyObjectClasses("top", "device");
+        facade = newFacade(configuration);
         objects = TestHelpers.searchToList(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, null, optionsBuilder.build());
         assertEquals(1, objects.size());
         assertNotNull(getObjectByName(objects, CARROT_LAPTOP_DN));

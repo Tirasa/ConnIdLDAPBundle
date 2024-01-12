@@ -182,7 +182,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
         config.setGidAttribute("entryDN");
-        config.setAnyObjectNameAttributes("cn");
+        config.setAnyObjectNameAttributes("o");
         config.setBaseContexts(SMALL_COMPANY_DN);
         config.setAnyObjectClasses("top", "organization");
         ConnectorFacade facade = newFacade(config);
