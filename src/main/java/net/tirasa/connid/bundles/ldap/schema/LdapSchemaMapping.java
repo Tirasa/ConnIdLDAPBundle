@@ -123,9 +123,6 @@ public class LdapSchemaMapping {
      * Returns the LDAP object classes to which the given framework object class is mapped.
      */
     public List<String> getLdapClasses(ObjectClass oclass) {
-        if (oclass.equals(ANY_OBJECT_CLASS)) {
-            return Collections.<String>emptyList();
-        }
         ObjectClassMappingConfig oclassConfig = conn.getConfiguration().
                 getObjectClassMappingConfigs().get(oclass);
         if (oclassConfig != null) {
@@ -220,7 +217,7 @@ public class LdapSchemaMapping {
             clazz = oclass;
             idAttribute = conn.getConfiguration().getUidAttribute();
         } else {
-            clazz = ObjectClass.ALL;
+            clazz = oclass.equals(ANY_OBJECT_CLASS) ? oclass : ObjectClass.ALL;
             idAttribute = null;
         }
 

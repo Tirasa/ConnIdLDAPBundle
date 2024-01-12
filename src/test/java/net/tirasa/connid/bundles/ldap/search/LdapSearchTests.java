@@ -54,6 +54,8 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
+import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.spi.SearchResultsHandler;
@@ -415,23 +417,24 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     public void configurableAnyObjectScope() {
         LdapConfiguration configuration = newConfiguration();
         configuration.setAnyObjectSearchScope("object");
+        configuration.setAnyObjectClasses("top", "organization");
         ConnectorFacade facade = newFacade(configuration);
 
         // Find an organization to pass in OP_CONTAINER.
-        ObjectClass oclass = new ObjectClass("organization");
-        ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
+        ConnectorObject organization = searchByAttribute(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, new Name(ACME_DN));
 
         // Prepare options
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-        optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
+        optionsBuilder.setContainer(new QualifiedUid(LdapSchemaMapping.ANY_OBJECT_CLASS, organization.getUid()));
         optionsBuilder.setPageSize(100);
         OperationOptions options = optionsBuilder.build();
 
         // Set up for 'device' search
-        ObjectClass deviceObjectClass = new ObjectClass("device");
+        configuration.setAnyObjectClasses("top", "device");
+        facade = newFacade(configuration);
 
         // We can get the 'carrot laptop' device with an 'object' search by DN
-        ConnectorObject carrotLaptop = searchByAttribute(facade, deviceObjectClass, new Name(CARROT_LAPTOP_DN));
+        ConnectorObject carrotLaptop = searchByAttribute(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, new Name(CARROT_LAPTOP_DN));
         assertNotNull(carrotLaptop);
 
         // Reconfigure for 'onelevel' search
@@ -441,7 +444,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         // 'carrot laptop'' doesn't exist directly under the organisation..
         List<ConnectorObject> objects = TestHelpers.searchToList(
-                facade, deviceObjectClass, null, options);
+                facade, LdapSchemaMapping.ANY_OBJECT_CLASS, null, options);
         assertTrue(objects.isEmpty());
 
         // Reconfigure for 'subtree' search
@@ -449,7 +452,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         facade = newFacade(configuration);
 
         // ... but does in the organisation subtree
-        objects = TestHelpers.searchToList(facade, deviceObjectClass, null, options);
+        objects = TestHelpers.searchToList(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, null, options);
         assertFalse(objects.isEmpty());
     }
 
@@ -544,26 +547,27 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
     @Test
     public void anyObjectSearchFilter() {
-        ConnectorFacade facade = newFacade();
+        LdapConfiguration configuration = newConfiguration();
+        configuration.setAnyObjectClasses("top","organization");
+        ConnectorFacade facade = newFacade(configuration);
         // Find an organization to pass in OP_CONTAINER.
-        ObjectClass oclass = new ObjectClass("organization");
-        ConnectorObject organization = searchByAttribute(facade, oclass, new Name(ACME_DN));
-
-        // First just check that there really are some anyObjects (devices in this case).
-        ObjectClass deviceObjectClass = new ObjectClass("device");
+        ConnectorObject organization = searchByAttribute(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, new Name(ACME_DN));
 
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setScope(OperationOptions.SCOPE_SUBTREE);
-        optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
+        optionsBuilder.setContainer(new QualifiedUid(LdapSchemaMapping.ANY_OBJECT_CLASS, organization.getUid()));
+
+        // First just check that there really are some anyObjects (devices in this case).
+        configuration.setAnyObjectClasses("top", "device");
         List<ConnectorObject> objects = TestHelpers.searchToList(
-                facade, deviceObjectClass, null, optionsBuilder.build());
+                facade, LdapSchemaMapping.ANY_OBJECT_CLASS, null, optionsBuilder.build());
         assertNotNull(getObjectByName(objects, CARROT_LAPTOP_DN));
 
         // Test the anyObject search filter
         LdapConfiguration config = newConfiguration();
         config.setAnyObjectSearchFilter("(cn=" + CARROT_LAPTOP_CN + ")");
         facade = newFacade(config);
-        objects = TestHelpers.searchToList(facade, deviceObjectClass, null, optionsBuilder.build());
+        objects = TestHelpers.searchToList(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, null, optionsBuilder.build());
         assertEquals(1, objects.size());
         assertNotNull(getObjectByName(objects, CARROT_LAPTOP_DN));
     }
@@ -583,10 +587,11 @@ public class LdapSearchTests extends LdapConnectorTestBase {
     public void missingParenthesesAddedToAnyObjectSearchFilter() {
         LdapConfiguration config = newConfiguration();
         config.setAnyObjectSearchFilter("cn=" + CARROT_LAPTOP_CN); // No parentheses enclosing the filter.
+        config.setAnyObjectClasses("top", "device");
         ConnectorFacade facade = newFacade(config);
 
         // If parentheses were not added, the search would fail.
-        assertNotNull(searchByAttribute(facade, new ObjectClass("device"), new Name(CARROT_LAPTOP_DN)));
+        assertNotNull(searchByAttribute(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, new Name(CARROT_LAPTOP_DN)));
     }
 
     @Test

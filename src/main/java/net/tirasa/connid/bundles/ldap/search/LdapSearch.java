@@ -87,9 +87,6 @@ public class LdapSearch {
     private final ResultsHandler handler;
 
     public static Set<String> getAttributesReturnedByDefault(final LdapConnection conn, final ObjectClass oclass) {
-        if (oclass.equals(LdapSchemaMapping.ANY_OBJECT_CLASS)) {
-            return CollectionUtil.newSet(Name.NAME);
-        }
         Set<String> result = CollectionUtil.newCaseInsensitiveSet();
         ObjectClassInfo oci = conn.getSchemaMapping().schema().findObjectClassInfo(oclass.getObjectClassValue());
         if (oci != null) {
