@@ -37,6 +37,7 @@ import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.ObjectClassMappingConfig;
 import net.tirasa.connid.bundles.ldap.search.DefaultSearchStrategy;
+import net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategy;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.EqualsHashCodeBuilder;
 import org.identityconnectors.common.StringUtil;
@@ -344,6 +345,10 @@ public class LdapConfiguration extends AbstractConfiguration {
             checkNotBlank(passwordDecryptionKey, "decryptionKey.notBlank");
             checkNotBlank(passwordDecryptionInitializationVector, "decryptionInitializationVector.notBlank");
         }
+
+        checkNotBlank(syncStrategy, "syncStrategy.notBlank");
+        checkClassExists(syncStrategy, "syncStrategy.classNotFound");
+        checkClassImplements(syncStrategy, LdapSyncStrategy.class, "syncStrategy.classNotSyncStrategy");
     }
 
     private void checkNotBlank(String value, String errorMessage) {
@@ -365,6 +370,25 @@ public class LdapConfiguration extends AbstractConfiguration {
         }
         if (length[0] == 0) {
             failValidation(errorMessage);
+        }
+    }
+
+    private void checkClassExists(String value, String errorMessage) {
+        try {
+            Class<?> clazz = Class.forName(value);
+        } catch (ClassNotFoundException e) {
+            failValidation(errorMessage);
+        }
+    }
+
+    private void checkClassImplements(String value, Class<?> implementedClass, String errorMessage) {
+        try {
+            Class<?> clazz = Class.forName(value);
+            if (!clazz.isAssignableFrom(implementedClass)) {
+                failValidation(errorMessage);
+            }
+        }
+        catch (ClassNotFoundException e) {
         }
     }
 
