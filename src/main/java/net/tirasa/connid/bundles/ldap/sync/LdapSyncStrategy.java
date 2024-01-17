@@ -23,13 +23,14 @@
  */
 package net.tirasa.connid.bundles.ldap.sync;
 
+import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 
 public interface LdapSyncStrategy {
 
-    void sync(SyncToken token, SyncResultsHandler handler, OperationOptions options);
+    void sync(SyncToken token, SyncResultsHandler handler, OperationOptions options, ObjectClass oclass);
 
     SyncToken getLatestSyncToken();
 }

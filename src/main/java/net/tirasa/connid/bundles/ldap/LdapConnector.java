@@ -30,7 +30,9 @@ import net.tirasa.connid.bundles.ldap.modify.LdapUpdate;
 import net.tirasa.connid.bundles.ldap.search.LdapFilter;
 import net.tirasa.connid.bundles.ldap.search.LdapFilterTranslator;
 import net.tirasa.connid.bundles.ldap.search.LdapSearch;
+import net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategy;
 import net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy;
+import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
@@ -73,6 +75,8 @@ public class LdapConnector implements
      */
     private LdapConnection conn;
 
+    private LdapSyncStrategy syncStrategy;
+
     @Override
     public Configuration getConfiguration() {
         return config;
@@ -82,6 +86,21 @@ public class LdapConnector implements
     public void init(Configuration cfg) {
         config = (LdapConfiguration) cfg;
         conn = new LdapConnection(config);
+
+        String syncStrategyClass = config.getSyncStrategy();
+        if (StringUtil.isNotEmpty(syncStrategyClass)) {
+            try {
+                syncStrategy = (LdapSyncStrategy) Class.forName(syncStrategyClass)
+                        .getConstructor(LdapConnection.class)
+                        .newInstance(conn);
+            }
+            catch (Exception e) {
+                syncStrategy = new SunDSChangeLogSyncStrategy(conn);
+            }
+        }
+        else {
+            syncStrategy = new SunDSChangeLogSyncStrategy(conn);
+        }
     }
 
     @Override
@@ -194,7 +213,7 @@ public class LdapConnector implements
     @Override
     public SyncToken getLatestSyncToken(
             final ObjectClass oclass) {
-        return new SunDSChangeLogSyncStrategy(conn, oclass).getLatestSyncToken();
+        return syncStrategy.getLatestSyncToken();
     }
 
     @Override
@@ -203,6 +222,6 @@ public class LdapConnector implements
             final SyncToken token,
             final SyncResultsHandler handler,
             final OperationOptions options) {
-        new SunDSChangeLogSyncStrategy(conn, oclass).sync(token, handler, options);
+        syncStrategy.sync(token, handler, options, oclass);
     }
 }

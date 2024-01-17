@@ -97,7 +97,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
 
     private final LdapConnection conn;
 
-    private final ObjectClass oclass;
+    private ObjectClass oclass;
 
     private ChangeLogAttributes changeLogAttrs;
 
@@ -118,9 +118,8 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         LDAP_DN_ATTRIBUTES.add("cn");
     }
 
-    public SunDSChangeLogSyncStrategy(LdapConnection conn, ObjectClass oclass) {
+    public SunDSChangeLogSyncStrategy(LdapConnection conn) {
         this.conn = conn;
-        this.oclass = oclass;
     }
 
     @Override
@@ -132,8 +131,10 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
     public void sync(
             final SyncToken token,
             final SyncResultsHandler handler,
-            final OperationOptions options) {
+            final OperationOptions options,
+            final ObjectClass oclass) {
 
+        this.oclass = oclass;
         String context = getChangeLogAttributes().getChangeLogContext();
         final String changeNumberAttr = getChangeNumberAttribute();
         SearchControls controls = LdapInternalSearch.createDefaultSearchControls();
