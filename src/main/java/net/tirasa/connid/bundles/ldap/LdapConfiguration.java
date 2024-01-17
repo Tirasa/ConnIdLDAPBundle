@@ -212,6 +212,8 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     private String dnAttribute = "entryDN";
 
+    private String syncStrategy = "net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy";
+
     /**
      * The SearchScope for user objects
      */
@@ -971,6 +973,17 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     public void setConnectTimeout(long connectTimeout) {
         this.connectTimeout = connectTimeout;
+    }
+
+    @ConfigurationProperty(order = 50,
+            displayMessageKey = "syncStrategy.display",
+            helpMessageKey = "syncStrategy.help")
+    public String getSyncStrategy() {
+        return syncStrategy;
+    }
+
+    public void setSyncStrategy(String syncStrategy) {
+        this.syncStrategy = syncStrategy;
     }
 
     // Getters and setters for configuration properties end here.
