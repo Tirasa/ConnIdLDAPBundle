@@ -384,7 +384,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     private void checkClassImplements(String value, Class<?> implementedClass, String errorMessage) {
         try {
             Class<?> clazz = Class.forName(value);
-            if (!clazz.isAssignableFrom(implementedClass)) {
+            if (!implementedClass.isAssignableFrom(clazz) || implementedClass.equals(clazz)) {
                 failValidation(errorMessage);
             }
         }
