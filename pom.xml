@@ -359,6 +359,36 @@
       </plugin>
 
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>ianal-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.geronimo.genesis.plugins</groupId>
+        <artifactId>tools-maven-plugin</artifactId>
+        <version>1.4</version>
+        <configuration>
+          <requiredFiles>
+            <requiredFile>LICENSE</requiredFile>
+          </requiredFiles>
+          <!-- Fail the build if any artifacts are missing legal files -->
+          <strict>true</strict>
+        </configuration>
+        <executions>
+          <execution>
+            <id>verify-legal-files</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>verify-legal-files</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <inherited>true</inherited>
@@ -447,6 +477,26 @@
   </repositories>
 
   <profiles>
+    <profile>
+      <id>java11+</id>
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <inherited>true</inherited>
+            <configuration>
+              <argLine>
+                --add-exports java.naming/com.sun.jndi.ldap=ALL-UNNAMED
+              </argLine>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>sonatype-oss-release</id>
       
