@@ -23,6 +23,7 @@
  */
 package net.tirasa.connid.bundles.ldap;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -217,8 +218,8 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     private String syncStrategy = SunDSChangeLogSyncStrategy.class.getName();
 
-    private Class<?> syncStrategyClass = null;
-    
+    private Class<? extends LdapSyncStrategy> syncStrategyClass = null;
+
     /**
      * The SearchScope for user objects
      */
@@ -356,13 +357,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         }
 
         checkNotBlank(syncStrategy, "syncStrategy.notBlank");
-        syncStrategyClass = checkClassExists(syncStrategy, "syncStrategy.classNotFound");
-        if (!syncStrategyClass.equals(null)) {
-            checkClassImplements(syncStrategyClass, LdapSyncStrategy.class, "syncStrategy.classNotSyncStrategy");
-        }
-        else {
-            failValidation("syncStrategy.classNotFound");
-        }
+        checkLdapSyncStrategy();
     }
 
     private void checkNotBlank(String value, String errorMessage) {
@@ -387,23 +382,22 @@ public class LdapConfiguration extends AbstractConfiguration {
         }
     }
 
-    private Class<?> checkClassExists(String value, String errorMessage) {
+    @SuppressWarnings("unchecked")
+    private void checkLdapSyncStrategy() {
         try {
-            return Class.forName(value);
+            Class<?> clazz = Class.forName(syncStrategy);
+            if (LdapSyncStrategy.class.isAssignableFrom(clazz) && !Modifier.isAbstract(clazz.getModifiers())) {
+                syncStrategyClass = (Class<? extends LdapSyncStrategy>) clazz;
+            } else {
+                failValidation("syncStrategy.classNotSyncStrategy");
+            }
         } catch (ClassNotFoundException e) {
-            failValidation(errorMessage);
-            return null;
-        }
-    }
-
-    private void checkClassImplements(Class<?> implementingClass, Class<?> implementedClass, String errorMessage) {
-        if (!implementedClass.isAssignableFrom(implementingClass) || implementedClass.equals(implementingClass)) {
-            failValidation(errorMessage);
+            failValidation("syncStrategy.classNotFound");
         }
     }
 
     private void checkNotEmpty(Collection<?> collection, String errorMessage) {
-        if (collection.size() < 1) {
+        if (collection.isEmpty()) {
             failValidation(errorMessage);
         }
     }
@@ -553,7 +547,7 @@ public class LdapConfiguration extends AbstractConfiguration {
             helpMessageKey = "accountObjectClasses.help")
     public String[] getAccountObjectClasses() {
         List<String> ldapClasses = accountConfig.getLdapClasses();
-        return ldapClasses.toArray(new String[ldapClasses.size()]);
+        return ldapClasses.toArray(new String[0]);
     }
 
     public void setAccountObjectClasses(String... accountObjectClasses) {
@@ -565,7 +559,7 @@ public class LdapConfiguration extends AbstractConfiguration {
             helpMessageKey = "accountUserNameAttributes.help")
     public String[] getAccountUserNameAttributes() {
         List<String> shortNameLdapAttributes = accountConfig.getShortNameLdapAttributes();
-        return shortNameLdapAttributes.toArray(new String[shortNameLdapAttributes.size()]);
+        return shortNameLdapAttributes.toArray(new String[0]);
     }
 
     public void setAccountUserNameAttributes(String... accountUserNameAttributes) {
@@ -599,7 +593,7 @@ public class LdapConfiguration extends AbstractConfiguration {
             helpMessageKey = "groupObjectClasses.help")
     public String[] getGroupObjectClasses() {
         List<String> ldapClasses = groupConfig.getLdapClasses();
-        return ldapClasses.toArray(new String[ldapClasses.size()]);
+        return ldapClasses.toArray(new String[0]);
     }
 
     public void setGroupObjectClasses(String... groupObjectClasses) {
@@ -611,7 +605,7 @@ public class LdapConfiguration extends AbstractConfiguration {
             helpMessageKey = "groupNameAttributes.help")
     public String[] getGroupNameAttributes() {
         List<String> shortNameLdapAttributes = groupConfig.getShortNameLdapAttributes();
-        return shortNameLdapAttributes.toArray(new String[shortNameLdapAttributes.size()]);
+        return shortNameLdapAttributes.toArray(new String[0]);
     }
 
     public void setGroupNameAttributes(String... groupNameAttributes) {
@@ -678,7 +672,7 @@ public class LdapConfiguration extends AbstractConfiguration {
             helpMessageKey = "anyObjectClasses.help")
     public String[] getAnyObjectClasses() {
         List<String> ldapClasses = anyObjectConfig.getLdapClasses();
-        return ldapClasses.toArray(new String[ldapClasses.size()]);
+        return ldapClasses.toArray(new String[0]);
     }
 
     public void setAnyObjectClasses(String... anyObjectClasses) {
@@ -690,7 +684,7 @@ public class LdapConfiguration extends AbstractConfiguration {
             helpMessageKey = "anyObjectNameAttributes.help")
     public String[] getAnyObjectNameAttributes() {
         List<String> shortNameLdapAttributes = anyObjectConfig.getShortNameLdapAttributes();
-        return shortNameLdapAttributes.toArray(new String[shortNameLdapAttributes.size()]);
+        return shortNameLdapAttributes.toArray(new String[0]);
     }
 
     public void setAnyObjectNameAttributes(String... anyObjectNameAttributes) {
@@ -939,8 +933,7 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     public void setPasswordDecryptionInitializationVector(GuardedByteArray passwordDecryptionInitializationVector) {
         this.passwordDecryptionInitializationVector = passwordDecryptionInitializationVector != null
-                ? passwordDecryptionInitializationVector.
-                        copy() : null;
+                ? passwordDecryptionInitializationVector.copy() : null;
     }
 
     @ConfigurationProperty(order = 44,
@@ -1020,14 +1013,14 @@ public class LdapConfiguration extends AbstractConfiguration {
         this.syncStrategy = syncStrategy;
     }
 
-    public Class<?> getSyncStrategyClass() {
+    public Class<? extends LdapSyncStrategy> getSyncStrategyClass() {
         return syncStrategyClass;
     }
 
     // Getters and setters for configuration properties end here.
     public List<LdapName> getBaseContextsAsLdapNames() {
         if (baseContextsAsLdapNames == null) {
-            List<LdapName> result = new ArrayList<LdapName>(baseContexts.length);
+            List<LdapName> result = new ArrayList<>(baseContexts.length);
             try {
                 for (String baseContext : baseContexts) {
                     result.add(new LdapName(baseContext));
@@ -1043,7 +1036,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     public List<LdapName> getBaseContextsToSynchronizeAsLdapNames() {
         if (baseContextsToSynchronizeAsLdapNames == null) {
             String[] source = LdapUtil.nullAsEmpty(baseContextsToSynchronize);
-            List<LdapName> result = new ArrayList<LdapName>(source.length);
+            List<LdapName> result = new ArrayList<>(source.length);
             try {
                 for (String each : source) {
                     result.add(new LdapName(each));
@@ -1059,7 +1052,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     public Set<LdapName> getModifiersNamesToFilterOutAsLdapNames() {
         if (modifiersNamesToFilterOutAsLdapNames == null) {
             String[] source = LdapUtil.nullAsEmpty(modifiersNamesToFilterOut);
-            Set<LdapName> result = new HashSet<LdapName>(source.length);
+            Set<LdapName> result = new HashSet<>(source.length);
             try {
                 for (String each : source) {
                     result.add(new LdapName(each));
@@ -1073,7 +1066,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     public Map<ObjectClass, ObjectClassMappingConfig> getObjectClassMappingConfigs() {
-        Map<ObjectClass, ObjectClassMappingConfig> result = new HashMap<ObjectClass, ObjectClassMappingConfig>();
+        Map<ObjectClass, ObjectClassMappingConfig> result = new HashMap<>();
         result.put(accountConfig.getObjectClass(), accountConfig);
         result.put(groupConfig.getObjectClass(), groupConfig);
         result.put(anyObjectConfig.getObjectClass(), anyObjectConfig);
@@ -1147,8 +1140,7 @@ public class LdapConfiguration extends AbstractConfiguration {
             if (this == that) {
                 return true;
             }
-            return this.createHashCodeBuilder().equals(that.
-                    createHashCodeBuilder());
+            return this.createHashCodeBuilder().equals(that.createHashCodeBuilder());
         }
         return false;
     }

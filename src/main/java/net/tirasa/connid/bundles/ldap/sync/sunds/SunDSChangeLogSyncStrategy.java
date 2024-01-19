@@ -298,8 +298,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
 
         LdapFilter filter = LdapFilter.forEntryDN(newTargetDN).withNativeFilter(getModifiedEntrySearchFilter(oclass));
 
-        ConnectorObject object = LdapSearches.findObject(conn, oclass, filter,
-                attrsToGet.toArray(new String[attrsToGet.size()]));
+        ConnectorObject object = LdapSearches.findObject(conn, oclass, filter, attrsToGet.toArray(new String[0]));
 
         if (object == null) {
             LOG.ok("Skipping entry because the modified entry is missing, "
@@ -607,10 +606,8 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                 Attributes attrs = conn.getInitialContext().getAttributes("",
                         new String[] { "changeLog", "firstChangeNumber", "lastChangeNumber" });
                 String changeLog = getStringAttrValue(attrs, "changeLog");
-                String firstChangeNumber = getStringAttrValue(attrs,
-                        "firstChangeNumber");
-                String lastChangeNumber = getStringAttrValue(attrs,
-                        "lastChangeNumber");
+                String firstChangeNumber = getStringAttrValue(attrs, "firstChangeNumber");
+                String lastChangeNumber = getStringAttrValue(attrs, "lastChangeNumber");
                 if (changeLog == null || firstChangeNumber == null | lastChangeNumber == null) {
                     String error = "Unable to locate the replication change log.\n"
                             + "From the admin console please verify that the "

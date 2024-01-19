@@ -32,7 +32,7 @@ import net.tirasa.connid.bundles.ldap.search.LdapFilterTranslator;
 import net.tirasa.connid.bundles.ldap.search.LdapSearch;
 import net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategy;
 import net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy;
-import org.identityconnectors.common.StringUtil;
+import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
@@ -65,6 +65,8 @@ public class LdapConnector implements
         AuthenticateOp, ResolveUsernameOp, CreateOp, UpdateOp, UpdateDeltaOp, UpdateAttributeValuesOp,
         DeleteOp, SyncOp {
 
+    private static final Log LOG = Log.getLog(LdapConnector.class);
+
     /**
      * The configuration for this connector instance.
      */
@@ -87,11 +89,12 @@ public class LdapConnector implements
         config = (LdapConfiguration) cfg;
         conn = new LdapConnection(config);
 
-        Class<?> syncStrategyClass = config.getSyncStrategyClass();
+        Class<? extends LdapSyncStrategy> syncStrategyClass = config.getSyncStrategyClass();
         try {
-            syncStrategy = (LdapSyncStrategy) syncStrategyClass.getConstructor(LdapConnection.class).newInstance(conn);
-        }
-        catch (Exception e) {
+            syncStrategy = syncStrategyClass.getConstructor(LdapConnection.class).newInstance(conn);
+        } catch (Exception e) {
+            LOG.error(e, "Could not instantiate the configured {0} implementation, reverting to {1}",
+                    LdapSyncStrategy.class.getName(), SunDSChangeLogSyncStrategy.class.getName());
             syncStrategy = new SunDSChangeLogSyncStrategy(conn);
         }
     }
@@ -204,8 +207,7 @@ public class LdapConnector implements
     }
 
     @Override
-    public SyncToken getLatestSyncToken(
-            final ObjectClass oclass) {
+    public SyncToken getLatestSyncToken(final ObjectClass oclass) {
         return syncStrategy.getLatestSyncToken(oclass);
     }
 
