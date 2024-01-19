@@ -40,7 +40,6 @@ import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapEntry;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.StatusManagement;
-import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
@@ -87,9 +86,6 @@ public class LdapSearch {
     private final ResultsHandler handler;
 
     public static Set<String> getAttributesReturnedByDefault(final LdapConnection conn, final ObjectClass oclass) {
-        if (oclass.equals(LdapSchemaMapping.ANY_OBJECT_CLASS)) {
-            return CollectionUtil.newSet(Name.NAME);
-        }
         Set<String> result = CollectionUtil.newCaseInsensitiveSet();
         ObjectClassInfo oci = conn.getSchemaMapping().schema().findObjectClassInfo(oclass.getObjectClassValue());
         if (oci != null) {

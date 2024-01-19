@@ -46,6 +46,8 @@ import org.identityconnectors.framework.common.objects.Uid;
 import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
 import net.tirasa.connid.bundles.ldap.MyStatusManagement;
+import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.junit.jupiter.api.Test;
 
@@ -158,6 +160,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     public void createArbitrary() {
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(SMALL_COMPANY_DN);
+        config.setAnyObjectClasses("top", "organization");
         ConnectorFacade facade = newFacade(config);
 
         doCreateArbitrary(facade);
@@ -167,6 +170,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
     public void createArbitraryWhenReadingSchema() {
         LdapConfiguration config = newConfiguration(true);
         config.setBaseContexts(SMALL_COMPANY_DN);
+        config.setAnyObjectClasses("top", "organization");
         ConnectorFacade facade = newFacade(config);
 
         doCreateArbitrary(facade);
@@ -178,7 +182,9 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
         config.setGidAttribute("entryDN");
+        config.setAnyObjectNameAttributes("o");
         config.setBaseContexts(SMALL_COMPANY_DN);
+        config.setAnyObjectClasses("top", "organization");
         ConnectorFacade facade = newFacade(config);
 
         doCreateArbitrary(facade);
@@ -190,29 +196,29 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         Name name = new Name("o=Smallest," + SMALL_COMPANY_DN);
         attributes.add(name);
         attributes.add(AttributeBuilder.build("o", "Smallest"));
-        ObjectClass oclass = new ObjectClass("organization");
-        Uid uid = facade.create(oclass, attributes, null);
+        Uid uid = facade.create(LdapSchemaMapping.ANY_OBJECT_CLASS, attributes, null);
 
-        ConnectorObject newObject = facade.getObject(oclass, uid, null);
+        ConnectorObject newObject = facade.getObject(LdapSchemaMapping.ANY_OBJECT_CLASS, uid, null);
         assertEquals(name, newObject.getName());
     }
 
     @Test
-    public void createArbitraryWhenNameAttributesNotDefault() {
+    public void createDeviceWhenNameAttributesNotDefault() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setAnyObjectNameAttributes("cn");
         config.setBaseContexts(SMALL_COMPANY_DN);
+        config.setAnyObjectClasses("top", "device");
         ConnectorFacade facade = newFacade(config);
 
         doCreateDevice(facade);
     }
 
     @Test
-    public void createArbitraryWhenObjectClassesNotDefault() {
+    public void createDeviceWhenObjectClassesNotDefault() {
         LdapConfiguration config = newConfiguration();
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
-        config.setAnyObjectClasses("top", "organization");
+        config.setAnyObjectClasses("top", "device");
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
 
@@ -226,14 +232,12 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         attributes.add(AttributeBuilder.build("cn", DEVICE_0_CN));
         attributes.add(AttributeBuilder.build("serialNumber", DEVICE_0_SERIALNUMBER));
 
-        ObjectClass oclass = new ObjectClass("device");
-        Uid uid = facade.create(oclass, attributes, null);
+        Uid uid = facade.create(LdapSchemaMapping.ANY_OBJECT_CLASS, attributes, null);
 
-        ConnectorObject newObject = facade.getObject(oclass, uid, null);
+        ConnectorObject newObject = facade.getObject(LdapSchemaMapping.ANY_OBJECT_CLASS, uid, null);
         assertEquals(name, newObject.getName());
 
     }
-
 
     @Test
     public void createBinaryAttributes() throws IOException {

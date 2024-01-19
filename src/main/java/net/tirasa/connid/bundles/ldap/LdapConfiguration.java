@@ -36,6 +36,7 @@ import javax.naming.ldap.LdapName;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.ObjectClassMappingConfig;
+import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
 import net.tirasa.connid.bundles.ldap.search.DefaultSearchStrategy;
 import net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategy;
 import net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy;
@@ -250,6 +251,11 @@ public class LdapConfiguration extends AbstractConfiguration {
             CollectionUtil.newList("top", "groupOfUniqueNames"),
             false, CollectionUtil.newList("cn"));
 
+    private final ObjectClassMappingConfig anyObjectConfig = new ObjectClassMappingConfig(
+            LdapSchemaMapping.ANY_OBJECT_CLASS,
+            CollectionUtil.newList("top"),
+            false, CollectionUtil.newList(DEFAULT_ID_ATTRIBUTE));
+
     private final ObjectClassMappingConfig allConfig = new ObjectClassMappingConfig(
             ObjectClass.ALL,
             CollectionUtil.newList("top"),
@@ -301,11 +307,11 @@ public class LdapConfiguration extends AbstractConfiguration {
         checkNotEmpty(groupConfig.getShortNameLdapAttributes(), "groupNameAttributes.notEmpty");
         checkNoBlankValues(groupConfig.getShortNameLdapAttributes(), "groupNameAttributes.noBlankValues");
 
-        checkNotEmpty(allConfig.getLdapClasses(), "anyObjectClasses.notEmpty");
-        checkNoBlankValues(allConfig.getLdapClasses(), "anyObjectClasses.noBlankValues");
+        checkNotEmpty(anyObjectConfig.getLdapClasses(), "anyObjectClasses.notEmpty");
+        checkNoBlankValues(anyObjectConfig.getLdapClasses(), "anyObjectClasses.noBlankValues");
 
-        checkNotEmpty(allConfig.getShortNameLdapAttributes(), "anyObjectNameAttributes.notEmpty");
-        checkNoBlankValues(allConfig.getShortNameLdapAttributes(), "anyObjectNameAttributes.noBlankValues");
+        checkNotEmpty(anyObjectConfig.getShortNameLdapAttributes(), "anyObjectNameAttributes.notEmpty");
+        checkNoBlankValues(anyObjectConfig.getShortNameLdapAttributes(), "anyObjectNameAttributes.noBlankValues");
 
         checkNotBlank(getUserSearchScope(), "userSearchScope.notBlank");
         checkValidScope(getUserSearchScope(), "userSearchScope.invalidScope");
@@ -671,24 +677,24 @@ public class LdapConfiguration extends AbstractConfiguration {
             displayMessageKey = "anyObjectClasses.display",
             helpMessageKey = "anyObjectClasses.help")
     public String[] getAnyObjectClasses() {
-        List<String> ldapClasses = allConfig.getLdapClasses();
+        List<String> ldapClasses = anyObjectConfig.getLdapClasses();
         return ldapClasses.toArray(new String[ldapClasses.size()]);
     }
 
     public void setAnyObjectClasses(String... anyObjectClasses) {
-        allConfig.setLdapClasses(Arrays.asList(anyObjectClasses));
+        anyObjectConfig.setLdapClasses(Arrays.asList(anyObjectClasses));
     }
 
     @ConfigurationProperty(order = 21,
             displayMessageKey = "anyObjectNameAttributes.display",
             helpMessageKey = "anyObjectNameAttributes.help")
     public String[] getAnyObjectNameAttributes() {
-        List<String> shortNameLdapAttributes = allConfig.getShortNameLdapAttributes();
+        List<String> shortNameLdapAttributes = anyObjectConfig.getShortNameLdapAttributes();
         return shortNameLdapAttributes.toArray(new String[shortNameLdapAttributes.size()]);
     }
 
     public void setAnyObjectNameAttributes(String... anyObjectNameAttributes) {
-        allConfig.setShortNameLdapAttributes(Arrays.asList(anyObjectNameAttributes));
+        anyObjectConfig.setShortNameLdapAttributes(Arrays.asList(anyObjectNameAttributes));
     }
 
     @ConfigurationProperty(order = 22,
@@ -1070,6 +1076,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         Map<ObjectClass, ObjectClassMappingConfig> result = new HashMap<ObjectClass, ObjectClassMappingConfig>();
         result.put(accountConfig.getObjectClass(), accountConfig);
         result.put(groupConfig.getObjectClass(), groupConfig);
+        result.put(anyObjectConfig.getObjectClass(), anyObjectConfig);
         result.put(allConfig.getObjectClass(), allConfig);
         return result;
     }
