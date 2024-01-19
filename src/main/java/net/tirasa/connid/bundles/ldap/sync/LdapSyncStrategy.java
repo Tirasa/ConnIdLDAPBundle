@@ -32,5 +32,5 @@ public interface LdapSyncStrategy {
 
     void sync(SyncToken token, SyncResultsHandler handler, OperationOptions options, ObjectClass oclass);
 
-    SyncToken getLatestSyncToken();
+    SyncToken getLatestSyncToken(ObjectClass oclass);
 }

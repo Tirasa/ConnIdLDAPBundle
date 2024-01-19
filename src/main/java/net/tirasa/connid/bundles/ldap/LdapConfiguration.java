@@ -38,6 +38,7 @@ import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.ObjectClassMappingConfig;
 import net.tirasa.connid.bundles.ldap.search.DefaultSearchStrategy;
 import net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategy;
+import net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.EqualsHashCodeBuilder;
 import org.identityconnectors.common.StringUtil;
@@ -213,8 +214,10 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     private String dnAttribute = "entryDN";
 
-    private String syncStrategy = "net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy";
+    private String syncStrategy = SunDSChangeLogSyncStrategy.class.getName();
 
+    private Class<?> syncStrategyClass = null;
+    
     /**
      * The SearchScope for user objects
      */
@@ -347,8 +350,13 @@ public class LdapConfiguration extends AbstractConfiguration {
         }
 
         checkNotBlank(syncStrategy, "syncStrategy.notBlank");
-        checkClassExists(syncStrategy, "syncStrategy.classNotFound");
-        checkClassImplements(syncStrategy, LdapSyncStrategy.class, "syncStrategy.classNotSyncStrategy");
+        syncStrategyClass = checkClassExists(syncStrategy, "syncStrategy.classNotFound");
+        if (!syncStrategyClass.equals(null)) {
+            checkClassImplements(syncStrategyClass, LdapSyncStrategy.class, "syncStrategy.classNotSyncStrategy");
+        }
+        else {
+            failValidation("syncStrategy.classNotFound");
+        }
     }
 
     private void checkNotBlank(String value, String errorMessage) {
@@ -373,22 +381,18 @@ public class LdapConfiguration extends AbstractConfiguration {
         }
     }
 
-    private void checkClassExists(String value, String errorMessage) {
+    private Class<?> checkClassExists(String value, String errorMessage) {
         try {
-            Class<?> clazz = Class.forName(value);
+            return Class.forName(value);
         } catch (ClassNotFoundException e) {
             failValidation(errorMessage);
+            return null;
         }
     }
 
-    private void checkClassImplements(String value, Class<?> implementedClass, String errorMessage) {
-        try {
-            Class<?> clazz = Class.forName(value);
-            if (!implementedClass.isAssignableFrom(clazz) || implementedClass.equals(clazz)) {
-                failValidation(errorMessage);
-            }
-        }
-        catch (ClassNotFoundException e) {
+    private void checkClassImplements(Class<?> implementingClass, Class<?> implementedClass, String errorMessage) {
+        if (!implementedClass.isAssignableFrom(implementingClass) || implementedClass.equals(implementingClass)) {
+            failValidation(errorMessage);
         }
     }
 
@@ -1008,6 +1012,10 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     public void setSyncStrategy(String syncStrategy) {
         this.syncStrategy = syncStrategy;
+    }
+
+    public Class<?> getSyncStrategyClass() {
+        return syncStrategyClass;
     }
 
     // Getters and setters for configuration properties end here.

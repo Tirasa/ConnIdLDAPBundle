@@ -97,8 +97,6 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
 
     private final LdapConnection conn;
 
-    private ObjectClass oclass;
-
     private ChangeLogAttributes changeLogAttrs;
 
     private Set<String> oclassesToSync;
@@ -123,7 +121,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
     }
 
     @Override
-    public SyncToken getLatestSyncToken() {
+    public SyncToken getLatestSyncToken(ObjectClass oclass) {
         return new SyncToken(getChangeLogAttributes().getLastChangeNumber());
     }
 
@@ -133,8 +131,6 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
             final SyncResultsHandler handler,
             final OperationOptions options,
             final ObjectClass oclass) {
-
-        this.oclass = oclass;
         String context = getChangeLogAttributes().getChangeLogContext();
         final String changeNumberAttr = getChangeNumberAttribute();
         SearchControls controls = LdapInternalSearch.createDefaultSearchControls();
@@ -175,7 +171,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                     currentChangeNumber[0] = changeNumber;
                 }
 
-                final SyncDelta delta = createSyncDelta(entry, changeNumber, options.getAttributesToGet());
+                final SyncDelta delta = createSyncDelta(entry, changeNumber, options.getAttributesToGet(), oclass);
 
                 if (delta != null) {
                     return handler.handle(delta);
@@ -195,7 +191,8 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
     private SyncDelta createSyncDelta(
             final LdapEntry changeLogEntry,
             final int changeNumber,
-            final String[] attrsToGetOption) throws InvalidNameException {
+            final String[] attrsToGetOption,
+            ObjectClass oclass) throws InvalidNameException {
 
         LOG.ok("Attempting to create sync delta for log entry {0}", changeNumber);
 
@@ -299,7 +296,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         // If objectClass is not in the list of attributes to get, prepare to remove it later.
         boolean removeObjectClass = attrsToGet.add("objectClass");
 
-        LdapFilter filter = LdapFilter.forEntryDN(newTargetDN).withNativeFilter(getModifiedEntrySearchFilter());
+        LdapFilter filter = LdapFilter.forEntryDN(newTargetDN).withNativeFilter(getModifiedEntrySearchFilter(oclass));
 
         ConnectorObject object = LdapSearches.findObject(conn, oclass, filter,
                 attrsToGet.toArray(new String[attrsToGet.size()]));
@@ -453,7 +450,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         return SyncDeltaType.CREATE_OR_UPDATE;
     }
 
-    private String getModifiedEntrySearchFilter() {
+    private String getModifiedEntrySearchFilter(ObjectClass oclass) {
         if (oclass.equals(ObjectClass.ACCOUNT)) {
             return conn.getConfiguration().getAccountSynchronizationFilter();
         }

@@ -87,18 +87,11 @@ public class LdapConnector implements
         config = (LdapConfiguration) cfg;
         conn = new LdapConnection(config);
 
-        String syncStrategyClass = config.getSyncStrategy();
-        if (StringUtil.isNotEmpty(syncStrategyClass)) {
-            try {
-                syncStrategy = (LdapSyncStrategy) Class.forName(syncStrategyClass)
-                        .getConstructor(LdapConnection.class)
-                        .newInstance(conn);
-            }
-            catch (Exception e) {
-                syncStrategy = new SunDSChangeLogSyncStrategy(conn);
-            }
+        Class<?> syncStrategyClass = config.getSyncStrategyClass();
+        try {
+            syncStrategy = (LdapSyncStrategy) syncStrategyClass.getConstructor(LdapConnection.class).newInstance(conn);
         }
-        else {
+        catch (Exception e) {
             syncStrategy = new SunDSChangeLogSyncStrategy(conn);
         }
     }
@@ -213,7 +206,7 @@ public class LdapConnector implements
     @Override
     public SyncToken getLatestSyncToken(
             final ObjectClass oclass) {
-        return syncStrategy.getLatestSyncToken();
+        return syncStrategy.getLatestSyncToken(oclass);
     }
 
     @Override
