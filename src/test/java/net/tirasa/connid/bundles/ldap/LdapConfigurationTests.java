@@ -355,6 +355,7 @@ public class LdapConfigurationTests {
         assertEquals(OperationOptions.SCOPE_SUBTREE, config.getGroupSearchScope());
         assertEquals(OperationOptions.SCOPE_SUBTREE, config.getAnyObjectSearchScope());
         assertNull(config.getAnyObjectSearchFilter());
+        assertEquals("net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy", config.getSyncStrategy());
     }
 
     @Test
@@ -421,6 +422,42 @@ public class LdapConfigurationTests {
         assertDoesNotThrow(() -> config.setAnyObjectSearchScope("object"));
         assertDoesNotThrow(() -> config.setAnyObjectSearchScope("onelevel"));
         assertDoesNotThrow(() -> config.setAnyObjectSearchScope("subtree"));
+    }
+
+    @Test
+    public void syncStrategyNotNull() {
+        config.setSyncStrategy((String) null);
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void syncStrategyNotBlank() {
+        config.setSyncStrategy("");
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void syncStrategyClassDoesNotExist() {
+        config.setSyncStrategy("net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategyThatDoesNotExist");
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void syncStrategyClassIsNotSyncStrategy() {
+        config.setSyncStrategy("net.tirasa.connid.bundles.ldap.modify.LdapCreate");
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void syncStrategyClassIsNotInterface() {
+        config.setSyncStrategy("net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategy");
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void syncStrategyValid() {
+        config.setSyncStrategy("net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy");
+        assertDoesNotThrow(() -> config.validate());
     }
 
     private static void assertCanValidate(LdapConfiguration config) {
