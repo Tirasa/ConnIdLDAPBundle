@@ -25,10 +25,8 @@ package net.tirasa.connid.bundles.ldap;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ServerSocket;
 import java.util.List;
 import java.util.Properties;
 import org.identityconnectors.common.IOUtil;
@@ -44,10 +42,7 @@ import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import org.identityconnectors.test.common.TestHelpers;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 
 public abstract class LdapConnectorTestBase {
 
@@ -56,14 +51,6 @@ public abstract class LdapConnectorTestBase {
     public static Integer PORT;
 
     public static Integer SSL_PORT;
-
-    public static String TOOL_START_DS;
-
-    public static String TOOL_STOP_DS;
-
-    public static String TOOL_RESTORE;
-
-    public static String BACKUP_DIR;
 
     public static final String EXAMPLE_COM_DN = "dc=example,dc=com";
 
@@ -168,7 +155,6 @@ public abstract class LdapConnectorTestBase {
     @BeforeAll
     public static void init() throws IOException {
         InputStream propStream = null;
-        String setupDir = null;
         try {
             Properties props = new Properties();
             propStream = LdapConnectorTestBase.class.getResourceAsStream("/test.properties");
@@ -177,66 +163,14 @@ public abstract class LdapConnectorTestBase {
             HOST = props.getProperty("opendj.host");
             PORT = Integer.valueOf(props.getProperty("opendj.port"));
             SSL_PORT = Integer.valueOf(props.getProperty("opendj.sslport"));
-            setupDir = props.getProperty("opendj.setup.dir");
-            BACKUP_DIR = props.getProperty("opendj.backup.dir");
         } finally {
             IOUtil.quietClose(propStream);
-        }
-
-        assertNotNull(setupDir);
-        TOOL_START_DS = setupDir + File.separator + "bin" + File.separator + "start-ds";
-        TOOL_STOP_DS = setupDir + File.separator + "bin" + File.separator + "stop-ds";
-        TOOL_RESTORE = setupDir + File.separator + "bin" + File.separator + "restore";
-        if (System.getProperty("os.name").startsWith("Windows")) {
-            TOOL_START_DS += ".bat";
-            TOOL_STOP_DS += ".bat";
-            TOOL_RESTORE += ".bat";
         }
 
         assertNotNull(HOST);
         assertNotNull(PORT);
         assertNotNull(SSL_PORT);
-        assertNotNull(TOOL_START_DS);
-        assertNotNull(TOOL_STOP_DS);
-        assertNotNull(TOOL_RESTORE);
-        assertNotNull(BACKUP_DIR);
     }
-
-    private static boolean isOpenDJRunning() {
-        boolean result;
-        try {
-            ServerSocket socket = new ServerSocket(PORT);
-            socket.close();
-
-            result = false;
-        } catch (IOException e) {
-            result = true;
-        }
-        return result;
-    }
-
-    @AfterAll
-    public static void afterClass() throws Exception {
-        if (isOpenDJRunning()) {
-            stopServer();
-        }
-    }
-
-    @BeforeEach
-    public void before() throws Exception {
-        if (!isOpenDJRunning()) {
-            startServer();
-        }
-    }
-
-    @AfterEach
-    public void after() throws Exception {
-        if (restartServerAfterEachTest()) {
-            stopServer();
-        }
-    }
-
-    protected abstract boolean restartServerAfterEachTest();
 
     public static LdapConfiguration newConfiguration() {
         // IdM will not read the schema, so prefer to test with that setting.
@@ -299,18 +233,5 @@ public abstract class LdapConnectorTestBase {
             }
         }
         return null;
-    }
-
-    protected void startServer() throws IOException, InterruptedException {
-        Process process = Runtime.getRuntime().exec(TOOL_START_DS);
-        process.waitFor();
-    }
-
-    protected static void stopServer() throws IOException, InterruptedException {
-        Process process = Runtime.getRuntime().exec(TOOL_STOP_DS);
-        process.waitFor();
-
-        process = Runtime.getRuntime().exec(TOOL_RESTORE + " -d " + BACKUP_DIR + File.separator + "userRoot");
-        process.waitFor();
     }
 }

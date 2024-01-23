@@ -67,10 +67,6 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
     // TODO operational attributes.
     // TODO LDAP directory attributes (entryDN, etc.).
-    @Override
-    protected boolean restartServerAfterEachTest() {
-        return false;
-    }
 
     @Test
     public void ldapFilter() {

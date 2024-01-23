@@ -67,11 +67,6 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
 
     private static final String NUMBER3 = "+1 800 765 9876";
 
-    @Override
-    protected boolean restartServerAfterEachTest() {
-        return true;
-    }
-
     @Test
     public void updateDelta() {
         // 1. take user and set attribute
@@ -86,7 +81,8 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
 
         OperationOptions options = new OperationOptionsBuilder().setAttributesToGet("telephoneNumber").build();
         bugs = facade.getObject(ObjectClass.ACCOUNT, bugs.getUid(), options);
-        List<Object> numberAttr = bugs.getAttributeByName("telephoneNumber").getValue();
+        Attribute telephoneAttr = bugs.getAttributeByName("telephoneNumber");
+        List<Object> numberAttr = telephoneAttr.getValue();
         assertEquals(1, numberAttr.size());
         assertEquals(NUMBER1, numberAttr.get(0));
 
@@ -130,6 +126,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         assertTrue(numberAttr.contains(NUMBER3));
 
         assertDoesNotThrow(() -> facade.authenticate(ObjectClass.ACCOUNT, BUGS_BUNNY_UID, newPwd, null));
+        facade.removeAttributeValues(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(telephoneAttr), null);
     }
 
     @Test
@@ -181,6 +178,8 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         ConnectorObject daffy = facade.getObject(ObjectClass.ACCOUNT, newUid, builder.build());
         assertEquals(name, daffy.getName());
         assertEquals(NUMBER1, daffy.getAttributeByName("telephoneNumber").getValue().get(0));
+        Attribute noNumber = AttributeBuilder.build("telephoneNumber");
+        facade.update(ObjectClass.ACCOUNT, newUid, CollectionUtil.newSet(new Name(BUGS_BUNNY_DN), noNumber), null);
     }
 
     @Test
@@ -199,6 +198,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         assertEquals(name.getNameValue(), newUid.getUidValue());
         ConnectorObject daffy = facade.getObject(ObjectClass.ACCOUNT, newUid, null);
         assertEquals(name, daffy.getName());
+        facade.update(ObjectClass.ACCOUNT, newUid, Collections.singleton(new Name(BUGS_BUNNY_DN)), null);
     }
 
     @Test
@@ -242,6 +242,9 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         assertTrue(Arrays.equals(certificate, storedCertificate));
         byte[] storedPhoto = (byte[]) bugs.getAttributeByName("jpegPhoto").getValue().get(0);
         assertTrue(Arrays.equals(photo, storedPhoto));
+        Attribute noCertificate = AttributeBuilder.build("userCertificate");
+        Attribute noPhoto = AttributeBuilder.build("jpegPhoto");
+        facade.update(ObjectClass.ACCOUNT, newUid, CollectionUtil.newSet(noCertificate, noPhoto), null);
     }
 
     @Test
@@ -261,13 +264,16 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         facade = newFacade(config);
         List<ConnectorObject> objects = TestHelpers.searchToList(facade, new ObjectClass("organization"), null);
         assertNotNull(findByAttribute(objects, Name.NAME, ACME_DN));
+        Attribute noPwd = AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME);
+        facade.update(ObjectClass.ACCOUNT, elmer.getUid(), Collections.singleton(noPwd), null);
     }
 
     @Test
     public void userCanChangePassword() {
         LdapConfiguration config = newConfiguration();
         config.setPrincipal(BUGS_BUNNY_DN);
-        config.setCredentials(new GuardedString("carrot".toCharArray()));
+        GuardedString carrotPwd = new GuardedString("carrot".toCharArray());
+        config.setCredentials(carrotPwd);
         ConnectorFacade facade = newFacade(config);
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
@@ -280,6 +286,8 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         facade = newFacade(config);
         ConnectorObject elmer = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(ELMER_FUDD_DN));
         assertNotNull(elmer);
+        Attribute oldPwdAttr = AttributeBuilder.buildPassword(carrotPwd);
+        facade.update(ObjectClass.ACCOUNT, bugs.getUid(), Collections.singleton(oldPwdAttr), null);
     }
 
     @Test
@@ -325,6 +333,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
     @Test
     public void renameDnAttribute() {
         ConnectorFacade facade = newFacade();
+        Name rename1 = new Name(RENAME_ONE_TEST_DN);
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(RENAME_ONE_TEST_DN));
 
         Name name = new Name(RENAME_TWO_TEST_DN);
@@ -337,5 +346,6 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         ConnectorObject renameTwo = facade.getObject(ObjectClass.ACCOUNT, newUid, builder.build());
         assertEquals(name, renameTwo.getName());
         assertEquals("rename.two", renameTwo.getAttributeByName("uid").getValue().get(0));
+        facade.update(ObjectClass.ACCOUNT, newUid, Collections.singleton(rename1), null);
     }
 }

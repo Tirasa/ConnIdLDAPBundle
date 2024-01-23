@@ -19,9 +19,26 @@
 # enclosed by brackets [] replaced by your own identifying information:
 # "Portions Copyrighted [year] [name of copyright owner]"
 # ====================
-# Portions Copyrighted 2015 ConnId.
+# Portions Copyrighted 2011 ConnId.
 # 
 
-opendj.host=${opendj.host}
-opendj.port=${opendj.port}
-opendj.sslport=${opendj.sslport}
+FROM openidentityplatform/opendj:4.6.2
+
+USER root
+
+RUN mkdir -p /opt/opendj/bootstrap/data
+ADD config-additions.ldif /opt/opendj/bootstrap/data
+ADD data.ldif /opt/opendj/bootstrap/data
+ADD admin.ldif /opt/opendj/bootstrap/data
+RUN chmod -R 777 /opt/opendj/bootstrap/data
+
+ADD bigcompany.template /opt/opendj/bootstrap
+
+ADD run.sh /opt/opendj/run.sh
+
+RUN chgrp -R 0 /opt/opendj && \
+    chmod -R g=u /opt/opendj && \
+    chmod +x /opt/opendj/run.sh
+
+USER $OPENDJ_USER
+ENTRYPOINT ["/opt/opendj/run.sh"]

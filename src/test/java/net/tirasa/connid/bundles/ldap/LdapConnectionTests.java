@@ -40,11 +40,6 @@ import org.junit.jupiter.api.Test;
 
 public class LdapConnectionTests extends LdapConnectorTestBase {
 
-    @Override
-    protected boolean restartServerAfterEachTest() {
-        return false;
-    }
-
     @Test
     public void sSL() throws NamingException {
         BlindTrustProvider.register();
@@ -152,14 +147,6 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
         // Ensure the connection is really connected to the server.
         conn.createNativeSchema();
         conn.checkAlive();
-        stopServer();
-        try {
-            // This should throw RuntimeException.
-            conn.checkAlive();
-            fail();
-        } catch (RuntimeException e) {
-            // OK.
-        }
     }
 
     @Test

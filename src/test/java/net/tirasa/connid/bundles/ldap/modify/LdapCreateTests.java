@@ -55,10 +55,6 @@ public class LdapCreateTests extends LdapConnectorTestBase {
 
     // TODO test that we can create an entry of an object class not in the schema.
     // TODO test that we can't create an entry outside the configured base DNs.
-    @Override
-    protected boolean restartServerAfterEachTest() {
-        return true;
-    }
 
     @Test
     public void createAccount() {
@@ -66,7 +62,8 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
 
-        doCreateAccount(facade);
+        ConnectorObject created = doCreateAccount(facade);
+        facade.delete(ObjectClass.ACCOUNT, created.getUid(), null);
     }
 
     @Test
@@ -78,7 +75,8 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setAccountObjectClasses("inetOrgPerson");
         ConnectorFacade facade = newFacade(config);
 
-        doCreateAccount(facade);
+        ConnectorObject created = doCreateAccount(facade);
+        facade.delete(ObjectClass.ACCOUNT, created.getUid(), null);
     }
 
     @Test
@@ -90,14 +88,15 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
 
-        doCreateAccount(facade);
+        ConnectorObject created = doCreateAccount(facade);
+        facade.delete(ObjectClass.ACCOUNT, created.getUid(), null);
     }
 
-    private void doCreateAccount(final ConnectorFacade facade) {
-        doCreateAccount(facade, null);
+    private ConnectorObject doCreateAccount(final ConnectorFacade facade) {
+        return doCreateAccount(facade, null);
     }
 
-    private void doCreateAccount(final ConnectorFacade facade, final OperationOptions options) {
+    private ConnectorObject doCreateAccount(final ConnectorFacade facade, final OperationOptions options) {
         Set<Attribute> attributes = new HashSet<>();
         Name name = new Name("uid=another.worker," + SMALL_COMPANY_DN);
         attributes.add(name);
@@ -110,6 +109,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
 
         ConnectorObject newAccount = facade.getObject(ObjectClass.ACCOUNT, uid, options);
         assertEquals(name, newAccount.getName());
+        return newAccount;
     }
 
     @Test
@@ -118,7 +118,8 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
 
-        doCreateGroup(facade);
+        ConnectorObject created = doCreateGroup(facade);
+        facade.delete(ObjectClass.GROUP, created.getUid(), null);
     }
 
     @Test
@@ -130,7 +131,8 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setAccountObjectClasses("inetOrgPerson");
         ConnectorFacade facade = newFacade(config);
 
-        doCreateGroup(facade);
+        ConnectorObject created = doCreateGroup(facade);
+        facade.delete(ObjectClass.GROUP, created.getUid(), null);
     }
 
     @Test
@@ -142,10 +144,11 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
 
-        doCreateGroup(facade);
+        ConnectorObject created = doCreateGroup(facade);
+        facade.delete(ObjectClass.GROUP, created.getUid(), null);
     }
 
-    private void doCreateGroup(ConnectorFacade facade) {
+    private ConnectorObject doCreateGroup(ConnectorFacade facade) {
         Set<Attribute> attributes = new HashSet<>();
         Name name = new Name("cn=Another Group," + SMALL_COMPANY_DN);
         attributes.add(name);
@@ -154,6 +157,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
 
         ConnectorObject newGroup = facade.getObject(ObjectClass.GROUP, uid, null);
         assertEquals(name, newGroup.getName());
+        return newGroup;
     }
 
     @Test
@@ -163,7 +167,8 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setAnyObjectClasses("top", "organization");
         ConnectorFacade facade = newFacade(config);
 
-        doCreateArbitrary(facade);
+        ConnectorObject created = doCreateArbitrary(facade);
+        facade.delete(LdapSchemaMapping.ANY_OBJECT_CLASS, created.getUid(), null);
     }
 
     @Test
@@ -173,7 +178,8 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setAnyObjectClasses("top", "organization");
         ConnectorFacade facade = newFacade(config);
 
-        doCreateArbitrary(facade);
+        ConnectorObject created = doCreateArbitrary(facade);
+        facade.delete(LdapSchemaMapping.ANY_OBJECT_CLASS, created.getUid(), null);
     }
 
     @Test
@@ -187,10 +193,11 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setAnyObjectClasses("top", "organization");
         ConnectorFacade facade = newFacade(config);
 
-        doCreateArbitrary(facade);
+        ConnectorObject created = doCreateArbitrary(facade);
+        facade.delete(LdapSchemaMapping.ANY_OBJECT_CLASS, created.getUid(), null);
     }
 
-    private void doCreateArbitrary(ConnectorFacade facade) {
+    private ConnectorObject doCreateArbitrary(ConnectorFacade facade) {
         // Let the arbitrary object class be organization.
         Set<Attribute> attributes = new HashSet<>();
         Name name = new Name("o=Smallest," + SMALL_COMPANY_DN);
@@ -200,6 +207,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
 
         ConnectorObject newObject = facade.getObject(LdapSchemaMapping.ANY_OBJECT_CLASS, uid, null);
         assertEquals(name, newObject.getName());
+        return newObject;
     }
 
     @Test
@@ -211,7 +219,8 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setAnyObjectClasses("top", "device");
         ConnectorFacade facade = newFacade(config);
 
-        doCreateDevice(facade);
+        ConnectorObject created = doCreateDevice(facade);
+        facade.delete(LdapSchemaMapping.ANY_OBJECT_CLASS, created.getUid(), null);
     }
 
     @Test
@@ -222,10 +231,11 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         config.setBaseContexts(SMALL_COMPANY_DN);
         ConnectorFacade facade = newFacade(config);
 
-        doCreateDevice(facade);
+        ConnectorObject created = doCreateDevice(facade);
+        facade.delete(LdapSchemaMapping.ANY_OBJECT_CLASS, created.getUid(), null);
     }
 
-    private void doCreateDevice(ConnectorFacade facade) {
+    private ConnectorObject doCreateDevice(ConnectorFacade facade) {
         Set<Attribute> attributes = new HashSet<>();
         Name name = new Name(DEVICE_0_DN);
         attributes.add(name);
@@ -236,7 +246,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
 
         ConnectorObject newObject = facade.getObject(LdapSchemaMapping.ANY_OBJECT_CLASS, uid, null);
         assertEquals(name, newObject.getName());
-
+        return newObject;
     }
 
     @Test
@@ -262,6 +272,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         assertTrue(Arrays.equals(certificate, storedCertificate));
         byte[] storedPhoto = (byte[]) newAccount.getAttributeByName("jpegPhoto").getValue().get(0);
         assertTrue(Arrays.equals(photo, storedPhoto));
+        facade.delete(ObjectClass.ACCOUNT, newAccount.getUid(), null);
     }
 
     @Test
@@ -276,9 +287,10 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         attributes.add(AttributeBuilder.build("sn", "Duck"));
         GuardedString password = new GuardedString("I.hate.rabbits".toCharArray());
         attributes.add(AttributeBuilder.buildPassword(password));
-        facade.create(ObjectClass.ACCOUNT, attributes, null);
+        Uid uid = facade.create(ObjectClass.ACCOUNT, attributes, null);
 
         facade.authenticate(ObjectClass.ACCOUNT, "daffy.duck", password, null);
+        facade.delete(ObjectClass.ACCOUNT, uid, null);
     }
 
     @Test
@@ -317,6 +329,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         assertNotNull(status);
         assertFalse(status.getValue().isEmpty());
         assertFalse((Boolean) status.getValue().get(0));
+        facade.delete(ObjectClass.ACCOUNT, uid, null);
     }
 
     @Test
@@ -324,6 +337,9 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         LdapConfiguration config = newConfiguration();
         config.setBaseContexts(SMALL_COMPANY_DN);
         config.setUidAttribute("sn");
-        doCreateAccount(newFacade(config), new OperationOptionsBuilder().setAttributesToGet("givenName").build());
+        ConnectorFacade facade = newFacade(config);
+        ConnectorObject created = doCreateAccount(facade,
+                new OperationOptionsBuilder().setAttributesToGet("givenName").build());
+        facade.delete(ObjectClass.ACCOUNT, created.getUid(), null);
     }
 }
