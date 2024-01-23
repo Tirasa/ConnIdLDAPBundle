@@ -49,11 +49,6 @@ import org.junit.jupiter.api.Test;
 
 public class LdapFilterTranslatorTests extends LdapConnectorTestBase {
 
-    @Override
-    protected boolean restartServerAfterEachTest() {
-        return false;
-    }
-
     @Test
     public void and() {
         assertEquals(forNativeFilter("(&(foo=1)(bar=2))"), newTranslator().createAndExpression(

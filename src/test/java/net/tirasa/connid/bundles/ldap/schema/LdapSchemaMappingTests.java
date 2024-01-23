@@ -52,10 +52,6 @@ public class LdapSchemaMappingTests extends LdapConnectorTestBase {
 
     // TODO operational attributes.
     // TODO test for operation option infos.
-    @Override
-    protected boolean restartServerAfterEachTest() {
-        return false;
-    }
 
     @Test
     public void objectClassAttrIsReadOnly() {

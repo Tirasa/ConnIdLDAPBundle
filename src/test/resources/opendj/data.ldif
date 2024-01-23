@@ -22,11 +22,6 @@
 # Portions Copyrighted 2011 ConnId.
 # 
 
-dn: dc=example,dc=com
-objectClass: top
-objectClass: domain
-dc: example
-
 # Acme Corp.
 
 dn: o=Acme,dc=example,dc=com
@@ -137,7 +132,6 @@ cn: Unique Empty Group
 
 dn: cn=POSIX Bugs and Friends,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
-objectClass: namedObject
 objectClass: posixGroup
 cn: POSIX Bugs and Friends
 gidNumber: 1
@@ -147,7 +141,6 @@ memberUid: sylvester
 
 dn: cn=POSIX External Peers,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
-objectClass: namedObject
 objectClass: posixGroup
 cn: POSIX External Peers
 gidNumber: 2
@@ -157,14 +150,12 @@ memberUid: sylvester
 
 dn: cn=POSIX Empty Group,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
-objectClass: namedObject
 objectClass: posixGroup
 cn: POSIX Empty Group
 gidNumber: 3
 
 dn: cn=POSIX Bugs Bunny Group,ou=Groups,o=Acme,dc=example,dc=com
 objectClass: top
-objectClass: namedObject
 objectClass: posixGroup
 cn: POSIX Bugs Bunny Group
 gidNumber: 4

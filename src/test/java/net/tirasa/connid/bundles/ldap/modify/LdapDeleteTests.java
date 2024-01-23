@@ -26,8 +26,13 @@ package net.tirasa.connid.bundles.ldap.modify;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.HashSet;
+import java.util.Set;
+import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -35,11 +40,6 @@ import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
 import org.junit.jupiter.api.Test;
 
 public class LdapDeleteTests extends LdapConnectorTestBase {
-
-    @Override
-    protected boolean restartServerAfterEachTest() {
-        return false;
-    }
 
     @Test
     public void cannotDeleteExistingUidButWrongObjectClass() {
@@ -60,13 +60,20 @@ public class LdapDeleteTests extends LdapConnectorTestBase {
         assertThrows(ConnectorException.class, () -> facade.delete(oclass, organization.getUid(), null));
     }
 
-    @Test()
+    @Test
     public void delete() {
         ConnectorFacade facade = newFacade();
         ConnectorObject account = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
         facade.delete(ObjectClass.ACCOUNT, account.getUid(), null);
 
-        account = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
-        assertNull(account);
+        ConnectorObject deletedAccount = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
+        assertNull(deletedAccount);
+        Set<Attribute> attributes = new HashSet<>();
+        attributes.add(new Name(BUGS_BUNNY_DN));
+        attributes.add(AttributeBuilder.build("uid", "bugs.bunny", "bbunny"));
+        attributes.add(AttributeBuilder.build("cn", "Bugs Bunny"));
+        attributes.add(AttributeBuilder.build("sn", "Bunny"));
+        attributes.add(AttributeBuilder.buildPassword(new GuardedString("carrot".toCharArray())));
+        facade.create(ObjectClass.ACCOUNT, attributes, null);
     }
 }

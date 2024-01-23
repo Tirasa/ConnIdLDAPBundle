@@ -24,11 +24,13 @@ define suffix=dc=example,dc=com
 define maildomain=example.com
 define numusers=2000
 
-branch: [suffix]
-
 branch: o=Big Company,[suffix]
+objectClass: organization
+objectClass: top
 
 branch: ou=People,o=Big Company,[suffix]
+objectClass: organizationalUnit
+objectClass: top
 subordinateTemplate: person:[numusers]
 
 template: person

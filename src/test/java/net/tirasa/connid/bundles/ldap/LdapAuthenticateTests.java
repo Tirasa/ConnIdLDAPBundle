@@ -42,11 +42,6 @@ import org.junit.jupiter.api.Test;
 
 public class LdapAuthenticateTests extends LdapConnectorTestBase {
 
-    @Override
-    protected boolean restartServerAfterEachTest() {
-        return false;
-    }
-
     @Test
     public void authenticateWithDefaultConfiguration() {
         ConnectorFacade facade = newFacade();

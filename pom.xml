@@ -84,12 +84,9 @@
   <properties>
     <connid.version>1.5.2.0</connid.version>
     
-    <opendj.version>2.6.2</opendj.version>        
-    <opendj.setup.dir>${project.build.directory}/opendj-setup</opendj.setup.dir>
-    <opendj.backup.dir>${project.build.directory}/opendj-backup</opendj.backup.dir>
     <opendj.host>localhost</opendj.host>
-    <opendj.port>2389</opendj.port>
-    <opendj.sslport>2636</opendj.sslport>
+    <opendj.port>1389</opendj.port>
+    <opendj.sslport>1636</opendj.sslport>
     <opendj.principal>cn=Directory Manager</opendj.principal>
     <opendj.credentials>password</opendj.credentials>
     <opendj.baseDN>dc=example,dc=com</opendj.baseDN>
@@ -212,147 +209,75 @@
       </plugin>
       
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <inherited>true</inherited>
+        <groupId>io.fabric8</groupId>
+        <artifactId>docker-maven-plugin</artifactId>
+        <version>0.43.4</version>
+        <configuration>
+          <images>
+            <image>
+              <alias>ldap</alias>
+              <name>connid/opendj</name>
+              <build>
+                <contextDir>${project.basedir}/src/test/resources/opendj</contextDir>
+              </build>
+              <run>
+                <ports>
+                  <port>1389:1389</port>
+                  <port>1636:1636</port>
+                </ports>
+                <wait>
+                  <log>OpenDJ is started</log>
+                  <time>200000</time>
+                </wait>
+              </run>
+            </image>
+          </images>
+        </configuration>
         <executions>
           <execution>
-            <id>prepareOpenDJ</id>
-            <phase>process-test-classes</phase>
-            <configuration>
-              <target>
-                <mkdir dir="${settings.localRepository}/openrock/opendj" />
-                <get src="https://github.com/OpenRock/OpenDJ/releases/download/${opendj.version}/opendj-server-${opendj.version}.zip" dest="${settings.localRepository}/openrock/opendj" skipexisting="true" />
-                <delete dir="${opendj.setup.dir}" />
-                <unzip dest="${project.build.directory}" src="${settings.localRepository}/openrock/opendj/opendj-server-${opendj.version}.zip" />
-                <move file="${project.build.directory}/opendj" tofile="${opendj.setup.dir}" />
-                                
-                <condition property="tool.setup" value="setup.bat" else="setup">
-                  <os family="windows" />
-                </condition>
-                <condition property="tool.backup" value="bat/backup.bat" else="bin/backup">
-                  <os family="windows" />
-                </condition>
-                <condition property="tool.restore" value="bat/restore.bat" else="bin/restore">
-                  <os family="windows" />
-                </condition>
-                <condition property="tool.import-ldif" value="bat/import-ldif.bat" else="bin/import-ldif">
-                  <os family="windows" />
-                </condition>
-                <condition property="tool.ldapmodify" value="bat/ldapmodify.bat" else="bin/ldapmodify">
-                  <os family="windows" />
-                </condition>
-                <condition property="tool.make-ldif" value="bat/make-ldif.bat" else="bin/make-ldif">
-                  <os family="windows" />
-                </condition>
-                <condition property="tool.rebuild-index" value="bat/rebuild-index.bat" else="bin/rebuild-index">
-                  <os family="windows" />
-                </condition>
-                <condition property="tool.start-ds" value="bat/start-ds.bat" else="bin/start-ds">
-                  <os family="windows" />
-                </condition>
-                <condition property="tool.stop-ds" value="bat/stop-ds.bat" else="bin/stop-ds">
-                  <os family="windows" />
-                </condition>
-                <chmod perm="+x">
-                  <fileset dir="${opendj.setup.dir}">
-                    <include name="${tool.setup}" />
-                    <include name="${tool.backup}" />
-                    <include name="${tool.restore}" />
-                    <include name="${tool.import-ldif}" />
-                    <include name="${tool.ldapmodify}" />
-                    <include name="${tool.make-ldif}" />
-                    <include name="${tool.rebuild-index}" />
-                    <include name="${tool.start-ds}" />
-                    <include name="${tool.stop-ds}" />
-                    <include name="lib/_script-util.sh" />
-                    <include name="lib/_client-script.sh" />
-                    <include name="lib/_mixed-script.sh" />
-                    <include name="lib/_server-script.sh" />
-                  </fileset>
-                </chmod>
-                                
-                <concat destfile="${opendj.setup.dir}/template/config/config.ldif" append="true">
-                  <filelist dir="${project.build.directory}/test-classes/opendj" files="config-additions.ldif" />
-                </concat>
-                            
-                <exec executable="${opendj.setup.dir}/${tool.setup}" dir="${opendj.setup.dir}">
-                  <arg value="--cli" />
-                  <arg value="-n" />
-                  <arg value="-O" />
-                  <arg value="--baseDN" />
-                  <arg value="dc=example,dc=com" />
-                  <arg value="-D" />
-                  <arg value="${opendj.principal}" />
-                  <arg value="-w" />
-                  <arg value="${opendj.credentials}" />
-                  <arg value="--generateSelfSignedCertificate" />                                    
-                  <arg value="-h" />
-                  <arg value="${opendj.host}" />
-                  <arg value="-p" />
-                  <arg value="${opendj.port}" />
-                  <arg value="-Z" />
-                  <arg value="${opendj.sslport}" />
-                  <arg value="--adminConnectorPort" />
-                  <arg value="4444" />
-                  <arg value="--acceptLicense" />
-                </exec>
-
-                <!-- Generate and import data. -->
-                <exec executable="${opendj.setup.dir}/${tool.make-ldif}" dir="${opendj.setup.dir}">
-                  <arg value="-t" />
-                  <arg value="${project.build.directory}/test-classes/opendj/bigcompany.template" />
-                  <arg value="-o" />
-                  <arg value="${opendj.setup.dir}/bigcompany.ldif" />
-                </exec>
-                <exec executable="${opendj.setup.dir}/${tool.import-ldif}" dir="${opendj.setup.dir}">
-                  <arg value="--clearBackend" />
-                  <arg value="--ldifFile" />
-                  <arg value="${project.build.directory}/test-classes/opendj/data.ldif" />
-                  <arg value="--backendID" />
-                  <arg value="userRoot" />
-                </exec>
-                <exec executable="${opendj.setup.dir}/${tool.import-ldif}" dir="${opendj.setup.dir}">
-                  <arg value="--append" />
-                  <arg value="--ldifFile" />
-                  <arg value="${opendj.setup.dir}/bigcompany.ldif" />
-                  <arg value="--backendID" />
-                  <arg value="userRoot" />
-                </exec>
-                <exec executable="${opendj.setup.dir}/${tool.rebuild-index}" dir="${opendj.setup.dir}">
-                  <arg value="--baseDN" />
-                  <arg value="dc=example,dc=com" />
-                  <arg value="--index" />
-                  <arg value="vlv.index-uid" />
-                </exec>
-
-                <!-- Set up an admin user. -->
-                <exec executable="${opendj.setup.dir}/${tool.start-ds}" dir="${opendj.setup.dir}" />
-                <exec executable="${opendj.setup.dir}/${tool.ldapmodify}" dir="${opendj.setup.dir}">
-                  <arg value="-h" />
-                  <arg value="${opendj.host}" />
-                  <arg value="-p" />
-                  <arg value="${opendj.port}" />
-                  <arg value="-D" />
-                  <arg value="${opendj.principal}" />
-                  <arg value="-w" />
-                  <arg value="${opendj.credentials}" />
-                  <arg value="-f" />
-                  <arg value="${project.build.directory}/test-classes/opendj/admin.ldif" />
-                </exec>
-                <exec executable="${opendj.setup.dir}/${tool.stop-ds}" dir="${opendj.setup.dir}" />
-                
-                <!-- Backup right after OpenDJ setup, for usage with LdapConnectorTestBase -->
-                <exec executable="${opendj.setup.dir}/${tool.backup}" dir="${opendj.setup.dir}">
-                  <arg value="-a" />
-                  <arg value="-d" />
-                  <arg value="${opendj.backup.dir}" />
-                </exec>
-              </target>
-              <skip>${skipTests}</skip>
-            </configuration>
+            <id>build-docker</id>
+            <phase>initialize</phase>
             <goals>
-              <goal>run</goal>
+              <goal>stop</goal>
+              <goal>remove</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>start-docker</id>
+            <phase>pre-integration-test</phase>
+            <goals>
+              <goal>build</goal>
+              <goal>start</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>remove-containers-post-integration</id>
+            <phase>post-integration-test</phase>
+            <goals>
+              <goal>stop</goal>
+              <goal>remove</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.geronimo.genesis.plugins</groupId>
+        <artifactId>tools-maven-plugin</artifactId>
+        <version>1.4</version>
+        <configuration>
+          <requiredFiles>
+            <requiredFile>LICENSE</requiredFile>
+          </requiredFiles>
+          <!-- Fail the build if any artifacts are missing legal files -->
+          <strict>true</strict>
+        </configuration>
+        <executions>
+          <execution>
+            <id>verify-legal-files</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>verify-legal-files</goal>
             </goals>
           </execution>
         </executions>
@@ -363,10 +288,30 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <inherited>true</inherited>
         <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.2.5</version>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <runOrder>alphabetical</runOrder>
           <includes>
             <include>**/*Tests.java</include>
           </includes>
         </configuration>
+        <executions>
+          <execution>
+            <id>verify</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
@@ -447,6 +392,34 @@
   </repositories>
 
   <profiles>
+    <profile>
+      <id>java11+</id>
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <inherited>true</inherited>
+            <configuration>
+              <argLine>
+                --add-exports java.naming/com.sun.jndi.ldap=ALL-UNNAMED
+              </argLine>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>ianal-maven-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
     <profile>
       <id>sonatype-oss-release</id>
       

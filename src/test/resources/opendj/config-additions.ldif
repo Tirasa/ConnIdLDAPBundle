@@ -59,12 +59,3 @@ ds-cfg-skip-validation-for-administrators: false
 ds-cfg-state-update-failure-policy: reactive
 ds-cfg-password-history-count: 0
 ds-cfg-password-history-duration: 0 seconds
-
-dn: ds-cfg-name=index-uid,cn=VLV Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
-objectClass: ds-cfg-local-db-vlv-index
-objectClass: top
-ds-cfg-filter: (&(objectClass=inetOrgPerson)(objectClass=organizationalPerson)(objectClass=person)(objectClass=top))
-ds-cfg-base-dn: dc=example,dc=com
-ds-cfg-sort-order: uid
-ds-cfg-scope: whole-subtree
-ds-cfg-name: index-uid

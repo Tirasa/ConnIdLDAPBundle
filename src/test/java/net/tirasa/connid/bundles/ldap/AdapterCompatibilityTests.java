@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -61,10 +62,6 @@ import org.junit.jupiter.api.Test;
 public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
     // TODO test authenticate.
-    @Override
-    protected boolean restartServerAfterEachTest() {
-        return true;
-    }
 
     @Test
     public void accountOperationalAttributes() {
@@ -144,6 +141,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
         ConnectorObject newGroup = facade.getObject(oclass, uid, null);
         assertEquals(name, newGroup.getName());
+        facade.delete(oclass, uid, null);
     }
 
     @Test
@@ -218,6 +216,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         Uid uid = facade.create(ObjectClass.ACCOUNT, attributes, null);
 
         assertAttributeValue(groupsAttr.getValue(), facade, ObjectClass.ACCOUNT, uid, groupsAttr.getName());
+        facade.delete(ObjectClass.ACCOUNT, uid, null);
     }
 
     @Test
@@ -247,6 +246,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
         oldGroups.addAll(groupsAttr.getValue());
         assertAttributeValue(oldGroups, facade, ObjectClass.ACCOUNT, uid, groupsAttr.getName());
+        facade.removeAttributeValues(ObjectClass.ACCOUNT, uid, Collections.singleton(groupsAttr), null);
     }
 
     @Test
@@ -268,10 +268,12 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
     private void doTestUpdateGroups(ConnectorFacade facade, Attribute groupsAttr) {
         ConnectorObject object = searchByAttribute(
                 facade, ObjectClass.ACCOUNT, new Name(SYLVESTER_DN), groupsAttr.getName());
+        Attribute oldLGroups = object.getAttributeByName(LdapConstants.LDAP_GROUPS_NAME);
 
         Uid uid = facade.update(ObjectClass.ACCOUNT, object.getUid(), Collections.singleton(groupsAttr), null);
 
         assertAttributeValue(groupsAttr.getValue(), facade, ObjectClass.ACCOUNT, uid, groupsAttr.getName());
+        facade.update(ObjectClass.ACCOUNT, uid, Collections.singleton(oldLGroups), null);
     }
 
     @Test
@@ -300,6 +302,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
         oldGroups.removeAll(groupsAttr.getValue());
         assertAttributeValue(oldGroups, facade, ObjectClass.ACCOUNT, uid, groupsAttr.getName());
+        facade.addAttributeValues(ObjectClass.ACCOUNT, uid, Collections.singleton(groupsAttr), null);
     }
 
     @Test
@@ -341,6 +344,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         List<String> oldPosixGroups = LdapUtil.checkedListByFilter(
                 object.getAttributeByName(LdapConstants.POSIX_GROUPS_NAME).getValue(), String.class);
 
+        Name oldName = object.getName();
         Name newName = new Name("uid=sylvester.the.cat," + ACME_USERS_DN);
         Uid uid = facade.update(ObjectClass.ACCOUNT, object.getUid(),
                 Collections.singleton((Attribute) newName), null);
@@ -363,6 +367,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
             List<Object> members = object.getAttributeByName("memberUid").getValue();
             assertFalse(members.contains(SYLVESTER_UID));
         }
+        facade.update(ObjectClass.ACCOUNT, uid, Collections.singleton(oldName), null);
     }
 
     @Test
@@ -374,11 +379,12 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
         ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(SYLVESTER_DN),
                 LdapConstants.LDAP_GROUPS_NAME, LdapConstants.POSIX_GROUPS_NAME);
-        List<String> oldLdapGroups = LdapUtil.checkedListByFilter(
-                object.getAttributeByName(LdapConstants.LDAP_GROUPS_NAME).getValue(), String.class);
-        List<String> oldPosixGroups = LdapUtil.checkedListByFilter(
-                object.getAttributeByName(LdapConstants.POSIX_GROUPS_NAME).getValue(), String.class);
+        Attribute oldLGroups = object.getAttributeByName(LdapConstants.LDAP_GROUPS_NAME);
+        List<String> oldLdapGroups = LdapUtil.checkedListByFilter(oldLGroups.getValue(), String.class);
+        Attribute oldPGroup = object.getAttributeByName(LdapConstants.POSIX_GROUPS_NAME);
+        List<String> oldPosixGroups = LdapUtil.checkedListByFilter(oldPGroup.getValue(), String.class);
 
+        Name oldName = object.getName();
         Name newName = new Name("uid=sylvester.the.cat," + ACME_USERS_DN);
         Attribute ldapGroupsAttr = AttributeBuilder.build(
                 LdapConstants.LDAP_GROUPS_NAME,
@@ -405,6 +411,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
             List<Object> members = object.getAttributeByName("memberUid").getValue();
             assertFalse(members.contains(SYLVESTER_UID));
         }
+        facade.update(ObjectClass.ACCOUNT, uid, CollectionUtil.newSet(oldName, oldLGroups, oldPGroup), null);
     }
 
     @Test
@@ -414,11 +421,13 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         assertFalse(config.isMaintainPosixGroupMembership());
         ConnectorFacade facade = newFacade(config);
 
-        ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(SYLVESTER_DN));
+        Name oldName = new Name(SYLVESTER_DN);
+        ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, oldName);
         String newUid = "sylvester.the.cat";
         String newEntryDN = "uid=" + newUid + "," + ACME_USERS_DN;
+        Uid uid = object.getUid();
         facade.update(
-                ObjectClass.ACCOUNT, object.getUid(),
+                ObjectClass.ACCOUNT, uid,
                 Collections.singleton((Attribute) new Name(newEntryDN)), null);
 
         object = searchByAttribute(
@@ -444,6 +453,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         members = object.getAttributeByName("memberUid").getValue();
         assertTrue(members.contains(SYLVESTER_UID));
         assertFalse(members.contains(newUid));
+        facade.update(ObjectClass.ACCOUNT, uid, Collections.singleton(oldName), null);
     }
 
     @Test
@@ -455,11 +465,12 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
 
         ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(SYLVESTER_DN),
                 LdapConstants.LDAP_GROUPS_NAME, LdapConstants.POSIX_GROUPS_NAME);
-        List<String> oldLdapGroups = LdapUtil.checkedListByFilter(
-                object.getAttributeByName(LdapConstants.LDAP_GROUPS_NAME).getValue(), String.class);
-        List<String> oldPosixGroups = LdapUtil.checkedListByFilter(
-                object.getAttributeByName(LdapConstants.POSIX_GROUPS_NAME).getValue(), String.class);
+        Attribute oldLGroups = object.getAttributeByName(LdapConstants.LDAP_GROUPS_NAME);
+        List<String> oldLdapGroups = LdapUtil.checkedListByFilter(oldLGroups.getValue(), String.class);
+        Attribute oldPGroup = object.getAttributeByName(LdapConstants.POSIX_GROUPS_NAME);
+        List<String> oldPosixGroups = LdapUtil.checkedListByFilter(oldPGroup.getValue(), String.class);
 
+        Name oldName = object.getName();
         facade.delete(ObjectClass.ACCOUNT, object.getUid(), null);
 
         // Need to test that the old entries were actually removed from the old groups.
@@ -473,6 +484,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
             List<Object> members = object.getAttributeByName("memberUid").getValue();
             assertFalse(members.contains(SYLVESTER_UID));
         }
+        restoreSylvester(facade, oldName, oldLGroups, oldPGroup);
     }
 
     @Test
@@ -483,6 +495,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
 
         ConnectorObject object = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(SYLVESTER_DN));
+        Name oldName = object.getName();
         facade.delete(ObjectClass.ACCOUNT, object.getUid(), null);
 
         object = searchByAttribute(
@@ -504,6 +517,17 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
                 facade, new ObjectClass("posixGroup"), new Name(POSIX_EXTERNAL_PEERS_DN), "memberUid");
         members = object.getAttributeByName("memberUid").getValue();
         assertTrue(members.contains(SYLVESTER_UID));
+        restoreSylvester(facade, oldName);
+    }
+
+    private void restoreSylvester(final ConnectorFacade facade, final Name name, final Attribute... groups) {
+        Set<Attribute> attributes = new HashSet<>();
+        attributes.add(name);
+        attributes.add(AttributeBuilder.build("uid", "sylvester"));
+        attributes.add(AttributeBuilder.build("cn", "sylvester"));
+        attributes.add(AttributeBuilder.build("sn", "sylvester"));
+        attributes.addAll(Arrays.asList(groups));
+        facade.create(ObjectClass.ACCOUNT, attributes, null);
     }
 
     @Test
@@ -554,6 +578,7 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         passwordBytes = (byte[]) object.getAttributeByName("userPassword").getValue().get(0);
         assertTrue(new String(passwordBytes, StandardCharsets.UTF_8).startsWith(algorithmLabel));
         facade.authenticate(ObjectClass.ACCOUNT, "daffy.duck", password, null);
+        facade.delete(ObjectClass.ACCOUNT, uid, null);
     }
 
     @Test
