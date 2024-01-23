@@ -4,7 +4,7 @@
 # ====================
 # DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 # 
-# Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
+# Copyright 2011 ConnId. All rights reserved.
 # 
 # The contents of this file are subject to the terms of the Common Development
 # and Distribution License("CDDL") (the "License").  You may not use this file
@@ -21,7 +21,6 @@
 # enclosed by brackets [] replaced by your own identifying information:
 # "Portions Copyrighted [year] [name of copyright owner]"
 # ====================
-# Portions Copyrighted 2011 ConnId.
 # 
 
 cd /opt/opendj

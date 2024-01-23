@@ -216,7 +216,7 @@
           <images>
             <image>
               <alias>ldap</alias>
-              <name>openidentityplatform/opendj:4.6.2</name>
+              <name>connid/opendj</name>
               <build>
                 <contextDir>${project.basedir}/src/test/resources/opendj</contextDir>
               </build>
@@ -244,7 +244,7 @@
           </execution>
           <execution>
             <id>start-docker</id>
-            <phase>generate-test-resources</phase>
+            <phase>pre-integration-test</phase>
             <goals>
               <goal>build</goal>
               <goal>start</goal>
@@ -288,10 +288,30 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <inherited>true</inherited>
         <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>3.2.5</version>
+        <configuration>
+          <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          <runOrder>alphabetical</runOrder>
           <includes>
             <include>**/*Tests.java</include>
           </includes>
         </configuration>
+        <executions>
+          <execution>
+            <id>verify</id>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
