@@ -84,7 +84,6 @@
   <properties>
     <connid.version>1.5.2.0</connid.version>
     
-    <opendj.version>4.6.2</opendj.version>        
     <opendj.host>localhost</opendj.host>
     <opendj.port>1389</opendj.port>
     <opendj.sslport>1636</opendj.sslport>
@@ -217,7 +216,7 @@
           <images>
             <image>
               <alias>ldap</alias>
-              <name>openidentityplatform/opendj:${opendj.version}</name>
+              <name>openidentityplatform/opendj:4.6.2</name>
               <build>
                 <contextDir>${project.basedir}/src/test/resources/opendj</contextDir>
               </build>
@@ -260,14 +259,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>ianal-maven-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
       </plugin>
 
       <plugin>
