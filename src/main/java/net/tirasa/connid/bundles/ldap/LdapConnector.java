@@ -30,7 +30,9 @@ import net.tirasa.connid.bundles.ldap.modify.LdapUpdate;
 import net.tirasa.connid.bundles.ldap.search.LdapFilter;
 import net.tirasa.connid.bundles.ldap.search.LdapFilterTranslator;
 import net.tirasa.connid.bundles.ldap.search.LdapSearch;
+import net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategy;
 import net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy;
+import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
@@ -63,6 +65,8 @@ public class LdapConnector implements
         AuthenticateOp, ResolveUsernameOp, CreateOp, UpdateOp, UpdateDeltaOp, UpdateAttributeValuesOp,
         DeleteOp, SyncOp {
 
+    private static final Log LOG = Log.getLog(LdapConnector.class);
+
     /**
      * The configuration for this connector instance.
      */
@@ -73,6 +77,8 @@ public class LdapConnector implements
      */
     private LdapConnection conn;
 
+    private LdapSyncStrategy syncStrategy;
+
     @Override
     public Configuration getConfiguration() {
         return config;
@@ -82,6 +88,15 @@ public class LdapConnector implements
     public void init(Configuration cfg) {
         config = (LdapConfiguration) cfg;
         conn = new LdapConnection(config);
+
+        Class<? extends LdapSyncStrategy> syncStrategyClass = config.getSyncStrategyClass();
+        try {
+            syncStrategy = syncStrategyClass.getConstructor(LdapConnection.class).newInstance(conn);
+        } catch (Exception e) {
+            LOG.error(e, "Could not instantiate the configured {0} implementation, reverting to {1}",
+                    LdapSyncStrategy.class.getName(), SunDSChangeLogSyncStrategy.class.getName());
+            syncStrategy = new SunDSChangeLogSyncStrategy(conn);
+        }
     }
 
     @Override
@@ -192,9 +207,8 @@ public class LdapConnector implements
     }
 
     @Override
-    public SyncToken getLatestSyncToken(
-            final ObjectClass oclass) {
-        return new SunDSChangeLogSyncStrategy(conn, oclass).getLatestSyncToken();
+    public SyncToken getLatestSyncToken(final ObjectClass oclass) {
+        return syncStrategy.getLatestSyncToken(oclass);
     }
 
     @Override
@@ -203,6 +217,6 @@ public class LdapConnector implements
             final SyncToken token,
             final SyncResultsHandler handler,
             final OperationOptions options) {
-        new SunDSChangeLogSyncStrategy(conn, oclass).sync(token, handler, options);
+        syncStrategy.sync(token, handler, options, oclass);
     }
 }

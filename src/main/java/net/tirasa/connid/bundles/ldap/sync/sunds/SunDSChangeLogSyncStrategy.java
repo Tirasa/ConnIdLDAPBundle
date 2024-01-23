@@ -97,8 +97,6 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
 
     private final LdapConnection conn;
 
-    private final ObjectClass oclass;
-
     private ChangeLogAttributes changeLogAttrs;
 
     private Set<String> oclassesToSync;
@@ -118,13 +116,12 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         LDAP_DN_ATTRIBUTES.add("cn");
     }
 
-    public SunDSChangeLogSyncStrategy(LdapConnection conn, ObjectClass oclass) {
+    public SunDSChangeLogSyncStrategy(LdapConnection conn) {
         this.conn = conn;
-        this.oclass = oclass;
     }
 
     @Override
-    public SyncToken getLatestSyncToken() {
+    public SyncToken getLatestSyncToken(ObjectClass oclass) {
         return new SyncToken(getChangeLogAttributes().getLastChangeNumber());
     }
 
@@ -132,8 +129,8 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
     public void sync(
             final SyncToken token,
             final SyncResultsHandler handler,
-            final OperationOptions options) {
-
+            final OperationOptions options,
+            final ObjectClass oclass) {
         String context = getChangeLogAttributes().getChangeLogContext();
         final String changeNumberAttr = getChangeNumberAttribute();
         SearchControls controls = LdapInternalSearch.createDefaultSearchControls();
@@ -174,7 +171,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                     currentChangeNumber[0] = changeNumber;
                 }
 
-                final SyncDelta delta = createSyncDelta(entry, changeNumber, options.getAttributesToGet());
+                final SyncDelta delta = createSyncDelta(entry, changeNumber, options.getAttributesToGet(), oclass);
 
                 if (delta != null) {
                     return handler.handle(delta);
@@ -194,7 +191,8 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
     private SyncDelta createSyncDelta(
             final LdapEntry changeLogEntry,
             final int changeNumber,
-            final String[] attrsToGetOption) throws InvalidNameException {
+            final String[] attrsToGetOption,
+            ObjectClass oclass) throws InvalidNameException {
 
         LOG.ok("Attempting to create sync delta for log entry {0}", changeNumber);
 
@@ -298,10 +296,9 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         // If objectClass is not in the list of attributes to get, prepare to remove it later.
         boolean removeObjectClass = attrsToGet.add("objectClass");
 
-        LdapFilter filter = LdapFilter.forEntryDN(newTargetDN).withNativeFilter(getModifiedEntrySearchFilter());
+        LdapFilter filter = LdapFilter.forEntryDN(newTargetDN).withNativeFilter(getModifiedEntrySearchFilter(oclass));
 
-        ConnectorObject object = LdapSearches.findObject(conn, oclass, filter,
-                attrsToGet.toArray(new String[attrsToGet.size()]));
+        ConnectorObject object = LdapSearches.findObject(conn, oclass, filter, attrsToGet.toArray(new String[0]));
 
         if (object == null) {
             LOG.ok("Skipping entry because the modified entry is missing, "
@@ -452,7 +449,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         return SyncDeltaType.CREATE_OR_UPDATE;
     }
 
-    private String getModifiedEntrySearchFilter() {
+    private String getModifiedEntrySearchFilter(ObjectClass oclass) {
         if (oclass.equals(ObjectClass.ACCOUNT)) {
             return conn.getConfiguration().getAccountSynchronizationFilter();
         }
@@ -609,10 +606,8 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                 Attributes attrs = conn.getInitialContext().getAttributes("",
                         new String[] { "changeLog", "firstChangeNumber", "lastChangeNumber" });
                 String changeLog = getStringAttrValue(attrs, "changeLog");
-                String firstChangeNumber = getStringAttrValue(attrs,
-                        "firstChangeNumber");
-                String lastChangeNumber = getStringAttrValue(attrs,
-                        "lastChangeNumber");
+                String firstChangeNumber = getStringAttrValue(attrs, "firstChangeNumber");
+                String lastChangeNumber = getStringAttrValue(attrs, "lastChangeNumber");
                 if (changeLog == null || firstChangeNumber == null | lastChangeNumber == null) {
                     String error = "Unable to locate the replication change log.\n"
                             + "From the admin console please verify that the "
