@@ -411,6 +411,14 @@
           </plugin>
         </plugins>
       </build>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>ianal-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
     </profile>
     <profile>
       <id>sonatype-oss-release</id>
