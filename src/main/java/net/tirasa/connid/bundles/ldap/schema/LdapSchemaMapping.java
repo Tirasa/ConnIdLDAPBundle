@@ -85,7 +85,9 @@ public class LdapSchemaMapping {
     // XXX should the naming attribute be present in the schema (e.g. "cn" for account)?
     // XXX need a method like getAttributesToReturn(String[] wanted);
     // XXX need to check that (extended) naming attributes really exist.
-    public static final ObjectClass ANY_OBJECT_CLASS = new ObjectClass(ObjectClassUtil.createSpecialName("ANY"));
+    public static final String ANY_OBJECT_NAME = ObjectClassUtil.createSpecialName("ANY");
+
+    public static final ObjectClass ANY_OBJECT_CLASS = new ObjectClass(ANY_OBJECT_NAME);
 
     /**
      * The LDAP attribute to map to {@link Name} by default.
