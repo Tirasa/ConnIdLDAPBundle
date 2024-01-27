@@ -219,7 +219,7 @@ public class LdapSchemaMapping {
             idAttribute = conn.getConfiguration().getAoidAttribute();
         } else {
             idAttribute = conn.getConfiguration().getObjectClassMappingConfigs().get(ObjectClass.ALL).
-                        getShortNameLdapAttributes().iterator().next()
+                        getShortNameLdapAttributes().iterator().next();
         }
 
         return idAttribute;
