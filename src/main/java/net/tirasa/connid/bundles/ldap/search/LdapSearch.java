@@ -71,19 +71,19 @@ public class LdapSearch {
 
     private static final Log LOG = Log.getLog(LdapSearch.class);
 
-    private final LdapConnection conn;
+    protected final LdapConnection conn;
 
-    private final ObjectClass oclass;
+    protected final ObjectClass oclass;
 
-    private final LdapFilter filter;
+    protected final LdapFilter filter;
 
-    private final OperationOptions options;
+    protected final OperationOptions options;
 
-    private final GroupHelper groupHelper;
+    protected final GroupHelper groupHelper;
 
-    private final String[] baseDNs;
+    protected final String[] baseDNs;
 
-    private final ResultsHandler handler;
+    protected final ResultsHandler handler;
 
     public static Set<String> getAttributesReturnedByDefault(final LdapConnection conn, final ObjectClass oclass) {
         Set<String> result = CollectionUtil.newCaseInsensitiveSet();
@@ -167,7 +167,7 @@ public class LdapSearch {
         return results[0];
     }
 
-    private LdapInternalSearch getInternalSearch(final Set<String> attrsToGet) {
+    protected LdapInternalSearch getInternalSearch(final Set<String> attrsToGet) {
         // This is a bit tricky. If the LdapFilter has an entry DN,
         // we only need to look at that entry and check whether it matches
         // the native filter. Moreover, when looking at the entry DN
@@ -222,7 +222,7 @@ public class LdapSearch {
                 dns, strategy, controls);
     }
 
-    private Set<String> getLdapAttributesToGet(final Set<String> attrsToGet) {
+    protected Set<String> getLdapAttributesToGet(final Set<String> attrsToGet) {
         final Set<String> cleanAttrsToGet = CollectionUtil.newCaseInsensitiveSet();
 
         cleanAttrsToGet.addAll(attrsToGet);
@@ -254,7 +254,7 @@ public class LdapSearch {
      * baseDN} parameter is needed in order to create the whole entry DN, which is used to compute the connector
      * object's name attribute.
      */
-    private ConnectorObject createConnectorObject(
+    protected ConnectorObject createConnectorObject(
             final String baseDN,
             final SearchResult result,
             final Set<String> attrsToGet,
@@ -308,7 +308,7 @@ public class LdapSearch {
      * filter to be applied before the object class filters, the filters for all LDAP object classes for the given
      * {@code ObjectClass}, and an optional filter to be applied before the object class filters.
      */
-    private String getSearchFilter(final String... optionalFilters) {
+    protected String getSearchFilter(final String... optionalFilters) {
         StringBuilder builder = new StringBuilder();
         String ocFilter = getObjectClassFilter();
         int nonBlank = StringUtil.isBlank(ocFilter) ? 0 : 1;
@@ -334,7 +334,7 @@ public class LdapSearch {
         return builder.toString();
     }
 
-    private String getObjectClassFilter() {
+    protected String getObjectClassFilter() {
         StringBuilder builder = new StringBuilder();
         List<String> ldapClasses = conn.getSchemaMapping().getLdapClasses(oclass);
 
@@ -356,7 +356,7 @@ public class LdapSearch {
         return builder.toString();
     }
 
-    private static void appendFilter(String filter, StringBuilder toBuilder) {
+    protected static void appendFilter(String filter, StringBuilder toBuilder) {
         if (!StringUtil.isBlank(filter)) {
             final String trimmedUserFilter = filter.trim();
             final boolean enclose = filter.charAt(0) != '(';
@@ -373,7 +373,7 @@ public class LdapSearch {
         }
     }
 
-    private List<String> getBaseDNs() {
+    protected List<String> getBaseDNs() {
         List<String> result;
 
         final QualifiedUid container = options.getContainer();
@@ -389,7 +389,7 @@ public class LdapSearch {
         return result;
     }
 
-    private LdapSearchStrategy getSearchStrategy() {
+    protected LdapSearchStrategy getSearchStrategy() {
         LdapSearchStrategy result = conn.getConfiguration().newDefaultSearchStrategy(false);
         if (options.getPageSize() != null) {
             if (conn.getConfiguration().isUseVlvControls() && conn.supportsControl(VirtualListViewControl.OID)) {
@@ -409,7 +409,7 @@ public class LdapSearch {
         return result;
     }
 
-    private Set<String> getAttributesToGet(final String[] attributesToGet) {
+    protected Set<String> getAttributesToGet(final String[] attributesToGet) {
         Set<String> result;
 
         if (attributesToGet != null) {
@@ -435,7 +435,7 @@ public class LdapSearch {
         return result;
     }
 
-    private void removeNonReadableAttributes(final Set<String> attributes) {
+    protected void removeNonReadableAttributes(final Set<String> attributes) {
         // Since the groups attributes are fake attributes, we don't want to
         // send them to LdapSchemaMapping. This, for example, avoid an (unlikely)
         // conflict with a custom attribute defined in the server schema.
@@ -453,7 +453,7 @@ public class LdapSearch {
         }
     }
 
-    private int getLdapSearchScope(boolean ignoreUserAnyObjectConfig) {
+    protected int getLdapSearchScope(boolean ignoreUserAnyObjectConfig) {
         String scope = options.getScope();
 
         if (scope == null) {

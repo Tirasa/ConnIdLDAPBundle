@@ -365,13 +365,13 @@ public class LdapConfiguration extends AbstractConfiguration {
         checkLdapSyncStrategy();
     }
 
-    private void checkNotBlank(String value, String errorMessage) {
+    protected void checkNotBlank(String value, String errorMessage) {
         if (StringUtil.isBlank(value)) {
             failValidation(errorMessage);
         }
     }
 
-    private void checkNotBlank(GuardedByteArray array, String errorMessage) {
+    protected void checkNotBlank(GuardedByteArray array, String errorMessage) {
         final int[] length = { 0 };
         if (array != null) {
             array.access(new Accessor() {
@@ -388,7 +388,7 @@ public class LdapConfiguration extends AbstractConfiguration {
     }
 
     @SuppressWarnings("unchecked")
-    private void checkLdapSyncStrategy() {
+    protected void checkLdapSyncStrategy() {
         try {
             Class<?> clazz = Class.forName(syncStrategy);
             if (LdapSyncStrategy.class.isAssignableFrom(clazz) && !Modifier.isAbstract(clazz.getModifiers())) {
@@ -401,19 +401,19 @@ public class LdapConfiguration extends AbstractConfiguration {
         }
     }
 
-    private void checkNotEmpty(Collection<?> collection, String errorMessage) {
+    protected void checkNotEmpty(Collection<?> collection, String errorMessage) {
         if (collection.isEmpty()) {
             failValidation(errorMessage);
         }
     }
 
-    private void checkNotEmpty(String[] array, String errorMessage) {
+    protected void checkNotEmpty(String[] array, String errorMessage) {
         if (array == null || array.length < 1) {
             failValidation(errorMessage);
         }
     }
 
-    private void checkNoBlankValues(Collection<String> collection, String errorMessage) {
+    protected void checkNoBlankValues(Collection<String> collection, String errorMessage) {
         for (String each : collection) {
             if (StringUtil.isBlank(each)) {
                 failValidation(errorMessage);
@@ -421,7 +421,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         }
     }
 
-    private void checkNoBlankValues(String[] array, String errorMessage) {
+    protected void checkNoBlankValues(String[] array, String errorMessage) {
         for (String each : array) {
             if (StringUtil.isBlank(each)) {
                 failValidation(errorMessage);
@@ -429,7 +429,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         }
     }
 
-    private void checkNoInvalidLdapNames(String[] array, String errorMessage) {
+    protected void checkNoInvalidLdapNames(String[] array, String errorMessage) {
         for (String each : array) {
             try {
                 new LdapName(each);
@@ -439,7 +439,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         }
     }
 
-    private void checkValidScope(String scope, String errorMessage) {
+    protected void checkValidScope(String scope, String errorMessage) {
         switch (scope) {
             case OperationOptions.SCOPE_OBJECT:
             case OperationOptions.SCOPE_ONE_LEVEL:
@@ -450,7 +450,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         }
     }
 
-    private void failValidation(String key, Object... args) {
+    protected void failValidation(String key, Object... args) {
         String message = getConnectorMessages().format(key, null, args);
         throw new ConfigurationException(message);
     }
@@ -1090,7 +1090,7 @@ public class LdapConfiguration extends AbstractConfiguration {
         return result;
     }
 
-    private EqualsHashCodeBuilder createHashCodeBuilder() {
+    protected EqualsHashCodeBuilder createHashCodeBuilder() {
         EqualsHashCodeBuilder builder = new EqualsHashCodeBuilder();
         // Exposed configuration properties.
         builder.append(host);

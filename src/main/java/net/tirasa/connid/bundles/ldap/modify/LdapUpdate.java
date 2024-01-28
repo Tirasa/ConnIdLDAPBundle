@@ -61,9 +61,9 @@ public class LdapUpdate extends LdapModifyOperation {
 
     private static final Log LOG = Log.getLog(LdapUpdate.class);
 
-    private final ObjectClass oclass;
+    protected final ObjectClass oclass;
 
-    private final Uid uid;
+    protected final Uid uid;
 
     public LdapUpdate(final LdapConnection conn, final ObjectClass oclass, final Uid uid) {
         super(conn);
@@ -358,7 +358,7 @@ public class LdapUpdate extends LdapModifyOperation {
         return uid;
     }
 
-    private void checkRemovedPosixRefAttrs(
+    protected void checkRemovedPosixRefAttrs(
             final Set<String> removedPosixRefAttrs,
             final Set<GroupMembership> memberships) {
 
@@ -370,7 +370,7 @@ public class LdapUpdate extends LdapModifyOperation {
         }
     }
 
-    private Pair<Attributes, GuardedPasswordAttribute> getAttributesToModify(final Set<Attribute> attrs) {
+    protected Pair<Attributes, GuardedPasswordAttribute> getAttributesToModify(final Set<Attribute> attrs) {
         BasicAttributes ldapAttrs = new BasicAttributes();
         GuardedPasswordAttribute pwdAttr = null;
         for (Attribute attr : attrs) {
@@ -408,7 +408,7 @@ public class LdapUpdate extends LdapModifyOperation {
         return Pair.of(ldapAttrs, pwdAttr);
     }
 
-    private void modifyAttributes(
+    protected void modifyAttributes(
             final String entryDN,
             final Pair<Attributes, GuardedPasswordAttribute> attrs,
             final int ldapModifyOp) {
@@ -432,7 +432,7 @@ public class LdapUpdate extends LdapModifyOperation {
         }
     }
 
-    private void modifyAttributes(final String entryDN, final List<ModificationItem> modItems) {
+    protected void modifyAttributes(final String entryDN, final List<ModificationItem> modItems) {
         LOG.ok("About to apply to {0} the following modifications: {1}", entryDN, modItems);
 
         try {
@@ -442,7 +442,7 @@ public class LdapUpdate extends LdapModifyOperation {
         }
     }
 
-    private static List<String> getStringListValue(final Set<Attribute> attrs, final String attrName) {
+    public static List<String> getStringListValue(final Set<Attribute> attrs, final String attrName) {
         return Optional.ofNullable(AttributeUtil.find(attrName, attrs)).
                 map(attr -> LdapUtil.checkedListByFilter(CollectionUtil.nullAsEmpty(attr.getValue()), String.class)).
                 orElse(null);

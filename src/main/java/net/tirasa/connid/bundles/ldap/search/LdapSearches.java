@@ -101,7 +101,7 @@ public final class LdapSearches {
      * the method will throw a <code>UnknownUidException</code> if the entry identified
      * by the Uid does not exist.
      */
-    private static String findEntryDN(
+    protected static String findEntryDN(
             LdapConnection conn,
             ObjectClass oclass,
             Uid uid,

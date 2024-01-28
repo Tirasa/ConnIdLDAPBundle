@@ -40,7 +40,7 @@ public abstract class LdapSearchStrategy {
             final LdapSearchResultsHandler handler)
             throws IOException, NamingException;
 
-    static String searchControlsToString(final SearchControls controls) {
+    protected static String searchControlsToString(final SearchControls controls) {
         StringBuilder builder = new StringBuilder();
 
         builder.append("SearchControls: {returningAttributes=");

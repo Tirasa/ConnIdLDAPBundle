@@ -49,9 +49,9 @@ import org.identityconnectors.framework.common.objects.Uid;
 public class LdapCreate extends LdapModifyOperation {
 
     // TODO old LDAP connector has a note about a RFC 4527 Post-Read control.
-    private final ObjectClass oclass;
+    protected final ObjectClass oclass;
 
-    private final Set<Attribute> attrs;
+    protected final Set<Attribute> attrs;
 
     public LdapCreate(
             final LdapConnection conn,
@@ -72,7 +72,7 @@ public class LdapCreate extends LdapModifyOperation {
         }
     }
 
-    private Uid executeImpl() throws NamingException {
+    protected Uid executeImpl() throws NamingException {
         Name nameAttr = AttributeUtil.getNameFromAttributes(attrs);
         if (nameAttr == null) {
             throw new IllegalArgumentException("No Name attribute provided in the attributes");

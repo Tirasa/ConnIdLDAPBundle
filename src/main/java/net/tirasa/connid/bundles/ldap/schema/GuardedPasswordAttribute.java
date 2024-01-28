@@ -48,13 +48,13 @@ public abstract class GuardedPasswordAttribute {
         void access(Attribute passwordAttribute);
     }
 
-    private static final class Simple extends GuardedPasswordAttribute {
+    public static class Simple extends GuardedPasswordAttribute {
 
-        private final String attrName;
+        protected final String attrName;
 
-        private final GuardedString password;
+        protected final GuardedString password;
 
-        private Simple(final String attrName, final GuardedString password) {
+        protected Simple(final String attrName, final GuardedString password) {
             super();
 
             this.attrName = attrName;
@@ -92,11 +92,11 @@ public abstract class GuardedPasswordAttribute {
         }
     }
 
-    private static final class Empty extends GuardedPasswordAttribute {
+    public static class Empty extends GuardedPasswordAttribute {
 
-        private final String attrName;
+        protected final String attrName;
 
-        private Empty(final String attrName) {
+        protected Empty(final String attrName) {
             super();
 
             this.attrName = attrName;

@@ -70,14 +70,14 @@ public class LdapConnector implements
     /**
      * The configuration for this connector instance.
      */
-    private LdapConfiguration config;
+    protected LdapConfiguration config;
 
     /**
      * The connection to the LDAP server.
      */
-    private LdapConnection conn;
+    protected LdapConnection conn;
 
-    private LdapSyncStrategy syncStrategy;
+    protected LdapSyncStrategy syncStrategy;
 
     @Override
     public Configuration getConfiguration() {

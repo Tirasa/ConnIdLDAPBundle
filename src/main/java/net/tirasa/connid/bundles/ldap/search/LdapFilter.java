@@ -53,8 +53,8 @@ import org.identityconnectors.framework.common.objects.filter.EqualsFilter;
  */
 public final class LdapFilter {
 
-    private final String nativeFilter;
-    private final String entryDN;
+    protected final String nativeFilter;
+    protected final String entryDN;
 
     public static LdapFilter forEntryDN(String entryDN) {
         return new LdapFilter(null, entryDN);
@@ -64,7 +64,7 @@ public final class LdapFilter {
         return new LdapFilter(nativeFilter, null);
     }
 
-    private LdapFilter(String nativeFilter, String entryDN) {
+    protected LdapFilter(String nativeFilter, String entryDN) {
         this.nativeFilter = nativeFilter;
         this.entryDN = entryDN;
     }
@@ -126,7 +126,7 @@ public final class LdapFilter {
         return null;
     }
 
-    private static String combine(String left, String right, char op) {
+    protected static String combine(String left, String right, char op) {
         if (left != null) {
             if (right != null) {
                 StringBuilder builder = new StringBuilder();

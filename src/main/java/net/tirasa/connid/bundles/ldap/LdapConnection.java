@@ -95,19 +95,19 @@ public class LdapConnection {
         LDAP_BINARY_OPTION_ATTRS.add("supportedAlgorithms");
     }
 
-    private static final String LDAP_CTX_FACTORY = "com.sun.jndi.ldap.LdapCtxFactory";
+    protected static final String LDAP_CTX_FACTORY = "com.sun.jndi.ldap.LdapCtxFactory";
 
     private static final Log LOG = Log.getLog(LdapConnection.class);
 
-    private final LdapConfiguration config;
+    protected final LdapConfiguration config;
 
-    private final LdapSchemaMapping schemaMapping;
+    protected final LdapSchemaMapping schemaMapping;
 
-    private LdapContext initCtx;
+    protected LdapContext initCtx;
 
-    private Set<String> supportedControls;
+    protected Set<String> supportedControls;
 
-    private ServerType serverType;
+    protected ServerType serverType;
 
     public LdapConnection(LdapConfiguration config) {
         this.config = config;
@@ -130,7 +130,7 @@ public class LdapConnection {
         return initCtx;
     }
 
-    private LdapContext connect(String principal, GuardedString credentials) {
+    protected LdapContext connect(String principal, GuardedString credentials) {
         Pair<AuthenticationResult, LdapContext> pair = createContext(principal, credentials);
         if (pair.first.getType().equals(AuthenticationResultType.SUCCESS)) {
             return pair.second;
@@ -139,7 +139,7 @@ public class LdapConnection {
         throw new IllegalStateException("Should never get here");
     }
 
-    private Pair<AuthenticationResult, LdapContext> createContext(String principal, GuardedString credentials) {
+    protected Pair<AuthenticationResult, LdapContext> createContext(String principal, GuardedString credentials) {
         final List<Pair<AuthenticationResult, LdapContext>> result =
                 new ArrayList<Pair<AuthenticationResult, LdapContext>>(1);
 
@@ -183,7 +183,7 @@ public class LdapConnection {
         return result.get(0);
     }
 
-    private Pair<AuthenticationResult, LdapContext> createContext(final Hashtable<?, ?> env) {
+    protected Pair<AuthenticationResult, LdapContext> createContext(final Hashtable<?, ?> env) {
         AuthenticationResult authnResult = null;
         InitialLdapContext context = null;
         try {
@@ -214,7 +214,7 @@ public class LdapConnection {
         return new Pair<AuthenticationResult, LdapContext>(authnResult, context);
     }
 
-    private static boolean hasPasswordExpiredControl(Control[] controls) {
+    protected static boolean hasPasswordExpiredControl(Control[] controls) {
         if (controls != null) {
             for (Control control : controls) {
                 if (control instanceof PasswordExpiredResponseControl) {
@@ -225,7 +225,7 @@ public class LdapConnection {
         return false;
     }
 
-    private String getLdapUrls() {
+    protected String getLdapUrls() {
         StringBuilder builder = new StringBuilder();
         builder.append("ldap://");
         builder.append(config.getHost());
@@ -246,7 +246,7 @@ public class LdapConnection {
         }
     }
 
-    private static void quietClose(LdapContext ctx) {
+    protected static void quietClose(LdapContext ctx) {
         try {
             if (ctx != null) {
                 ctx.close();
@@ -303,7 +303,7 @@ public class LdapConnection {
         return getSupportedControls().contains(oid);
     }
 
-    private Set<String> getSupportedControls() {
+    protected Set<String> getSupportedControls() {
         if (supportedControls == null) {
             try {
                 Attributes attrs = getInitialContext().getAttributes("", new String[] { "supportedControl" });
@@ -324,7 +324,7 @@ public class LdapConnection {
         return serverType;
     }
 
-    private ServerType detectServerType() {
+    protected ServerType detectServerType() {
         try {
             Attributes attrs = getInitialContext().getAttributes("", new String[] { "vendorVersion" });
             String vendorVersion = LdapUtil.getStringAttrValue(attrs, "vendorVersion");
@@ -379,9 +379,9 @@ public class LdapConnection {
 
     public static class AuthenticationResult {
 
-        private final AuthenticationResultType type;
+        protected final AuthenticationResultType type;
 
-        private final Exception cause;
+        protected final Exception cause;
 
         public AuthenticationResult(AuthenticationResultType type) {
             this(type, null);

@@ -36,9 +36,9 @@ import net.tirasa.connid.bundles.ldap.search.LdapSearches;
 
 public class LdapDelete extends LdapModifyOperation {
 
-    private final ObjectClass oclass;
+    protected final ObjectClass oclass;
 
-    private final Uid uid;
+    protected final Uid uid;
 
     public LdapDelete(LdapConnection conn, ObjectClass oclass, Uid uid) {
         super(conn);
