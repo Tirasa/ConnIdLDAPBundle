@@ -101,7 +101,7 @@ public class LdapConnection {
 
     protected final LdapConfiguration config;
 
-    protected final LdapSchema schema;
+    protected LdapSchema schema;
 
     protected LdapContext initCtx;
 
