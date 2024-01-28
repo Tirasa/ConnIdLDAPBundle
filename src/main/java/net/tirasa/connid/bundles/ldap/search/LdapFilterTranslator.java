@@ -41,7 +41,7 @@ import org.identityconnectors.framework.common.objects.filter.LessThanFilter;
 import org.identityconnectors.framework.common.objects.filter.LessThanOrEqualFilter;
 import org.identityconnectors.framework.common.objects.filter.SingleValueAttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
-import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+import net.tirasa.connid.bundles.ldap.schema.LdapSchema;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.filter.EqualsIgnoreCaseFilter;
@@ -58,11 +58,11 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
     // seems incorrect. For an object not having an a attribute, (a <= X) will
     // be Undefined (cf. RFC 4511, section 4.5.1.7). But (a > X) would be Undefined
     // too, and so would be (!(a > X)).
-    protected final LdapSchemaMapping mapping;
+    protected final LdapSchema mapping;
 
     protected final ObjectClass objectClass;
 
-    public LdapFilterTranslator(LdapSchemaMapping mapping, ObjectClass objectClass) {
+    public LdapFilterTranslator(LdapSchema mapping, ObjectClass objectClass) {
         this.mapping = mapping;
         this.objectClass = objectClass;
     }

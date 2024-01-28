@@ -89,7 +89,7 @@ public class LdapUpdate extends LdapModifyOperation {
             updateAttrs = CollectionUtil.newSet(attrs);
             updateAttrs.remove(newName);
             updateAttrs.remove(AttributeUtil.find(LdapUtil.getDNAttributeName(newName), attrs));
-            newEntryDN = conn.getSchemaMapping().getEntryDN(oclass, newName);
+            newEntryDN = conn.getSchema().getEntryDN(oclass, newName);
         }
 
         List<String> ldapGroups = getStringListValue(updateAttrs, LdapConstants.LDAP_GROUPS_NAME);
@@ -132,7 +132,7 @@ public class LdapUpdate extends LdapModifyOperation {
                 posixMember.getPosixRefAttributes();
             }
             oldEntryDN = entryDN;
-            entryDN = conn.getSchemaMapping().rename(oclass, oldEntryDN, newName);
+            entryDN = conn.getSchema().rename(oclass, oldEntryDN, newName);
         }
 
         // Update the LDAP groups.
@@ -185,7 +185,7 @@ public class LdapUpdate extends LdapModifyOperation {
 
         groupHelper.modifyPosixGroupMemberships(posixGroupMod);
 
-        return conn.getSchemaMapping().createUid(oclass, entryDN);
+        return conn.getSchema().createUid(oclass, entryDN);
     }
 
     public Set<AttributeDelta> updateDelta(final Set<AttributeDelta> modifications) {
@@ -213,9 +213,9 @@ public class LdapUpdate extends LdapModifyOperation {
             } else if (LdapConstants.isPosixGroups(attrDelta.getName())) {
                 // Handled elsewhere.
             } else if (attrDelta.is(OperationalAttributes.PASSWORD_NAME)) {
-                guardedPasswordAttribute = conn.getSchemaMapping().encodePassword(attrDelta);
+                guardedPasswordAttribute = conn.getSchema().encodePassword(attrDelta);
             } else {
-                modItems.addAll(conn.getSchemaMapping().encodeAttribute(oclass, attrDelta));
+                modItems.addAll(conn.getSchema().encodeAttribute(oclass, attrDelta));
             }
         }
 
@@ -385,9 +385,9 @@ public class LdapUpdate extends LdapModifyOperation {
             } else if (LdapConstants.isPosixGroups(attr.getName())) {
                 // Handled elsewhere.
             } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-                pwdAttr = conn.getSchemaMapping().encodePassword(attr);
+                pwdAttr = conn.getSchema().encodePassword(attr);
             } else {
-                ldapAttr = conn.getSchemaMapping().encodeAttribute(oclass, attr);
+                ldapAttr = conn.getSchema().encodeAttribute(oclass, attr);
             }
             if (ldapAttr != null) {
                 javax.naming.directory.Attribute existingAttr = ldapAttrs.get(ldapAttr.getID());

@@ -116,7 +116,7 @@ public class LdapConnector implements
 
     @Override
     public Schema schema() {
-        return conn.getSchemaMapping().schema();
+        return conn.getSchema().schema();
     }
 
     @Override
@@ -142,7 +142,7 @@ public class LdapConnector implements
     public FilterTranslator<LdapFilter> createFilterTranslator(
             final ObjectClass oclass,
             final OperationOptions options) {
-        return new LdapFilterTranslator(conn.getSchemaMapping(), oclass);
+        return new LdapFilterTranslator(conn.getSchema(), oclass);
     }
 
     @Override

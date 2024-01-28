@@ -223,7 +223,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
             LOG.ok("Creating sync delta for deleted entry " + getStringAttrValue(changeLogEntry.getAttributes(),
                     "targetEntryUUID"));
 
-            String uidAttr = conn.getSchemaMapping().getLdapUidAttribute(oclass);
+            String uidAttr = conn.getSchema().getLdapUidAttribute(oclass);
 
             Uid deletedUid;
             if (LDAP_DN_ATTRIBUTES.contains(uidAttr)) {
@@ -357,12 +357,12 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
         LOG.ok("Creating sync delta for created or updated entry");
 
         if ("modrdn".equalsIgnoreCase(changeType)) {
-            String uidAttr = conn.getSchemaMapping().getLdapUidAttribute(oclass);
+            String uidAttr = conn.getSchema().getLdapUidAttribute(oclass);
 
             // We can only set the previous Uid if it is the entry DN, 
             // which is readily available.
             if (LdapEntry.isDNAttribute(uidAttr)) {
-                syncDeltaBuilder.setPreviousUid(conn.getSchemaMapping().createUid(oclass, targetDN));
+                syncDeltaBuilder.setPreviousUid(conn.getSchema().createUid(oclass, targetDN));
             }
         }
 

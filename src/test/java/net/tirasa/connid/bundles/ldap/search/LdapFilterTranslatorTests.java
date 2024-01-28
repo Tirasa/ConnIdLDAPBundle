@@ -43,7 +43,7 @@ import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
 import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
-import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+import net.tirasa.connid.bundles.ldap.schema.LdapSchema;
 import org.identityconnectors.framework.common.objects.filter.EqualsIgnoreCaseFilter;
 import org.junit.jupiter.api.Test;
 
@@ -198,6 +198,6 @@ public class LdapFilterTranslatorTests extends LdapConnectorTestBase {
     private static LdapFilterTranslator newTranslator() {
         LdapConfiguration config = LdapConnectorTestBase.newConfiguration();
         LdapConnection conn = new LdapConnection(config);
-        return new LdapFilterTranslator(new LdapSchemaMapping(conn), ObjectClass.ACCOUNT);
+        return new LdapFilterTranslator(new LdapSchema(conn), ObjectClass.ACCOUNT);
     }
 }

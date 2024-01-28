@@ -96,14 +96,14 @@ public class LdapCreate extends LdapModifyOperation {
                 posixGroups.addAll(
                         LdapUtil.checkedListByFilter(CollectionUtil.nullAsEmpty(attr.getValue()), String.class));
             } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-                pwdAttr = conn.getSchemaMapping().encodePassword(attr);
+                pwdAttr = conn.getSchema().encodePassword(attr);
             } else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
                 // manage enable/disable status
                 if (attr.getValue() != null && !attr.getValue().isEmpty()) {
                     status = Boolean.valueOf(attr.getValue().get(0).toString());
                 }
             } else {
-                ldapAttr = conn.getSchemaMapping().encodeAttribute(oclass, attr);
+                ldapAttr = conn.getSchema().encodeAttribute(oclass, attr);
                 // Do not send empty attributes. 
                 // The server complains for "uniqueMember", for example.
                 if (ldapAttr != null && ldapAttr.size() > 0) {
@@ -129,11 +129,11 @@ public class LdapCreate extends LdapModifyOperation {
                 public void access(javax.naming.directory.Attribute passwordAttr) {
                     hashPassword(passwordAttr, null);
                     ldapAttrs.put(passwordAttr);
-                    entryDN[0] = conn.getSchemaMapping().create(oclass, nameAttr, ldapAttrs);
+                    entryDN[0] = conn.getSchema().create(oclass, nameAttr, ldapAttrs);
                 }
             });
         } else {
-            entryDN[0] = conn.getSchemaMapping().create(oclass, nameAttr, ldapAttrs);
+            entryDN[0] = conn.getSchema().create(oclass, nameAttr, ldapAttrs);
         }
 
         if (!CollectionUtil.isEmpty(ldapGroups)) {
@@ -146,6 +146,6 @@ public class LdapCreate extends LdapModifyOperation {
             groupHelper.addPosixGroupMemberships(posixRefAttr, posixGroups);
         }
 
-        return conn.getSchemaMapping().createUid(oclass, entryDN[0]);
+        return conn.getSchema().createUid(oclass, entryDN[0]);
     }
 }

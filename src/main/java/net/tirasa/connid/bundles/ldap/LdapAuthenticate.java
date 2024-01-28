@@ -118,7 +118,7 @@ public class LdapAuthenticate {
         if (result != null && result.length > 0) {
             return Arrays.asList(result);
         }
-        return conn.getSchemaMapping().getUserNameLdapAttributes(oclass);
+        return conn.getSchema().getUserNameLdapAttributes(oclass);
     }
 
     protected static boolean isSuccess(AuthenticationResult authResult) {

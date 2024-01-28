@@ -37,7 +37,7 @@ import javax.naming.ldap.LdapName;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.ObjectClassMappingConfig;
-import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+import net.tirasa.connid.bundles.ldap.schema.LdapSchema;
 import net.tirasa.connid.bundles.ldap.search.DefaultSearchStrategy;
 import net.tirasa.connid.bundles.ldap.sync.LdapSyncStrategy;
 import net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy;
@@ -258,7 +258,7 @@ public class LdapConfiguration extends AbstractConfiguration {
             false, CollectionUtil.newList("cn"));
 
     private final ObjectClassMappingConfig anyObjectConfig = new ObjectClassMappingConfig(
-            LdapSchemaMapping.ANY_OBJECT_CLASS,
+            LdapSchema.ANY_OBJECT_CLASS,
             CollectionUtil.newList("top"),
             false, CollectionUtil.newList(DEFAULT_ID_ATTRIBUTE));
 

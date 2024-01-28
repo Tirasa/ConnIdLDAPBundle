@@ -46,7 +46,7 @@ import org.identityconnectors.framework.common.objects.Uid;
 import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
 import net.tirasa.connid.bundles.ldap.MyStatusManagement;
-import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+import net.tirasa.connid.bundles.ldap.schema.LdapSchema;
 
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.junit.jupiter.api.Test;
@@ -168,7 +168,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
 
         ConnectorObject created = doCreateArbitrary(facade);
-        facade.delete(LdapSchemaMapping.ANY_OBJECT_CLASS, created.getUid(), null);
+        facade.delete(LdapSchema.ANY_OBJECT_CLASS, created.getUid(), null);
     }
 
     @Test
@@ -179,7 +179,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
 
         ConnectorObject created = doCreateArbitrary(facade);
-        facade.delete(LdapSchemaMapping.ANY_OBJECT_CLASS, created.getUid(), null);
+        facade.delete(LdapSchema.ANY_OBJECT_CLASS, created.getUid(), null);
     }
 
     @Test
@@ -195,7 +195,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
 
         ConnectorObject created = doCreateArbitrary(facade);
-        facade.delete(LdapSchemaMapping.ANY_OBJECT_CLASS, created.getUid(), null);
+        facade.delete(LdapSchema.ANY_OBJECT_CLASS, created.getUid(), null);
     }
 
     private ConnectorObject doCreateArbitrary(ConnectorFacade facade) {
@@ -204,9 +204,9 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         Name name = new Name("o=Smallest," + SMALL_COMPANY_DN);
         attributes.add(name);
         attributes.add(AttributeBuilder.build("o", "Smallest"));
-        Uid uid = facade.create(LdapSchemaMapping.ANY_OBJECT_CLASS, attributes, null);
+        Uid uid = facade.create(LdapSchema.ANY_OBJECT_CLASS, attributes, null);
 
-        ConnectorObject newObject = facade.getObject(LdapSchemaMapping.ANY_OBJECT_CLASS, uid, null);
+        ConnectorObject newObject = facade.getObject(LdapSchema.ANY_OBJECT_CLASS, uid, null);
         assertEquals(name, newObject.getName());
         return newObject;
     }
@@ -221,7 +221,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
 
         ConnectorObject created = doCreateDevice(facade);
-        facade.delete(LdapSchemaMapping.ANY_OBJECT_CLASS, created.getUid(), null);
+        facade.delete(LdapSchema.ANY_OBJECT_CLASS, created.getUid(), null);
     }
 
     @Test
@@ -233,7 +233,7 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
 
         ConnectorObject created = doCreateDevice(facade);
-        facade.delete(LdapSchemaMapping.ANY_OBJECT_CLASS, created.getUid(), null);
+        facade.delete(LdapSchema.ANY_OBJECT_CLASS, created.getUid(), null);
     }
 
     private ConnectorObject doCreateDevice(ConnectorFacade facade) {
@@ -243,9 +243,9 @@ public class LdapCreateTests extends LdapConnectorTestBase {
         attributes.add(AttributeBuilder.build("cn", DEVICE_0_CN));
         attributes.add(AttributeBuilder.build("serialNumber", DEVICE_0_SERIALNUMBER));
 
-        Uid uid = facade.create(LdapSchemaMapping.ANY_OBJECT_CLASS, attributes, null);
+        Uid uid = facade.create(LdapSchema.ANY_OBJECT_CLASS, attributes, null);
 
-        ConnectorObject newObject = facade.getObject(LdapSchemaMapping.ANY_OBJECT_CLASS, uid, null);
+        ConnectorObject newObject = facade.getObject(LdapSchema.ANY_OBJECT_CLASS, uid, null);
         assertEquals(name, newObject.getName());
         return newObject;
     }

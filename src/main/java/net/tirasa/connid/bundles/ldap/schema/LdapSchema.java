@@ -71,9 +71,9 @@ import org.identityconnectors.framework.common.objects.Uid;
  *
  * @author Andrei Badea
  */
-public class LdapSchemaMapping {
+public class LdapSchema {
 
-    private static final Log LOG = Log.getLog(LdapSchemaMapping.class);
+    private static final Log LOG = Log.getLog(LdapSchema.class);
 
     // XXX
     // - which attrs returned by default? Currently only userApplications.
@@ -99,7 +99,7 @@ public class LdapSchemaMapping {
 
     protected Schema schema;
 
-    public LdapSchemaMapping(LdapConnection conn) {
+    public LdapSchema(LdapConnection conn) {
         this.conn = conn;
     }
 
@@ -214,7 +214,7 @@ public class LdapSchemaMapping {
             idAttribute = conn.getConfiguration().getGidAttribute();
         } else if (oclass.equals(ObjectClass.ACCOUNT)) {
             idAttribute = conn.getConfiguration().getUidAttribute();
-        } else if (oclass.equals(LdapSchemaMapping.ANY_OBJECT_CLASS)) {
+        } else if (oclass.equals(LdapSchema.ANY_OBJECT_CLASS)) {
             idAttribute = conn.getConfiguration().getAoidAttribute();
         } else {
             idAttribute = conn.getConfiguration().getObjectClassMappingConfigs().get(ObjectClass.ALL).
@@ -330,7 +330,7 @@ public class LdapSchemaMapping {
             ldapAttrs.put(initialAttrEnum.nextElement());
         }
         BasicAttribute objectClass = new BasicAttribute("objectClass");
-        for (String ldapClass : conn.getSchemaMapping().getEffectiveLdapClasses(
+        for (String ldapClass : conn.getSchema().getEffectiveLdapClasses(
                 oclass)) {
             objectClass.add(ldapClass);
         }

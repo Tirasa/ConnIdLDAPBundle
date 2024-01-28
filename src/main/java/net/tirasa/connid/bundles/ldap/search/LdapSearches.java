@@ -113,7 +113,7 @@ public final class LdapSearches {
         LdapFilter ldapFilter;
 
         // If the Uid is actually the entry DN, we do not need to do a search do find the entry DN.
-        String uidAttr = conn.getSchemaMapping().getLdapUidAttribute(oclass);
+        String uidAttr = conn.getSchema().getLdapUidAttribute(oclass);
         if (LdapEntry.isDNAttribute(uidAttr)) {
             if (check) {
                 // We'll do a search in order to check that the entry with that DN exists.
@@ -125,7 +125,7 @@ public final class LdapSearches {
             }
         } else {
             EqualsFilter filter = (EqualsFilter) FilterBuilder.equalTo(uid);
-            ldapFilter = new LdapFilterTranslator(conn.getSchemaMapping(), oclass).
+            ldapFilter = new LdapFilterTranslator(conn.getSchema(), oclass).
                     createEqualsExpression(filter, false);
         }
         assert ldapFilter != null;
@@ -151,7 +151,7 @@ public final class LdapSearches {
         final List<ConnectorObject> result = new ArrayList<>();
 
         EqualsFilter filter = (EqualsFilter) FilterBuilder.equalTo(attr);
-        LdapFilter ldapFilter = new LdapFilterTranslator(conn.getSchemaMapping(), oclass).
+        LdapFilter ldapFilter = new LdapFilterTranslator(conn.getSchema(), oclass).
                 createEqualsExpression(filter, false);
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();

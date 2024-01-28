@@ -87,7 +87,7 @@ public class LdapSearch {
 
     public static Set<String> getAttributesReturnedByDefault(final LdapConnection conn, final ObjectClass oclass) {
         Set<String> result = CollectionUtil.newCaseInsensitiveSet();
-        ObjectClassInfo oci = conn.getSchemaMapping().schema().findObjectClassInfo(oclass.getObjectClassValue());
+        ObjectClassInfo oci = conn.getSchema().schema().findObjectClassInfo(oclass.getObjectClassValue());
         if (oci != null) {
             for (AttributeInfo info : oci.getAttributeInfo()) {
                 if (info.isReturnedByDefault()) {
@@ -230,7 +230,7 @@ public class LdapSearch {
 
         final boolean posixGroups = cleanAttrsToGet.remove(LdapConstants.POSIX_GROUPS_NAME);
 
-        final Set<String> result = conn.getSchemaMapping().getLdapAttributes(oclass, cleanAttrsToGet, true);
+        final Set<String> result = conn.getSchema().getLdapAttributes(oclass, cleanAttrsToGet, true);
 
         if (posixGroups) {
             result.add(GroupHelper.getPosixRefAttribute());
@@ -264,8 +264,8 @@ public class LdapSearch {
 
         final ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
         builder.setObjectClass(oclass);
-        builder.setUid(conn.getSchemaMapping().createUid(oclass, entry));
-        builder.setName(conn.getSchemaMapping().createName(oclass, entry));
+        builder.setUid(conn.getSchema().createUid(oclass, entry));
+        builder.setName(conn.getSchema().createName(oclass, entry));
 
         final List<String> ldapGroups = new ArrayList<>();
         final List<String> posixGroups = new ArrayList<>();
@@ -288,7 +288,7 @@ public class LdapSearch {
 
                 attribute = AttributeBuilder.build(attrName, new GuardedString());
             } else {
-                attribute = conn.getSchemaMapping().createAttribute(oclass, attrName, entry, emptyAttrWhenNotFound);
+                attribute = conn.getSchema().createAttribute(oclass, attrName, entry, emptyAttrWhenNotFound);
             }
 
             if (attribute != null) {
@@ -336,7 +336,7 @@ public class LdapSearch {
 
     protected String getObjectClassFilter() {
         StringBuilder builder = new StringBuilder();
-        List<String> ldapClasses = conn.getSchemaMapping().getLdapClasses(oclass);
+        List<String> ldapClasses = conn.getSchema().getLdapClasses(oclass);
 
         boolean and = ldapClasses.size() > 1;
         if (and) {
@@ -437,12 +437,12 @@ public class LdapSearch {
 
     protected void removeNonReadableAttributes(final Set<String> attributes) {
         // Since the groups attributes are fake attributes, we don't want to
-        // send them to LdapSchemaMapping. This, for example, avoid an (unlikely)
+        // send them to LdapSchema. This, for example, avoid an (unlikely)
         // conflict with a custom attribute defined in the server schema.
         boolean ldapGroups = attributes.remove(LdapConstants.LDAP_GROUPS_NAME);
         boolean posixGroups = attributes.remove(LdapConstants.POSIX_GROUPS_NAME);
 
-        conn.getSchemaMapping().removeNonReadableAttributes(oclass, attributes);
+        conn.getSchema().removeNonReadableAttributes(oclass, attributes);
 
         if (ldapGroups) {
             attributes.add(LdapConstants.LDAP_GROUPS_NAME);

@@ -54,7 +54,7 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import net.tirasa.connid.bundles.ldap.LdapConfiguration;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.LdapConnectorTestBase;
-import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+import net.tirasa.connid.bundles.ldap.schema.LdapSchema;
 
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.framework.common.objects.SearchResult;
@@ -432,7 +432,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         // We can get the 'carrot laptop' device with an 'object' search by DN
         ConnectorObject carrotLaptop = searchByAttribute(
-                facade, LdapSchemaMapping.ANY_OBJECT_CLASS, new Name(CARROT_LAPTOP_DN));
+                facade, LdapSchema.ANY_OBJECT_CLASS, new Name(CARROT_LAPTOP_DN));
         assertNotNull(carrotLaptop);
 
         // Reconfigure for 'onelevel' search
@@ -442,7 +442,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         // 'carrot laptop'' doesn't exist directly under the organisation..
         List<ConnectorObject> objects = TestHelpers.searchToList(
-                facade, LdapSchemaMapping.ANY_OBJECT_CLASS, null, options);
+                facade, LdapSchema.ANY_OBJECT_CLASS, null, options);
         assertTrue(objects.isEmpty());
 
         // Reconfigure for 'subtree' search
@@ -450,7 +450,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         facade = newFacade(configuration);
 
         // ... but does in the organisation subtree
-        objects = TestHelpers.searchToList(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, null, options);
+        objects = TestHelpers.searchToList(facade, LdapSchema.ANY_OBJECT_CLASS, null, options);
         assertFalse(objects.isEmpty());
     }
 
@@ -561,7 +561,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         configuration.setAnyObjectNameAttributes("cn");
         facade = newFacade(configuration);
         List<ConnectorObject> objects = TestHelpers.searchToList(
-                facade, LdapSchemaMapping.ANY_OBJECT_CLASS, null, optionsBuilder.build());
+                facade, LdapSchema.ANY_OBJECT_CLASS, null, optionsBuilder.build());
         assertNotNull(getObjectByName(objects, CARROT_LAPTOP_DN));
 
         // Test the anyObject search filter
@@ -569,7 +569,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         configuration.setAnyObjectSearchFilter("(cn=" + CARROT_LAPTOP_CN + ")");
         configuration.setAnyObjectClasses("top", "device");
         facade = newFacade(configuration);
-        objects = TestHelpers.searchToList(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, null, optionsBuilder.build());
+        objects = TestHelpers.searchToList(facade, LdapSchema.ANY_OBJECT_CLASS, null, optionsBuilder.build());
         assertEquals(1, objects.size());
         assertNotNull(getObjectByName(objects, CARROT_LAPTOP_DN));
     }
@@ -593,7 +593,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
 
         // If parentheses were not added, the search would fail.
-        assertNotNull(searchByAttribute(facade, LdapSchemaMapping.ANY_OBJECT_CLASS, new Name(CARROT_LAPTOP_DN)));
+        assertNotNull(searchByAttribute(facade, LdapSchema.ANY_OBJECT_CLASS, new Name(CARROT_LAPTOP_DN)));
     }
 
     @Test

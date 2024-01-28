@@ -41,7 +41,7 @@ import net.tirasa.connid.bundles.ldap.commons.LdapNativeSchema;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.ServerNativeSchema;
 import net.tirasa.connid.bundles.ldap.commons.StaticNativeSchema;
-import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+import net.tirasa.connid.bundles.ldap.schema.LdapSchema;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.Pair;
 import org.identityconnectors.common.StringUtil;
@@ -101,7 +101,7 @@ public class LdapConnection {
 
     protected final LdapConfiguration config;
 
-    protected final LdapSchemaMapping schemaMapping;
+    protected final LdapSchema schema;
 
     protected LdapContext initCtx;
 
@@ -111,7 +111,7 @@ public class LdapConnection {
 
     public LdapConnection(LdapConfiguration config) {
         this.config = config;
-        schemaMapping = new LdapSchemaMapping(this);
+        schema = new LdapSchema(this);
     }
 
     public String format(String key, String dflt, Object... args) {
@@ -256,8 +256,8 @@ public class LdapConnection {
         }
     }
 
-    public LdapSchemaMapping getSchemaMapping() {
-        return schemaMapping;
+    public LdapSchema getSchema() {
+        return schema;
     }
 
     public LdapNativeSchema createNativeSchema() {
