@@ -225,6 +225,10 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     private Class<? extends LdapSyncStrategy> syncStrategyClass = null;
 
+    private Class<? extends LdapSyncStrategy> fallbackSyncStrategyClass = SunDSChangeLogSyncStrategy.class;
+
+    private Class<? extends LdapConnection> connectionClass = LdapConnection.class;
+
     /**
      * The SearchScope for user objects
      */
@@ -1031,6 +1035,22 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     public Class<? extends LdapSyncStrategy> getSyncStrategyClass() {
         return syncStrategyClass;
+    }
+
+    protected Class<? extends LdapSyncStrategy> getFallbackSyncStrategyClass() {
+        return fallbackSyncStrategyClass;
+    }
+
+    protected void setFallbackSyncStrategyClass(Class<? extends LdapSyncStrategy> fallbackSyncStrategyClass) {
+        this.fallbackSyncStrategyClass = fallbackSyncStrategyClass;
+    }
+
+    protected Class<? extends LdapConnection> getConnectionClass() {
+        return connectionClass;
+    }
+
+    protected void setConnectionClass(Class<? extends LdapConnection> connectionClass) {
+        this.connectionClass = connectionClass;
     }
 
     // Getters and setters for configuration properties end here.

@@ -87,15 +87,31 @@ public class LdapConnector implements
     @Override
     public void init(Configuration cfg) {
         config = (LdapConfiguration) cfg;
-        conn = new LdapConnection(config);
-
         Class<? extends LdapSyncStrategy> syncStrategyClass = config.getSyncStrategyClass();
+        Class<? extends LdapConnection> connectionClass = config.getConnectionClass();
+        
         try {
-            syncStrategy = syncStrategyClass.getConstructor(LdapConnection.class).newInstance(conn);
+            conn = connectionClass.getConstructor(LdapConfiguration.class).newInstance(config);
         } catch (Exception e) {
+            LOG.error(e, "Could not instantiate the configured connection class implementation {0}, reverting to {1}",
+                    connectionClass.getName(), LdapConnection.class.getName());
+            conn = new LdapConnection(config);
+        }
+
+        try {
+            syncStrategy = syncStrategyClass.getConstructor(connectionClass).newInstance(conn);
+        } catch (Exception e) {
+            Class<? extends LdapSyncStrategy> fallbackSyncStrategyClass = config.getFallbackSyncStrategyClass();
             LOG.error(e, "Could not instantiate the configured {0} implementation, reverting to {1}",
-                    LdapSyncStrategy.class.getName(), SunDSChangeLogSyncStrategy.class.getName());
-            syncStrategy = new SunDSChangeLogSyncStrategy(conn);
+                    LdapSyncStrategy.class.getName(), fallbackSyncStrategyClass.getName());
+            try {
+                syncStrategy = config.getFallbackSyncStrategyClass().getConstructor(connectionClass)
+                        .newInstance(conn);
+            } catch (Exception ex) {
+                LOG.error(e, "Could not instantiate the configured fallback {0} imeplementation, falling back to {1}",
+                        LdapSyncStrategy.class.getName(), SunDSChangeLogSyncStrategy.class);
+                syncStrategy = new SunDSChangeLogSyncStrategy(conn);
+            }
         }
     }
 
