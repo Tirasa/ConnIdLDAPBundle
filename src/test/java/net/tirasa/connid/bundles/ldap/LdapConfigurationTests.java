@@ -332,6 +332,8 @@ public class LdapConfigurationTests {
         assertFalse(config.isUseVlvControls());
         assertEquals("uid", config.getVlvSortAttribute());
         assertEquals("entryUUID", config.getUidAttribute());
+        assertEquals("entryUUID", config.getGidAttribute());
+        assertEquals("entryUUID", config.getAoidAttribute());
         assertTrue(config.isReadSchema());
         assertEquals(0, config.getBaseContextsToSynchronize().length);
         assertTrue(Arrays.equals(new String[] { "inetOrgPerson" }, config.getObjectClassesToSynchronize()));

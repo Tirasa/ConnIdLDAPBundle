@@ -188,6 +188,7 @@ public class LdapUpdateTests extends LdapConnectorTestBase {
         assertFalse(config.getUidAttribute().equalsIgnoreCase("entryDN"));
         config.setUidAttribute("entryDN");
         config.setGidAttribute("entryDN");
+        config.setAoidAttribute("entryDN");
         ConnectorFacade facade = newFacade(config);
         ConnectorObject bugs = searchByAttribute(facade, ObjectClass.ACCOUNT, new Name(BUGS_BUNNY_DN));
 
