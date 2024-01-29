@@ -128,7 +128,7 @@ public class LdapSearch {
     /**
      * Performs the search and passes the resulting {@link ConnectorObject}s to the given handler.
      */
-    public final void execute() {
+    public void execute() {
         final String[] attrsToGetOption = options.getAttributesToGet();
         final Set<String> attrsToGet = getAttributesToGet(attrsToGetOption);
 
@@ -148,7 +148,7 @@ public class LdapSearch {
      *
      * @return the first {@link ConnectorObject} or {@code null}
      */
-    public final ConnectorObject getSingleResult() {
+    public ConnectorObject getSingleResult() {
         final String[] attrsToGetOption = options.getAttributesToGet();
         final Set<String> attrsToGet = getAttributesToGet(attrsToGetOption);
         final ConnectorObject[] results = new ConnectorObject[] { null };
