@@ -21,7 +21,7 @@
  * ====================
  * Portions Copyrighted 2011 ConnId.
  */
-package net.tirasa.connid.bundles.ldap.sync.sunds;
+package net.tirasa.connid.bundles.ldap.commons;
 
 import java.util.ArrayList;
 import java.util.Iterator;

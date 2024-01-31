@@ -42,10 +42,11 @@ import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.ChangeSeparator;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Line;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.NameValue;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Separator;
+import net.tirasa.connid.bundles.ldap.commons.LdifParser;
+import net.tirasa.connid.bundles.ldap.commons.LdifParser.ChangeSeparator;
+import net.tirasa.connid.bundles.ldap.commons.LdifParser.Line;
+import net.tirasa.connid.bundles.ldap.commons.LdifParser.NameValue;
+import net.tirasa.connid.bundles.ldap.commons.LdifParser.Separator;
 import org.identityconnectors.common.logging.Log;
 
 /**

@@ -21,16 +21,16 @@
  * ====================
  * Portions Copyrighted 2011 ConnId.
  */
-package net.tirasa.connid.bundles.ldap.sync.sunds;
+package net.tirasa.connid.bundles.ldap.commons;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Iterator;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.ChangeSeparator;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Line;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.NameValue;
-import net.tirasa.connid.bundles.ldap.sync.sunds.LdifParser.Separator;
+import net.tirasa.connid.bundles.ldap.commons.LdifParser.ChangeSeparator;
+import net.tirasa.connid.bundles.ldap.commons.LdifParser.Line;
+import net.tirasa.connid.bundles.ldap.commons.LdifParser.NameValue;
+import net.tirasa.connid.bundles.ldap.commons.LdifParser.Separator;
 import org.junit.jupiter.api.Test;
 
 public class LdifParserTests {
