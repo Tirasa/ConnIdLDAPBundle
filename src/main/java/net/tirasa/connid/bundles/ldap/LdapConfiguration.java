@@ -205,6 +205,8 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     private String changeNumberAttribute = "changeNumber";
 
+    private String changeLogContext = "cn=changelog";
+
     private boolean filterWithOrInsteadOfAnd;
 
     private boolean removeLogEntryObjectClassFromFilter = true;
@@ -358,6 +360,8 @@ public class LdapConfiguration extends AbstractConfiguration {
         if (changeLogBlockSize <= 0) {
             failValidation("changeLogBlockSize.legalValue");
         }
+
+        checkNotBlank(changeLogContext, "changeLogContext.notBlank");
 
         if (synchronizePasswords) {
             checkNotBlank(passwordAttributeToSynchronize, "passwordAttributeToSynchronize.notBlank");
@@ -886,6 +890,17 @@ public class LdapConfiguration extends AbstractConfiguration {
 
     public void setChangeNumberAttribute(String changeNumberAttribute) {
         this.changeNumberAttribute = changeNumberAttribute;
+    }
+
+    @ConfigurationProperty(order = 39, operations = { SyncOp.class },
+            displayMessageKey = "changeLogContext.display",
+            helpMessageKey = "changeNumberAttribute.help")
+    public String getChangeLogContext() {
+        return changeLogContext;
+    }
+
+    public void setChangeLogContext(String changeLogContext) {
+        this.changeLogContext = changeLogContext;
     }
 
     @ConfigurationProperty(order = 39, operations = { SyncOp.class },
