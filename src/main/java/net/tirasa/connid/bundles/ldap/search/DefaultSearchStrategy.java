@@ -40,7 +40,7 @@ public class DefaultSearchStrategy extends LdapSearchStrategy {
 
     private static final Log LOG = Log.getLog(DefaultSearchStrategy.class);
 
-    private final boolean ignoreNonExistingBaseDNs;
+    protected final boolean ignoreNonExistingBaseDNs;
 
     public DefaultSearchStrategy(boolean ignoreNonExistingBaseDNs) {
         this.ignoreNonExistingBaseDNs = ignoreNonExistingBaseDNs;

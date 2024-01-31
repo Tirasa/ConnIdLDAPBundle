@@ -52,7 +52,7 @@ import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
-import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+import net.tirasa.connid.bundles.ldap.schema.LdapSchema;
 import org.identityconnectors.test.common.TestHelpers;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
@@ -589,10 +589,10 @@ public class AdapterCompatibilityTests extends LdapConnectorTestBase {
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet("cn", "dn");
         List<ConnectorObject> objects = TestHelpers.searchToList(
-                facade, LdapSchemaMapping.ANY_OBJECT_CLASS, filter, builder.build());
+                facade, LdapSchema.ANY_OBJECT_CLASS, filter, builder.build());
 
         ConnectorObject bunny = objects.get(0);
-        assertEquals(LdapSchemaMapping.ANY_OBJECT_CLASS, bunny.getObjectClass());
+        assertEquals(LdapSchema.ANY_OBJECT_CLASS, bunny.getObjectClass());
         assertEquals(BUGS_BUNNY_DN, bunny.getName().getNameValue());
         assertEquals(BUGS_BUNNY_CN, bunny.getAttributeByName("cn").getValue().get(0));
     }

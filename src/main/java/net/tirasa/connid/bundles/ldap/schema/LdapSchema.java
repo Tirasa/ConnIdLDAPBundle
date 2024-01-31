@@ -49,7 +49,6 @@ import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.commons.LdapEntry;
 import net.tirasa.connid.bundles.ldap.commons.ObjectClassMappingConfig;
 import org.identityconnectors.common.CollectionUtil;
-import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -72,9 +71,9 @@ import org.identityconnectors.framework.common.objects.Uid;
  *
  * @author Andrei Badea
  */
-public class LdapSchemaMapping {
+public class LdapSchema {
 
-    private static final Log LOG = Log.getLog(LdapSchemaMapping.class);
+    private static final Log LOG = Log.getLog(LdapSchema.class);
 
     // XXX
     // - which attrs returned by default? Currently only userApplications.
@@ -92,15 +91,15 @@ public class LdapSchemaMapping {
     /**
      * The LDAP attribute to map to {@link Name} by default.
      */
-    static final String DEFAULT_LDAP_NAME_ATTR = "entryDN";
+    protected static final String DEFAULT_LDAP_NAME_ATTR = "entryDN";
 
-    private final LdapConnection conn;
+    protected final LdapConnection conn;
 
-    private final Map<String, Set<String>> ldapClass2Effective = newCaseInsensitiveMap();
+    protected final Map<String, Set<String>> ldapClass2Effective = newCaseInsensitiveMap();
 
-    private Schema schema;
+    protected Schema schema;
 
-    public LdapSchemaMapping(LdapConnection conn) {
+    public LdapSchema(LdapConnection conn) {
         this.conn = conn;
     }
 
@@ -111,7 +110,7 @@ public class LdapSchemaMapping {
         return schema;
     }
 
-    private Set<String> getEffectiveLdapClasses(String ldapClass) {
+    protected Set<String> getEffectiveLdapClasses(String ldapClass) {
         Set<String> result = ldapClass2Effective.get(ldapClass);
         if (result == null) {
             result = conn.createNativeSchema().getEffectiveObjectClasses(
@@ -215,7 +214,7 @@ public class LdapSchemaMapping {
             idAttribute = conn.getConfiguration().getGidAttribute();
         } else if (oclass.equals(ObjectClass.ACCOUNT)) {
             idAttribute = conn.getConfiguration().getUidAttribute();
-        } else if (oclass.equals(LdapSchemaMapping.ANY_OBJECT_CLASS)) {
+        } else if (oclass.equals(LdapSchema.ANY_OBJECT_CLASS)) {
             idAttribute = conn.getConfiguration().getAoidAttribute();
         } else {
             idAttribute = conn.getConfiguration().getObjectClassMappingConfigs().get(ObjectClass.ALL).
@@ -265,7 +264,7 @@ public class LdapSchemaMapping {
         }
     }
 
-    private Uid createUid(String ldapUidAttr, Attributes attributes) {
+    protected Uid createUid(String ldapUidAttr, Attributes attributes) {
         String value = getStringAttrValue(attributes, ldapUidAttr);
         if (value != null) {
             return new Uid(value);
@@ -331,7 +330,7 @@ public class LdapSchemaMapping {
             ldapAttrs.put(initialAttrEnum.nextElement());
         }
         BasicAttribute objectClass = new BasicAttribute("objectClass");
-        for (String ldapClass : conn.getSchemaMapping().getEffectiveLdapClasses(
+        for (String ldapClass : conn.getSchema().getEffectiveLdapClasses(
                 oclass)) {
             objectClass.add(ldapClass);
         }

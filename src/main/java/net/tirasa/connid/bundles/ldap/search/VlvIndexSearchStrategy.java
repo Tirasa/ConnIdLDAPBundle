@@ -42,28 +42,17 @@ import org.identityconnectors.common.logging.Log;
 
 public class VlvIndexSearchStrategy extends LdapSearchStrategy {
 
-    private static Log LOG;
+    private static Log LOG = Log.getLog(VlvIndexSearchStrategy.class);
 
-    private final String vlvIndexAttr;
+    protected final String vlvIndexAttr;
 
-    private final int pageSize;
+    protected final int pageSize;
 
-    private int index;
+    protected int index;
 
-    private int lastListSize;
+    protected int lastListSize;
 
-    private byte[] cookie;
-
-    static synchronized void setLog(final Log log) {
-        VlvIndexSearchStrategy.LOG = log;
-    }
-
-    synchronized static Log getLog() {
-        if (LOG == null) {
-            LOG = Log.getLog(VlvIndexSearchStrategy.class);
-        }
-        return LOG;
-    }
+    protected byte[] cookie;
 
     public VlvIndexSearchStrategy(final String vlvSortAttr, final int pageSize) {
         this.vlvIndexAttr = StringUtil.isNotBlank(vlvSortAttr) ? vlvSortAttr : "uid";
@@ -75,7 +64,7 @@ public class VlvIndexSearchStrategy extends LdapSearchStrategy {
             final SearchControls searchControls, final LdapSearchResultsHandler handler)
             throws IOException, NamingException {
 
-        getLog().ok("Searching in {0} with filter {1} and {2}", baseDNs, query, searchControlsToString(searchControls));
+        LOG.ok("Searching in {0} with filter {1} and {2}", baseDNs, query, searchControlsToString(searchControls));
 
         Iterator<String> baseDNIter = baseDNs.iterator();
         boolean proceed = true;
@@ -90,11 +79,11 @@ public class VlvIndexSearchStrategy extends LdapSearchStrategy {
         }
     }
 
-    private boolean searchBaseDN(final LdapContext ctx, final String baseDN, final String query,
+    protected boolean searchBaseDN(final LdapContext ctx, final String baseDN, final String query,
             final SearchControls searchControls, final LdapSearchResultsHandler handler)
             throws IOException, NamingException {
 
-        getLog().ok("Searching in {0}", baseDN);
+        LOG.ok("Searching in {0}", baseDN);
 
         index = 1;
         lastListSize = 0;
@@ -111,7 +100,7 @@ public class VlvIndexSearchStrategy extends LdapSearchStrategy {
                     new VirtualListViewControl(index, lastListSize, 0, afterCount, Control.CRITICAL);
             vlvControl.setContextID(cookie);
 
-            getLog().ok("New search: target = {0}, afterCount = {1}", index, afterCount);
+            LOG.ok("New search: target = {0}, afterCount = {1}", index, afterCount);
             ctx.setRequestControls(new Control[] { sortControl, vlvControl });
 
             // Need to process the response controls, which are available after
@@ -129,7 +118,7 @@ public class VlvIndexSearchStrategy extends LdapSearchStrategy {
                     boolean overlap = false;
                     if (lastResultName != null) {
                         if (lastResultName.equals(result.getName())) {
-                            getLog().warn("Working around rounding error overlap at index " + index);
+                            LOG.warn("Working around rounding error overlap at index " + index);
                             overlap = true;
                         }
                         lastResultName = null;
@@ -168,14 +157,14 @@ public class VlvIndexSearchStrategy extends LdapSearchStrategy {
             // So, in this case, index will never reach lastListSize. To avoid an infinite loop,
             // ending search if we received no results in the last iteration.
             if (resultList.isEmpty()) {
-                getLog().warn("Ending search because received no results");
+                LOG.warn("Ending search because received no results");
                 break;
             }
         }
         return true;
     }
 
-    private void processResponseControls(Control[] controls) throws NamingException {
+    protected void processResponseControls(Control[] controls) throws NamingException {
         if (controls != null) {
             for (Control control : controls) {
                 if (control instanceof SortResponseControl) {
@@ -189,7 +178,7 @@ public class VlvIndexSearchStrategy extends LdapSearchStrategy {
                     if (vlvControl.getResultCode() == 0) {
                         lastListSize = vlvControl.getListSize();
                         cookie = vlvControl.getContextID();
-                        getLog().ok("Response control: lastListSize = {0}", lastListSize);
+                        LOG.ok("Response control: lastListSize = {0}", lastListSize);
                     } else {
                         throw vlvControl.getException();
                     }

@@ -41,7 +41,7 @@ import org.identityconnectors.framework.common.objects.filter.LessThanFilter;
 import org.identityconnectors.framework.common.objects.filter.LessThanOrEqualFilter;
 import org.identityconnectors.framework.common.objects.filter.SingleValueAttributeFilter;
 import org.identityconnectors.framework.common.objects.filter.StartsWithFilter;
-import net.tirasa.connid.bundles.ldap.schema.LdapSchemaMapping;
+import net.tirasa.connid.bundles.ldap.schema.LdapSchema;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.filter.EqualsIgnoreCaseFilter;
@@ -58,11 +58,11 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
     // seems incorrect. For an object not having an a attribute, (a <= X) will
     // be Undefined (cf. RFC 4511, section 4.5.1.7). But (a > X) would be Undefined
     // too, and so would be (!(a > X)).
-    private final LdapSchemaMapping mapping;
+    protected final LdapSchema mapping;
 
-    private final ObjectClass objectClass;
+    protected final ObjectClass objectClass;
 
-    public LdapFilterTranslator(LdapSchemaMapping mapping, ObjectClass objectClass) {
+    public LdapFilterTranslator(LdapSchema mapping, ObjectClass objectClass) {
         this.mapping = mapping;
         this.objectClass = objectClass;
     }
@@ -177,7 +177,7 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
         return createContainsAllValuesFilter(filter, not);
     }
 
-    private LdapFilter createSingleValueFilter(String type, SingleValueAttributeFilter filter, boolean not) {
+    protected LdapFilter createSingleValueFilter(String type, SingleValueAttributeFilter filter, boolean not) {
         String attrName = mapping.getLdapAttribute(objectClass, filter.
                 getAttribute());
         if (attrName == null) {
@@ -193,7 +193,7 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
         return finishBuilder(builder);
     }
 
-    private void addSimpleFilter(String ldapAttr, String type, Object value, StringBuilder toBuilder) {
+    protected void addSimpleFilter(String ldapAttr, String type, Object value, StringBuilder toBuilder) {
         toBuilder.append(ldapAttr);
         toBuilder.append(type);
         if (!escapeAttrValue(value, toBuilder)) {
@@ -201,7 +201,7 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
         }
     }
 
-    private LdapFilter createContainsAllValuesFilter(AttributeFilter filter, boolean not) {
+    protected LdapFilter createContainsAllValuesFilter(AttributeFilter filter, boolean not) {
         String attrName = mapping.getLdapAttribute(objectClass, filter.
                 getAttribute());
         if (attrName == null) {
@@ -248,11 +248,11 @@ public class LdapFilterTranslator extends AbstractFilterTranslator<LdapFilter> {
         }
     }
 
-    private StringBuilder createBuilder(boolean not) {
+    protected StringBuilder createBuilder(boolean not) {
         return new StringBuilder(not ? "(!(" : "(");
     }
 
-    private LdapFilter finishBuilder(StringBuilder builder) {
+    protected LdapFilter finishBuilder(StringBuilder builder) {
         boolean not = builder.charAt(0) == '(' && builder.charAt(1) == '!';
         builder.append(not ? "))" : ")");
         return LdapFilter.forNativeFilter(builder.toString());

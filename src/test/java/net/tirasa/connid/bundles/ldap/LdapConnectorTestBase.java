@@ -185,6 +185,7 @@ public abstract class LdapConnectorTestBase {
         config.setPrincipal(ADMIN_DN);
         config.setCredentials(ADMIN_PASSWORD);
         config.setReadSchema(readSchema);
+        config.validate();
         return config;
     }
 

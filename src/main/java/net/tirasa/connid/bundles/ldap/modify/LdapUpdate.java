@@ -61,9 +61,9 @@ public class LdapUpdate extends LdapModifyOperation {
 
     private static final Log LOG = Log.getLog(LdapUpdate.class);
 
-    private final ObjectClass oclass;
+    protected final ObjectClass oclass;
 
-    private final Uid uid;
+    protected final Uid uid;
 
     public LdapUpdate(final LdapConnection conn, final ObjectClass oclass, final Uid uid) {
         super(conn);
@@ -89,7 +89,7 @@ public class LdapUpdate extends LdapModifyOperation {
             updateAttrs = CollectionUtil.newSet(attrs);
             updateAttrs.remove(newName);
             updateAttrs.remove(AttributeUtil.find(LdapUtil.getDNAttributeName(newName), attrs));
-            newEntryDN = conn.getSchemaMapping().getEntryDN(oclass, newName);
+            newEntryDN = conn.getSchema().getEntryDN(oclass, newName);
         }
 
         List<String> ldapGroups = getStringListValue(updateAttrs, LdapConstants.LDAP_GROUPS_NAME);
@@ -132,7 +132,7 @@ public class LdapUpdate extends LdapModifyOperation {
                 posixMember.getPosixRefAttributes();
             }
             oldEntryDN = entryDN;
-            entryDN = conn.getSchemaMapping().rename(oclass, oldEntryDN, newName);
+            entryDN = conn.getSchema().rename(oclass, oldEntryDN, newName);
         }
 
         // Update the LDAP groups.
@@ -185,7 +185,7 @@ public class LdapUpdate extends LdapModifyOperation {
 
         groupHelper.modifyPosixGroupMemberships(posixGroupMod);
 
-        return conn.getSchemaMapping().createUid(oclass, entryDN);
+        return conn.getSchema().createUid(oclass, entryDN);
     }
 
     public Set<AttributeDelta> updateDelta(final Set<AttributeDelta> modifications) {
@@ -213,9 +213,9 @@ public class LdapUpdate extends LdapModifyOperation {
             } else if (LdapConstants.isPosixGroups(attrDelta.getName())) {
                 // Handled elsewhere.
             } else if (attrDelta.is(OperationalAttributes.PASSWORD_NAME)) {
-                guardedPasswordAttribute = conn.getSchemaMapping().encodePassword(attrDelta);
+                guardedPasswordAttribute = conn.getSchema().encodePassword(attrDelta);
             } else {
-                modItems.addAll(conn.getSchemaMapping().encodeAttribute(oclass, attrDelta));
+                modItems.addAll(conn.getSchema().encodeAttribute(oclass, attrDelta));
             }
         }
 
@@ -358,7 +358,7 @@ public class LdapUpdate extends LdapModifyOperation {
         return uid;
     }
 
-    private void checkRemovedPosixRefAttrs(
+    protected void checkRemovedPosixRefAttrs(
             final Set<String> removedPosixRefAttrs,
             final Set<GroupMembership> memberships) {
 
@@ -370,7 +370,7 @@ public class LdapUpdate extends LdapModifyOperation {
         }
     }
 
-    private Pair<Attributes, GuardedPasswordAttribute> getAttributesToModify(final Set<Attribute> attrs) {
+    protected Pair<Attributes, GuardedPasswordAttribute> getAttributesToModify(final Set<Attribute> attrs) {
         BasicAttributes ldapAttrs = new BasicAttributes();
         GuardedPasswordAttribute pwdAttr = null;
         for (Attribute attr : attrs) {
@@ -385,9 +385,9 @@ public class LdapUpdate extends LdapModifyOperation {
             } else if (LdapConstants.isPosixGroups(attr.getName())) {
                 // Handled elsewhere.
             } else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
-                pwdAttr = conn.getSchemaMapping().encodePassword(attr);
+                pwdAttr = conn.getSchema().encodePassword(attr);
             } else {
-                ldapAttr = conn.getSchemaMapping().encodeAttribute(oclass, attr);
+                ldapAttr = conn.getSchema().encodeAttribute(oclass, attr);
             }
             if (ldapAttr != null) {
                 javax.naming.directory.Attribute existingAttr = ldapAttrs.get(ldapAttr.getID());
@@ -408,7 +408,7 @@ public class LdapUpdate extends LdapModifyOperation {
         return Pair.of(ldapAttrs, pwdAttr);
     }
 
-    private void modifyAttributes(
+    protected void modifyAttributes(
             final String entryDN,
             final Pair<Attributes, GuardedPasswordAttribute> attrs,
             final int ldapModifyOp) {
@@ -432,7 +432,7 @@ public class LdapUpdate extends LdapModifyOperation {
         }
     }
 
-    private void modifyAttributes(final String entryDN, final List<ModificationItem> modItems) {
+    protected void modifyAttributes(final String entryDN, final List<ModificationItem> modItems) {
         LOG.ok("About to apply to {0} the following modifications: {1}", entryDN, modItems);
 
         try {
@@ -442,7 +442,7 @@ public class LdapUpdate extends LdapModifyOperation {
         }
     }
 
-    private static List<String> getStringListValue(final Set<Attribute> attrs, final String attrName) {
+    public static List<String> getStringListValue(final Set<Attribute> attrs, final String attrName) {
         return Optional.ofNullable(AttributeUtil.find(attrName, attrs)).
                 map(attr -> LdapUtil.checkedListByFilter(CollectionUtil.nullAsEmpty(attr.getValue()), String.class)).
                 orElse(null);

@@ -45,13 +45,13 @@ import net.tirasa.connid.bundles.ldap.search.LdapSearches;
 
 public class LdapAuthenticate {
 
-    private final LdapConnection conn;
+    protected final LdapConnection conn;
 
-    private final ObjectClass oclass;
+    protected final ObjectClass oclass;
 
-    private final String username;
+    protected final String username;
 
-    private final OperationOptions options;
+    protected final OperationOptions options;
 
     public LdapAuthenticate(LdapConnection conn, ObjectClass oclass, String username, OperationOptions options) {
         this.conn = conn;
@@ -90,7 +90,7 @@ public class LdapAuthenticate {
         return authnObject.getUid();
     }
 
-    private ConnectorObject getObjectToAuthenticate() {
+    protected ConnectorObject getObjectToAuthenticate() {
         List<String> userNameAttrs = getUserNameAttributes();
         Map<String, ConnectorObject> entryDN2Object = new HashMap<String, ConnectorObject>();
         final String dnAttributeName = conn.getConfiguration().getDnAttribute();
@@ -113,15 +113,15 @@ public class LdapAuthenticate {
         return null;
     }
 
-    private List<String> getUserNameAttributes() {
+    protected List<String> getUserNameAttributes() {
         String[] result = LdapConstants.getLdapUidAttributes(options);
         if (result != null && result.length > 0) {
             return Arrays.asList(result);
         }
-        return conn.getSchemaMapping().getUserNameLdapAttributes(oclass);
+        return conn.getSchema().getUserNameLdapAttributes(oclass);
     }
 
-    private static boolean isSuccess(AuthenticationResult authResult) {
+    protected static boolean isSuccess(AuthenticationResult authResult) {
         // We consider PASSWORD_EXPIRED to be a success, because it means the credentials were right.
         return authResult.getType() != null 
                 && (authResult.getType().equals(AuthenticationResultType.SUCCESS) 

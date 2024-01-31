@@ -47,15 +47,15 @@ public class PagedSearchStrategy extends LdapSearchStrategy {
 
     private static final Log LOG = Log.getLog(PagedSearchStrategy.class);
 
-    private final int pageSize;
+    protected final int pageSize;
 
-    private final int pagedResultsOffset;
+    protected final int pagedResultsOffset;
 
-    private final String pagedResultsCookie;
+    protected final String pagedResultsCookie;
 
-    private final SearchResultsHandler searchResultHandler;
+    protected final SearchResultsHandler searchResultHandler;
 
-    private final SortKey[] sortKeys;
+    protected final SortKey[] sortKeys;
 
     public PagedSearchStrategy(final int pageSize, final String pagedResultsCookie, final Integer pagedResultsOffset,
             final SearchResultsHandler searchResultHandler, final SortKey[] sortKeys) {
@@ -169,7 +169,7 @@ public class PagedSearchStrategy extends LdapSearchStrategy {
         }
     }
 
-    private PagedResultsResponseControl getPagedControl(final Control[] controls) {
+    protected PagedResultsResponseControl getPagedControl(final Control[] controls) {
         if (controls != null) {
             for (Control control : controls) {
                 if (control instanceof PagedResultsResponseControl) {

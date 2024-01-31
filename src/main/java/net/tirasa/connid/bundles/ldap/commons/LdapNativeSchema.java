@@ -23,7 +23,6 @@
  */
 package net.tirasa.connid.bundles.ldap.commons;
 
-import net.tirasa.connid.bundles.ldap.commons.LdapAttributeType;
 import java.util.Set;
 
 /**

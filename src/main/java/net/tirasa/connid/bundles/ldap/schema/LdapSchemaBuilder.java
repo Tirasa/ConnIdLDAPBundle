@@ -44,15 +44,15 @@ import net.tirasa.connid.bundles.ldap.commons.LdapNativeSchema;
 import net.tirasa.connid.bundles.ldap.commons.ObjectClassMappingConfig;
 import net.tirasa.connid.bundles.ldap.LdapConnection.ServerType;
 
-class LdapSchemaBuilder {
+public class LdapSchemaBuilder {
 
     private static final Log LOG = Log.getLog(LdapSchemaBuilder.class);
 
-    private final LdapConnection conn;
+    protected final LdapConnection conn;
 
-    private final LdapNativeSchema nativeSchema;
+    protected final LdapNativeSchema nativeSchema;
 
-    private Schema schema;
+    protected Schema schema;
 
     public LdapSchemaBuilder(LdapConnection conn) {
         this.conn = conn;
@@ -66,7 +66,7 @@ class LdapSchemaBuilder {
         return schema;
     }
 
-    private void buildSchema() {
+    protected void buildSchema() {
         SchemaBuilder schemaBld = new SchemaBuilder(LdapConnector.class);
 
         for (ObjectClassMappingConfig oclassConfig : conn.getConfiguration().getObjectClassMappingConfigs().values()) {
@@ -112,7 +112,7 @@ class LdapSchemaBuilder {
         schema = schemaBld.build();
     }
 
-    private Set<AttributeInfo> createAttributeInfos(Collection<String> ldapClasses) {
+    protected Set<AttributeInfo> createAttributeInfos(Collection<String> ldapClasses) {
         Set<AttributeInfo> result = new HashSet<AttributeInfo>();
 
         Set<String> requiredAttrs = getRequiredAttributes(ldapClasses);
@@ -126,7 +126,7 @@ class LdapSchemaBuilder {
         return result;
     }
 
-    private Set<String> getRequiredAttributes(Collection<String> ldapClasses) {
+    protected Set<String> getRequiredAttributes(Collection<String> ldapClasses) {
         Set<String> result = new HashSet<String>();
         for (String ldapClass : ldapClasses) {
             result.addAll(nativeSchema.getRequiredAttributes(ldapClass));
@@ -134,7 +134,7 @@ class LdapSchemaBuilder {
         return result;
     }
 
-    private Set<String> getOptionalAttributes(Collection<String> ldapClasses) {
+    protected Set<String> getOptionalAttributes(Collection<String> ldapClasses) {
         Set<String> result = new HashSet<String>();
         for (String ldapClass : ldapClasses) {
             result.addAll(nativeSchema.getOptionalAttributes(ldapClass));
@@ -142,7 +142,7 @@ class LdapSchemaBuilder {
         return result;
     }
 
-    private void addAttributeInfos(
+    protected void addAttributeInfos(
             Collection<String> ldapClasses,
             Set<String> attrs,
             Set<Flags> add,
@@ -154,7 +154,7 @@ class LdapSchemaBuilder {
         }
     }
 
-    private void addAttributeInfo(
+    protected void addAttributeInfo(
             Collection<String> ldapClasses,
             String ldapAttrName,
             String realName,

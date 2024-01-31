@@ -38,15 +38,15 @@ import org.identityconnectors.common.StringUtil;
  */
 public class LdapInternalSearch {
 
-    private final LdapConnection conn;
+    protected final LdapConnection conn;
 
-    private final String filter;
+    protected final String filter;
 
-    private final List<String> baseDNs;
+    protected final List<String> baseDNs;
 
-    private final LdapSearchStrategy strategy;
+    protected final LdapSearchStrategy strategy;
 
-    private final SearchControls controls;
+    protected final SearchControls controls;
 
     public LdapInternalSearch(
             final LdapConnection conn,
