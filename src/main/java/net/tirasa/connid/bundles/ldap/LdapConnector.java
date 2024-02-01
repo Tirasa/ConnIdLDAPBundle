@@ -87,6 +87,7 @@ public class LdapConnector implements
     @Override
     public void init(Configuration cfg) {
         config = (LdapConfiguration) cfg;
+        config.validate();
         Class<? extends LdapSyncStrategy> syncStrategyClass = config.getSyncStrategyClass();
         Class<? extends LdapConnection> connectionClass = config.getConnectionClass();
         
