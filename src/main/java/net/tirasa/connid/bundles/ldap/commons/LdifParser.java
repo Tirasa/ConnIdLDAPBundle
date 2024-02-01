@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -21,7 +21,7 @@
  * ====================
  * Portions Copyrighted 2011 ConnId.
  */
-package net.tirasa.connid.bundles.ldap.sync.sunds;
+package net.tirasa.connid.bundles.ldap.commons;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -36,13 +36,14 @@ public class LdifParser implements Iterable<LdifParser.Line> {
         this.ldif = ldif;
     }
 
+    @Override
     public Iterator<Line> iterator() {
         return new LineIterator(getUnfoldedLines());
     }
 
     private List<String> getUnfoldedLines() {
         String[] lines = ldif.split("\n", -1);
-        ArrayList<String> result = new ArrayList<String>(lines.length);
+        ArrayList<String> result = new ArrayList<>(lines.length);
         StringBuilder builder = null;
         for (String line : lines) {
             if (line.startsWith(" ")) {
@@ -68,13 +69,16 @@ public class LdifParser implements Iterable<LdifParser.Line> {
     private static final class LineIterator implements Iterator<Line> {
 
         private final Iterator<String> rawLines;
+
         private Line lastLine;
+
         private Line next;
 
         public LineIterator(List<String> rawLines) {
             this.rawLines = rawLines.iterator();
         }
 
+        @Override
         public boolean hasNext() {
             if (next == null) {
                 next = getNext();
@@ -82,6 +86,7 @@ public class LdifParser implements Iterable<LdifParser.Line> {
             return next != null;
         }
 
+        @Override
         public Line next() {
             if (next == null) {
                 next = getNext();
@@ -119,18 +124,19 @@ public class LdifParser implements Iterable<LdifParser.Line> {
             return result;
         }
 
+        @Override
         public void remove() {
             throw new UnsupportedOperationException();
         }
     }
 
     public abstract static class Line {
-
     }
 
     public final static class NameValue extends Line {
 
         private final String name;
+
         private final String value;
 
         public NameValue(String name, String value) {
