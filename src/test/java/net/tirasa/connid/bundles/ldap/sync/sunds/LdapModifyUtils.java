@@ -23,8 +23,6 @@
  */
 package net.tirasa.connid.bundles.ldap.sync.sunds;
 
-import static net.tirasa.connid.bundles.ldap.commons.LdapUtil.quietCreateLdapName;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,6 +40,7 @@ import javax.naming.ldap.LdapContext;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
+import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.LdifParser;
 import net.tirasa.connid.bundles.ldap.commons.LdifParser.ChangeSeparator;
 import net.tirasa.connid.bundles.ldap.commons.LdifParser.Line;
@@ -158,7 +157,7 @@ public class LdapModifyUtils {
                 }
                 attrs.put(attr);
             }
-            LdapName newName = quietCreateLdapName(dn);
+            LdapName newName = LdapUtil.quietCreateLdapName(dn);
             LOG.ok("Creating context {0} with attributes {1}", newName, attrs);
             String container = newName.getPrefix(newName.size() - 1).toString();
             Rdn rdn = newName.getRdn(newName.size() - 1);
@@ -170,13 +169,12 @@ public class LdapModifyUtils {
             addModificationItems(DirContext.ADD_ATTRIBUTE, added, modItems);
             addModificationItems(DirContext.REMOVE_ATTRIBUTE, deleted, modItems);
             LOG.ok("Modifying context {0} with attributes {1}", dn, modItems);
-            conn.getInitialContext().modifyAttributes(dn,
-                    modItems.toArray(new ModificationItem[modItems.size()]));
+            conn.getInitialContext().modifyAttributes(dn, modItems.toArray(new ModificationItem[modItems.size()]));
         } else if ("delete".equalsIgnoreCase(changeType)) {
             LOG.ok("Deleting context {0}");
             conn.getInitialContext().destroySubcontext(dn);
         } else if ("modrdn".equalsIgnoreCase(changeType)) {
-            LdapName oldName = quietCreateLdapName(dn);
+            LdapName oldName = LdapUtil.quietCreateLdapName(dn);
             LdapName newName = (LdapName) oldName.getPrefix(oldName.size() - 1);
             newName.add(newRdn);
             LOG.ok("Renaming context {0} to {1}", oldName, newName);
