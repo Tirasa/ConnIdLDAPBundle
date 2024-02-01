@@ -133,7 +133,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
             return true;
         });
 
-        return new SyncToken(maxChangeNumber);
+        return new SyncToken(maxChangeNumber[0]);
     }
 
     @Override
