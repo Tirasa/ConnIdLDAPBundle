@@ -40,6 +40,7 @@ import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
 import org.identityconnectors.framework.common.objects.AttributeDeltaUtil;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Name;
 
 public class LdapUtil {
@@ -86,6 +87,18 @@ public class LdapUtil {
             return ldapAttrName.substring(0, ldapAttrName.length() - LDAP_BINARY_OPTION.length());
         }
         return ldapAttrName;
+    }
+
+    public static String getStringAttrValue(ConnectorObject object, String ldapAttrName) {
+        org.identityconnectors.framework.common.objects.Attribute attr = object.getAttributeByName(ldapAttrName);
+        if (attr != null) {
+            try {
+                return (String) attr.getValue().get(0);
+            } catch (IndexOutOfBoundsException e) {
+                throw new ConnectorException(e);
+            }
+        }
+        return null;
     }
 
     /**
