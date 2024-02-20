@@ -69,6 +69,8 @@ public class LdapSearch {
     // An Operation Option specific for usage with LDAP
     public static final String OP_IGNORE_CUSTOM_ANY_OBJECT_CONFIG = "IGNORE_CUSTOM_ANY_OBJECT_CONFIG";
 
+    public static final String OP_IGNORE_BUILT_IN_FILTERS = "IGNORE_BUILT_IN_FILTERS";
+
     private static final Log LOG = Log.getLog(LdapSearch.class);
 
     protected final LdapConnection conn;
@@ -208,17 +210,32 @@ public class LdapSearch {
         controls.setSearchScope(searchScope);
 
         String optionsFilter = LdapConstants.getSearchFilter(options);
-        String searchFilter = null;
-        if (oclass.equals(ObjectClass.ACCOUNT)) {
-            searchFilter = conn.getConfiguration().getAccountSearchFilter();
-        } else if (oclass.equals(ObjectClass.GROUP)) {
-            searchFilter = conn.getConfiguration().getGroupSearchFilter();
-        } else if (!ignoreUserAnyObjectConfig) {
-            searchFilter = conn.getConfiguration().getAnyObjectSearchFilter();
+        String finalFilter = "";
+
+        boolean ignoreBuiltInFilters;
+        if (options.getOptions().containsKey(OP_IGNORE_BUILT_IN_FILTERS)) {
+            ignoreBuiltInFilters = (boolean) options.getOptions().get(OP_IGNORE_BUILT_IN_FILTERS);
+        } else {
+            ignoreBuiltInFilters = false;
         }
-        String nativeFilter = filter == null ? null : filter.getNativeFilter();
+
+        if (ignoreBuiltInFilters) {
+            finalFilter = optionsFilter;
+        } else {
+            String searchFilter = null;
+            if (oclass.equals(ObjectClass.ACCOUNT)) {
+                searchFilter = conn.getConfiguration().getAccountSearchFilter();
+            } else if (oclass.equals(ObjectClass.GROUP)) {
+                searchFilter = conn.getConfiguration().getGroupSearchFilter();
+            } else if (!ignoreUserAnyObjectConfig) {
+                searchFilter = conn.getConfiguration().getAnyObjectSearchFilter();
+            }
+            String nativeFilter = filter == null ? null : filter.getNativeFilter();
+    
+            finalFilter = getSearchFilter(optionsFilter, nativeFilter, searchFilter);
+        }
         return new LdapInternalSearch(conn,
-                getSearchFilter(optionsFilter, nativeFilter, searchFilter),
+                finalFilter,
                 dns, strategy, controls);
     }
 

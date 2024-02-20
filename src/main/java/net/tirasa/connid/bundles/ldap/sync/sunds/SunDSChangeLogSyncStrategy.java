@@ -47,6 +47,7 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
+import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapEntry;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.commons.LdifParser;
@@ -147,6 +148,7 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
                 "deleteOldRdn",
                 "newSuperior"
         );
+        builder.setOption(LdapSearch.OP_IGNORE_BUILT_IN_FILTERS, true);
 
         final int[] currentChangeNumber = { getStartChangeNumber(token) };
 
@@ -178,18 +180,15 @@ public class SunDSChangeLogSyncStrategy implements LdapSyncStrategy {
             }
         };
 
-        final OperationOptions searchOptions = builder.build();
-
         do {
             results[0] = false;
 
-            String filter = getChangeLogSearchFilter(changeNumberAttr, currentChangeNumber[0]);
-
+            builder.setOption(LdapConstants.SEARCH_FILTER_NAME, getChangeLogSearchFilter(changeNumberAttr, currentChangeNumber[0]));
             LdapSearch search = new LdapSearch(conn, 
                     oclass, 
-                    LdapFilter.forNativeFilter(filter), 
+                    null, 
                     resultsHandler, 
-                    searchOptions,
+                    builder.build(),
                     conn.getConfiguration().getChangeLogContext());
 
             search.execute();
