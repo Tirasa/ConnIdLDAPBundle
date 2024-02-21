@@ -111,10 +111,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
     }
     
     protected SyncToken getLatestSyncTokenPaged(ObjectClass oclass, OperationOptionsBuilder builder) {
-        int pageSize = conn.getConfiguration().getChangeLogBlockSize();
-        LOG.ok("Getting latest sync token with pages of size {0}", pageSize);
-
-        builder.setPageSize(pageSize);
+        LOG.ok("Getting latest sync token with pages of size {0}", conn.getConfiguration().getChangeLogBlockSize());
 
         final String[] cookies = new String[] { null };
         final int[] maxChangeNumber = { 0 };
@@ -195,7 +192,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
         builder.setAttributesToGet(changeNumberAttr);
         builder.setScope(OperationOptions.SCOPE_ONE_LEVEL);
-        
+        builder.setPageSize(conn.getConfiguration().getChangeLogBlockSize());
         builder.setOption(LdapSearch.OP_IGNORE_BUILT_IN_FILTERS, true);
         builder.setOption(LdapConstants.SEARCH_FILTER_NAME, "(objectClass=changelogEntry)");
 
@@ -205,8 +202,6 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         switch (searchStrategyClass.getSimpleName()) {
             case "PagedSearchStrategy":
                 return getLatestSyncTokenPaged(oclass, builder);
-            case "VlvIndexSearchStrategy":
-            case "DefaultSearchStrategy":
             default:
                 return getLatestSyncTokenDefault(oclass, builder);
         }
