@@ -196,12 +196,16 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         builder.setOption(LdapSearch.OP_IGNORE_BUILT_IN_FILTERS, true);
         builder.setOption(LdapConstants.SEARCH_FILTER_NAME, "(objectClass=changelogEntry)");
 
-        Class<? extends LdapSearchStrategy> searchStrategyClass = LdapSearchStrategy.getSearchStrategy(conn,
-                builder.build());
+        Class<? extends LdapSearchStrategy> searchStrategyClass = LdapSearchStrategy.getSearchStrategy(conn, builder.build());
 
         switch (searchStrategyClass.getSimpleName()) {
             case "PagedSearchStrategy":
-                return getLatestSyncTokenPaged(oclass, builder);
+                if (conn.getConfiguration().getChangeLogPagingSupport()) {
+                    return getLatestSyncTokenPaged(oclass, builder);
+                }
+                else {
+                    return getLatestSyncTokenDefault(oclass, builder);    
+                }
             default:
                 return getLatestSyncTokenDefault(oclass, builder);
         }
