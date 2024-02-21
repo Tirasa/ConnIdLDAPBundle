@@ -95,6 +95,8 @@ public class LdapUtil {
             try {
                 return (String) attr.getValue().get(0);
             } catch (IndexOutOfBoundsException e) {
+                return null;
+            } catch (Exception e) {
                 throw new ConnectorException(e);
             }
         }
