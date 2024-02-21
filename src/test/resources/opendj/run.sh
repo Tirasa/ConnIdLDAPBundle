@@ -84,6 +84,13 @@ sh ./bin/dsconfig -h localhost -p 4444 -D "cn=Directory Manager" -w password -n 
     --backend-name userRoot --index-name index-uid --set sort-order:uid --set scope:whole-subtree \
     --set base-dn:dc=example,dc=com --set filter:"(&(objectClass=inetOrgPerson)(objectClass=organizationalPerson)(objectClass=person)(objectClass=top))"
 
+sh ./bin/dsconfig create-replication-server -h localhost -p 4444 -D "cn=Directory Manager" -w password -n -X \
+  --provider-name "Multimaster Synchronization" --set replication-port:8989 --set replication-server-id:2 --type generic
+
+sh ./bin/dsconfig create-replication-domain -h localhost -p 4444 -D "cn=Directory Manager" -w password -n -X \
+  --provider-name "Multimaster Synchronization" --set base-dn:dc=example,dc=com --set replication-server:localhost:8989 \
+  --set server-id:3 --type generic --domain-name example_com
+
 sh ./bin/rebuild-index --baseDN "dc=example,dc=com" --bindPassword password -X --index vlv.index-uid
 
 # Run upgrade if the server is older
