@@ -46,6 +46,7 @@ import net.tirasa.connid.bundles.ldap.commons.LdifParser.Separator;
 import net.tirasa.connid.bundles.ldap.commons.PasswordDecryptor;
 import net.tirasa.connid.bundles.ldap.search.LdapFilter;
 import net.tirasa.connid.bundles.ldap.search.LdapSearch;
+import net.tirasa.connid.bundles.ldap.search.LdapSearchStrategy;
 import net.tirasa.connid.bundles.ldap.search.LdapSearches;
 import org.identityconnectors.common.CollectionUtil;
 import org.identityconnectors.common.StringUtil;
@@ -61,12 +62,14 @@ import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
+import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.SyncDelta;
 import org.identityconnectors.framework.common.objects.SyncDeltaBuilder;
 import org.identityconnectors.framework.common.objects.SyncDeltaType;
 import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
+import org.identityconnectors.framework.spi.SearchResultsHandler;
 
 /**
  * An implementation of the sync operation based on the retro change log
@@ -106,24 +109,65 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
     public GenericChangeLogSyncStrategy(LdapConnection conn) {
         this.conn = conn;
     }
+    
+    protected SyncToken getLatestSyncTokenPaged(ObjectClass oclass, OperationOptionsBuilder builder) {
+        int pageSize = conn.getConfiguration().getChangeLogBlockSize();
+        LOG.ok("Getting latest sync token with pages of size {0}", pageSize);
 
-    @Override
-    public SyncToken getLatestSyncToken(ObjectClass oclass) {
-        String changeNumberAttr = getChangeNumberAttribute();
+        builder.setPageSize(pageSize);
 
-        OperationOptionsBuilder builder = new OperationOptionsBuilder();
-        builder.setAttributesToGet(changeNumberAttr);
-        builder.setScope(OperationOptions.SCOPE_ONE_LEVEL);
-        builder.setPageSize(conn.getConfiguration().getChangeLogBlockSize());
-        builder.setOption(LdapSearch.OP_IGNORE_BUILT_IN_FILTERS, true);
-        builder.setOption(LdapConstants.SEARCH_FILTER_NAME, "(objectClass=changelogEntry)");
-
+        final String[] cookies = new String[] { null };
         final int[] maxChangeNumber = { 0 };
+
+        do {
+            if (cookies[0] != null) {
+                LOG.ok("Setting paged results cookie to {0}", cookies[0]);
+                builder.setPagedResultsCookie(cookies[0]);
+            }
+
+            cookies[0] = null;
+
+            SearchResultsHandler handler = new SearchResultsHandler() {
+                @Override
+                public boolean handle(final ConnectorObject object) {
+                    int changeNumber = convertToInt(
+                            (String) object.getAttributeByName(getChangeNumberAttribute()).getValue().get(0), -1);
+                    if (changeNumber > maxChangeNumber[0]) {
+                        maxChangeNumber[0] = changeNumber;
+                    }
+
+                    return true;
+                }
+
+                @Override
+                public void handleResult(final SearchResult result) {
+                    if (result.isAllResultsReturned()) {
+                        cookies[0] = result.getPagedResultsCookie();
+                    }
+                }
+            };
+
+            LdapSearch search = new LdapSearch(this.conn,
+                    oclass,
+                    null,
+                    handler,
+                    builder.build(),
+                    conn.getConfiguration().getChangeLogContext());
+
+            search.execute();
+        } while (cookies[0] != null);
+
+        return new SyncToken(maxChangeNumber[0]);
+    }
+    
+    protected SyncToken getLatestSyncTokenDefault(ObjectClass oclass, OperationOptionsBuilder builder) {
+        final int[] maxChangeNumber = { 0 };
+        LOG.ok("Getting latest sync token with a regular search");
 
         ResultsHandler handler = new ResultsHandler() {
             @Override
             public boolean handle(final ConnectorObject object) {
-                int changeNumber = convertToInt((String) object.getAttributeByName(changeNumberAttr).getValue().get(0), -1);
+                int changeNumber = convertToInt((String) object.getAttributeByName(getChangeNumberAttribute()).getValue().get(0), -1);
                 if (changeNumber > maxChangeNumber[0]) {
                     maxChangeNumber[0] = changeNumber;
                 }
@@ -142,6 +186,30 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         search.execute();
 
         return new SyncToken(maxChangeNumber[0]);
+    }
+
+    @Override
+    public SyncToken getLatestSyncToken(ObjectClass oclass) {
+        String changeNumberAttr = getChangeNumberAttribute();
+
+        OperationOptionsBuilder builder = new OperationOptionsBuilder();
+        builder.setAttributesToGet(changeNumberAttr);
+        builder.setScope(OperationOptions.SCOPE_ONE_LEVEL);
+        
+        builder.setOption(LdapSearch.OP_IGNORE_BUILT_IN_FILTERS, true);
+        builder.setOption(LdapConstants.SEARCH_FILTER_NAME, "(objectClass=changelogEntry)");
+
+        Class<? extends LdapSearchStrategy> searchStrategyClass = LdapSearchStrategy.getSearchStrategy(conn,
+                builder.build());
+
+        switch (searchStrategyClass.getSimpleName()) {
+            case "PagedSearchStrategy":
+                return getLatestSyncTokenPaged(oclass, builder);
+            case "VlvIndexSearchStrategy":
+            case "DefaultSearchStrategy":
+            default:
+                return getLatestSyncTokenDefault(oclass, builder);
+        }
     }
 
     @Override

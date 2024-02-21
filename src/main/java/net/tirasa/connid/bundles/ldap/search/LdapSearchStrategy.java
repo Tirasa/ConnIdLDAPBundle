@@ -29,6 +29,12 @@ import java.util.List;
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
 import javax.naming.ldap.LdapContext;
+import javax.naming.ldap.PagedResultsControl;
+import com.sun.jndi.ldap.ctl.VirtualListViewControl;
+
+import org.identityconnectors.framework.common.objects.OperationOptions;
+
+import net.tirasa.connid.bundles.ldap.LdapConnection;
 
 public abstract class LdapSearchStrategy {
 
@@ -65,5 +71,18 @@ public abstract class LdapSearchStrategy {
 
         builder.append('}');
         return builder.toString();
+    }
+
+    public static Class<? extends LdapSearchStrategy> getSearchStrategy(LdapConnection conn, OperationOptions options) {
+        Class<? extends LdapSearchStrategy> clazz = DefaultSearchStrategy.class;
+        if (options.getPageSize() != null) {
+            if (conn.getConfiguration().isUseVlvControls() && conn.supportsControl(VirtualListViewControl.OID)) {
+                clazz = VlvIndexSearchStrategy.class;
+            } else if (conn.supportsControl(PagedResultsControl.OID)) {
+                clazz = PagedSearchStrategy.class;
+            }
+        }
+
+        return clazz;
     }
 }
