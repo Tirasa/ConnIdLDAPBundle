@@ -224,7 +224,6 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         builder.setAttributesToGet(
                 changeNumberAttr,
                 "targetDN",
-                "targetEntryUUID",
                 "changeType",
                 "changes",
                 "newRdn",
@@ -318,16 +317,13 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         syncDeltaBuilder.setDeltaType(deltaType);
 
         if (deltaType.equals(SyncDeltaType.DELETE)) {
-            LOG.ok("Creating sync delta for deleted entry {0}",
-                    LdapUtil.getStringAttrValue(inputObject, "targetEntryUUID"));
+            LOG.ok("Creating sync delta for deleted entry {0}", targetDN);
 
             String uidAttr = conn.getSchema().getLdapUidAttribute(oclass);
 
             Uid deletedUid;
             if (LDAP_DN_ATTRIBUTES.contains(uidAttr)) {
                 deletedUid = createUid(uidAttr, targetDN);
-            } else if ("entryUUID".equalsIgnoreCase(uidAttr)) {
-                deletedUid = new Uid(LdapUtil.getStringAttrValue(inputObject, "targetEntryUUID"));
             } else {
                 // ever fallback to dn without throwing any exception more reliable
                 deletedUid = new Uid(targetDN);
