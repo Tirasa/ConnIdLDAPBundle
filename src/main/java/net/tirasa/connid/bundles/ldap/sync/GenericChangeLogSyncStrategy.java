@@ -55,7 +55,6 @@ import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
-import org.identityconnectors.framework.common.objects.AttributeUtil;
 import org.identityconnectors.framework.common.objects.AttributesAccessor;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ConnectorObjectBuilder;
@@ -80,22 +79,22 @@ import org.identityconnectors.framework.spi.SearchResultsHandler;
 public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
 
     // TODO detect that the change log has been trimmed.
-    private static final Log LOG = Log.getLog(GenericChangeLogSyncStrategy.class);
+    protected static final Log LOG = Log.getLog(GenericChangeLogSyncStrategy.class);
 
     /**
      * The list of attribute operations supported by the "modify" LDIF change type.
      */
-    private static final Set<String> LDIF_MODIFY_OPS;
+    protected static final Set<String> LDIF_MODIFY_OPS;
 
-    private static final Set<String> LDAP_DN_ATTRIBUTES;
+    protected static final Set<String> LDAP_DN_ATTRIBUTES;
 
-    private final LdapConnection conn;
+    protected final LdapConnection conn;
 
-    private Set<String> oclassesToSync;
+    protected Set<String> oclassesToSync;
 
-    private Set<String> attrsToSync;
+    protected Set<String> attrsToSync;
 
-    private PasswordDecryptor passwordDecryptor;
+    protected PasswordDecryptor passwordDecryptor;
 
     static {
         LDIF_MODIFY_OPS = CollectionUtil.newCaseInsensitiveSet();
@@ -111,7 +110,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
     public GenericChangeLogSyncStrategy(LdapConnection conn) {
         this.conn = conn;
     }
-
+    
     protected SyncToken getLatestSyncTokenPaged(ObjectClass oclass, OperationOptionsBuilder builder) {
         LOG.ok("Getting latest sync token with pages of size {0}", conn.getConfiguration().getChangeLogBlockSize());
 
@@ -127,7 +126,6 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
             cookies[0] = null;
 
             SearchResultsHandler handler = new SearchResultsHandler() {
-
                 @Override
                 public boolean handle(final ConnectorObject object) {
                     int changeNumber = convertToInt(
@@ -159,21 +157,17 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
 
         return new SyncToken(maxChangeNumber[0]);
     }
-
+    
     protected SyncToken getLatestSyncTokenDefault(ObjectClass oclass, OperationOptionsBuilder builder) {
         final int[] maxChangeNumber = { 0 };
         LOG.ok("Getting latest sync token with a regular search");
 
         ResultsHandler handler = new ResultsHandler() {
-
             @Override
             public boolean handle(final ConnectorObject object) {
-                Attribute changeNumberAttr = object.getAttributeByName(getChangeNumberAttribute());
-                if (changeNumberAttr != null) {
-                    int changeNumber = convertToInt(AttributeUtil.getStringValue(changeNumberAttr), -1);
-                    if (changeNumber > maxChangeNumber[0]) {
-                        maxChangeNumber[0] = changeNumber;
-                    }
+                int changeNumber = convertToInt((String) object.getAttributeByName(getChangeNumberAttribute()).getValue().get(0), -1);
+                if (changeNumber > maxChangeNumber[0]) {
+                    maxChangeNumber[0] = changeNumber;
                 }
 
                 return true;
@@ -186,7 +180,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
                 handler,
                 builder.build(),
                 conn.getConfiguration().getChangeLogContext());
-
+        
         search.execute();
 
         return new SyncToken(maxChangeNumber[0]);
@@ -203,15 +197,15 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         builder.setOption(LdapSearch.OP_IGNORE_BUILT_IN_FILTERS, true);
         builder.setOption(LdapConstants.SEARCH_FILTER_NAME, "(objectClass=changelogEntry)");
 
-        Class<? extends LdapSearchStrategy> searchStrategyClass =
-                LdapSearchStrategy.getSearchStrategy(conn, builder.build());
+        Class<? extends LdapSearchStrategy> searchStrategyClass = LdapSearchStrategy.getSearchStrategy(conn, builder.build());
 
         switch (searchStrategyClass.getSimpleName()) {
             case "PagedSearchStrategy":
                 if (conn.getConfiguration().getChangeLogPagingSupport()) {
                     return getLatestSyncTokenPaged(oclass, builder);
-                } else {
-                    return getLatestSyncTokenDefault(oclass, builder);
+                }
+                else {
+                    return getLatestSyncTokenDefault(oclass, builder);    
                 }
             default:
                 return getLatestSyncTokenDefault(oclass, builder);
@@ -224,7 +218,6 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
             final SyncResultsHandler handler,
             final OperationOptions options,
             final ObjectClass oclass) {
-
         final String changeNumberAttr = getChangeNumberAttribute();
 
         OperationOptionsBuilder builder = new OperationOptionsBuilder();
@@ -245,18 +238,15 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         final boolean[] results = new boolean[1];
 
         ResultsHandler resultsHandler = new ResultsHandler() {
-
             @Override
             public boolean handle(final ConnectorObject object) {
                 results[0] = true;
+                
+                int changeNumber = convertToInt((String) object.getAttributeByName(changeNumberAttr).getValue().get(0),
+                        -1);
 
-                Attribute changeNumberAttr = object.getAttributeByName(getChangeNumberAttribute());
-                int changeNumber = -1;
-                if (changeNumberAttr != null) {
-                    changeNumber = convertToInt(AttributeUtil.getStringValue(changeNumberAttr), -1);
-                    if (changeNumber > currentChangeNumber[0]) {
-                        currentChangeNumber[0] = changeNumber;
-                    }
+                if (changeNumber > currentChangeNumber[0]) {
+                    currentChangeNumber[0] = changeNumber;
                 }
 
                 SyncDelta delta;
@@ -276,14 +266,12 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         do {
             results[0] = false;
 
-            builder.setOption(
-                    LdapConstants.SEARCH_FILTER_NAME,
-                    getChangeLogSearchFilter(changeNumberAttr, currentChangeNumber[0]));
+            builder.setOption(LdapConstants.SEARCH_FILTER_NAME, getChangeLogSearchFilter(changeNumberAttr, currentChangeNumber[0]));
 
-            LdapSearch search = new LdapSearch(conn,
-                    oclass,
-                    null,
-                    resultsHandler,
+            LdapSearch search = new LdapSearch(conn, 
+                    oclass, 
+                    null, 
+                    resultsHandler, 
                     builder.build(),
                     conn.getConfiguration().getChangeLogContext());
 
@@ -298,7 +286,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         } while (results[0]);
     }
 
-    private SyncDelta createSyncDelta(
+    protected SyncDelta createSyncDelta(
             final ConnectorObject inputObject,
             final int changeNumber,
             final String[] attrsToGetOption,
@@ -309,6 +297,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         final AttributesAccessor inputAttrs = new AttributesAccessor(inputObject.getAttributes());
 
         final String targetDN = inputAttrs.findString("targetDN");
+
         if (targetDN == null) {
             LOG.error("Skipping log entry because it does not have a targetDN attribute");
             return null;
@@ -331,28 +320,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         syncDeltaBuilder.setDeltaType(deltaType);
 
         if (deltaType.equals(SyncDeltaType.DELETE)) {
-            LOG.ok("Creating sync delta for deleted entry {0}", targetDN);
-
-            String uidAttr = conn.getSchema().getLdapUidAttribute(oclass);
-
-            Uid deletedUid;
-            if (LDAP_DN_ATTRIBUTES.contains(uidAttr)) {
-                deletedUid = createUid(uidAttr, targetDN);
-            } else {
-                // ever fallback to dn without throwing any exception more reliable
-                deletedUid = new Uid(targetDN);
-            }
-            // Build an empty connector object, with minimal information - LDAP-8
-            ConnectorObjectBuilder objectBuilder = new ConnectorObjectBuilder();
-            objectBuilder.setObjectClass(oclass);
-            objectBuilder.setUid(deletedUid);
-            objectBuilder.setName("fake-dn");
-            objectBuilder.addAttributes(Collections.<Attribute>emptySet());
-
-            syncDeltaBuilder.setUid(deletedUid);
-            syncDeltaBuilder.setObject(objectBuilder.build());
-
-            return syncDeltaBuilder.build();
+            return createDeletionSyncDelta(syncDeltaBuilder, targetDN, oclass, inputAttrs);
         }
 
         final String changes = inputAttrs.findString("changes");
@@ -360,12 +328,14 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         final Map<String, List<Object>> attrChanges = getAttributeChanges(changeType, changes);
 
         if (filterOutByModifiersNames(attrChanges)) {
-            LOG.ok("Skipping entry because modifiersName is in the list of modifiersName's to filter out");
+            LOG.ok("Skipping entry because modifiersName is in the list of "
+                    + "modifiersName's to filter out");
             return null;
         }
 
         if (filterOutByAttributes(attrChanges)) {
-            LOG.ok("Skipping entry because no changed attributes in the list of attributes to synchronize");
+            LOG.ok("Skipping entry because no changed attributes in the list "
+                    + "of attributes to synchronize");
             return null;
         }
 
@@ -375,12 +345,14 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
 
         if ("modrdn".equalsIgnoreCase(changeType)) {
             final String newRdn = inputAttrs.findString("newRdn");
+
             if (StringUtil.isBlank(newRdn)) {
                 LOG.error("Skipping log entry because it does not have a newRdn attribute");
                 return null;
             }
 
             final String newSuperior = inputAttrs.findString("newSuperior");
+
             newTargetDN = getNewTargetDN(targetName, newSuperior, newRdn);
         }
 
@@ -477,7 +449,25 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return syncDeltaBuilder.build();
     }
 
-    private String getNewTargetDN(
+    protected SyncDelta createDeletionSyncDelta(SyncDeltaBuilder syncDeltaBuilder, String targetDN, ObjectClass oclass, AttributesAccessor inputAttrs) throws InvalidNameException {
+        LOG.ok("Creating sync delta for deleted entry {0}", targetDN);
+
+        Uid deletedUid = new Uid(targetDN);
+
+        // Build an empty connector object, with minimal information - LDAP-8
+        ConnectorObjectBuilder objectBuilder = new ConnectorObjectBuilder();
+        objectBuilder.setObjectClass(oclass);
+        objectBuilder.setUid(deletedUid);
+        objectBuilder.setName("fake-dn");
+        objectBuilder.addAttributes(Collections.<Attribute>emptySet());
+
+        syncDeltaBuilder.setUid(deletedUid);
+        syncDeltaBuilder.setObject(objectBuilder.build());
+
+        return syncDeltaBuilder.build();
+    }
+
+    protected String getNewTargetDN(
             final LdapName targetName,
             final String newSuperior,
             final String newRdn) {
@@ -499,7 +489,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         }
     }
 
-    private boolean filterOutByBaseContexts(final LdapName targetName) {
+    protected boolean filterOutByBaseContexts(final LdapName targetName) {
         List<LdapName> baseContexts = conn.getConfiguration().
                 getBaseContextsToSynchronizeAsLdapNames();
         if (baseContexts.isEmpty()) {
@@ -508,7 +498,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return !LdapUtil.isUnderContexts(targetName, baseContexts);
     }
 
-    private boolean filterOutByModifiersNames(
+    protected boolean filterOutByModifiersNames(
             final Map<String, List<Object>> changes) {
         Set<LdapName> filter = conn.getConfiguration().
                 getModifiersNamesToFilterOutAsLdapNames();
@@ -525,7 +515,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return filter.contains(modifiersName);
     }
 
-    private boolean filterOutByAttributes(
+    protected boolean filterOutByAttributes(
             final Map<String, List<Object>> attrChanges) {
         Set<String> filter = getAttributesToSynchronize();
         if (filter.isEmpty()) {
@@ -536,7 +526,8 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return !containsAny(filter, changedAttrs);
     }
 
-    private boolean filterOutByObjectClasses(final List<String> objectClasses) {
+    protected boolean filterOutByObjectClasses(
+            final List<String> objectClasses) {
         Set<String> filter = getObjectClassesToSynchronize();
         if (filter.isEmpty()) {
             LOG.ok("Filtering by object class disabled");
@@ -545,19 +536,26 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return !containsAny(filter, objectClasses);
     }
 
-    private SyncDeltaType getSyncDeltaType(final String changeType) {
-        return "delete".equalsIgnoreCase(changeType) ? SyncDeltaType.DELETE : SyncDeltaType.CREATE_OR_UPDATE;
+    protected SyncDeltaType getSyncDeltaType(final String changeType) {
+        if ("delete".equalsIgnoreCase(changeType)) {
+            return SyncDeltaType.DELETE;
+        }
+        return SyncDeltaType.CREATE_OR_UPDATE;
     }
 
-    private String getModifiedEntrySearchFilter(final ObjectClass oclass) {
-        return oclass.equals(ObjectClass.ACCOUNT) ? conn.getConfiguration().getAccountSynchronizationFilter() : null;
+    protected String getModifiedEntrySearchFilter(ObjectClass oclass) {
+        if (oclass.equals(ObjectClass.ACCOUNT)) {
+            return conn.getConfiguration().getAccountSynchronizationFilter();
+        }
+        return null;
     }
 
-    private int getStartChangeNumber(final SyncToken lastToken) {
-        return lastToken != null ? (Integer) lastToken.getValue() + 1 : 0;
+    protected int getStartChangeNumber(final SyncToken lastToken) {
+        return lastToken != null ? (Integer) lastToken.
+                getValue() + 1 : 0;
     }
 
-    private Map<String, List<Object>> getAttributeChanges(final String changeType, final String ldif) {
+    protected Map<String, List<Object>> getAttributeChanges(final String changeType, final String ldif) {
         final Map<String, List<Object>> result = CollectionUtil.newCaseInsensitiveMap();
 
         if ("modify".equalsIgnoreCase(changeType)) {
@@ -614,7 +612,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return result;
     }
 
-    private Object decodeAttributeValue(final NameValue nameValue) {
+    protected Object decodeAttributeValue(final NameValue nameValue) {
         String value = nameValue.getValue();
         if (value.startsWith(":")) {
             // This is a Base64 encoded value...
@@ -635,7 +633,8 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         }
     }
 
-    private String getChangeLogSearchFilter(final String changeNumberAttr, final int startChangeNumber) {
+    protected String getChangeLogSearchFilter(
+            final String changeNumberAttr, final int startChangeNumber) {
         int blockSize = conn.getConfiguration().getChangeLogBlockSize();
         boolean filterWithOrInsteadOfAnd = conn.getConfiguration().
                 isFilterWithOrInsteadOfAnd();
@@ -690,7 +689,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return result.toString();
     }
 
-    private String getChangeNumberAttribute() {
+    protected String getChangeNumberAttribute() {
         String result = conn.getConfiguration().getChangeNumberAttribute();
         if (StringUtil.isBlank(result)) {
             result = "changeNumber";
@@ -698,7 +697,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return result;
     }
 
-    private Set<String> getAttributesToSynchronize() {
+    protected Set<String> getAttributesToSynchronize() {
         if (attrsToSync == null) {
             Set<String> result = CollectionUtil.newCaseInsensitiveSet();
             result.addAll(Arrays.asList(LdapUtil.nullAsEmpty(conn.getConfiguration().getAttributesToSynchronize())));
@@ -711,7 +710,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return attrsToSync;
     }
 
-    private Set<String> getObjectClassesToSynchronize() {
+    protected Set<String> getObjectClassesToSynchronize() {
         if (oclassesToSync == null) {
             Set<String> result = CollectionUtil.newCaseInsensitiveSet();
             result.addAll(Arrays.asList(LdapUtil.nullAsEmpty(conn.getConfiguration().getObjectClassesToSynchronize())));
@@ -720,7 +719,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return oclassesToSync;
     }
 
-    private PasswordDecryptor getPasswordDecryptor() {
+    protected PasswordDecryptor getPasswordDecryptor() {
         if (passwordDecryptor == null) {
             conn.getConfiguration().getPasswordDecryptionKey().access(decryptionKey -> {
                 conn.getConfiguration().getPasswordDecryptionInitializationVector().access(decryptionIV -> {
@@ -732,7 +731,8 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return passwordDecryptor;
     }
 
-    private boolean containsAny(final Set<String> haystack, final Collection<String> needles) {
+    protected boolean containsAny(
+            final Set<String> haystack, final Collection<String> needles) {
         for (String needle : needles) {
             if (haystack.contains(needle)) {
                 return true;
@@ -741,7 +741,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return false;
     }
 
-    private Uid createUid(final String uidAttr, final String targetDN) throws InvalidNameException {
+    protected Uid createUid(final String uidAttr, final String targetDN) throws InvalidNameException {
         Rdn matchingRnd = null;
         for (Rdn rdn : new LdapName(targetDN).getRdns()) {
             if (uidAttr.equalsIgnoreCase(rdn.getType())) {
@@ -751,7 +751,7 @@ public class GenericChangeLogSyncStrategy implements LdapSyncStrategy {
         return matchingRnd == null ? null : new Uid(matchingRnd.getValue().toString());
     }
 
-    private static int convertToInt(String number, final int def) {
+    public static int convertToInt(String number, final int def) {
         int result = def;
         if (number != null && number.length() > 0) {
             int decimal = number.indexOf('.');
