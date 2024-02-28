@@ -40,7 +40,6 @@ import org.identityconnectors.common.StringUtil;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
 import org.identityconnectors.framework.common.objects.AttributeDeltaUtil;
-import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Name;
 
 public class LdapUtil {
@@ -51,8 +50,7 @@ public class LdapUtil {
     }
 
     /**
-     * Returns true if the names of the given LDAP attributes are equal. Deals
-     * with null values as a convenience.
+     * @return @code true} if the names of the given LDAP attributes are equal. Deals with null values as a convenience.
      */
     public static boolean attrNameEquals(String name1, String name2) {
         if (name1 == null) {
@@ -62,8 +60,7 @@ public class LdapUtil {
     }
 
     /**
-     * Returns {@code true} if the attribute has the binary option,
-     * e.g., {@code userCertificate;binary}.
+     * @return {@code true} if the attribute has the binary option, e.g., {@code userCertificate;binary}.
      */
     public static boolean hasBinaryOption(String ldapAttrName) {
         return ldapAttrName.toLowerCase(Locale.US).endsWith(LDAP_BINARY_OPTION);
@@ -89,22 +86,8 @@ public class LdapUtil {
         return ldapAttrName;
     }
 
-    public static String getStringAttrValue(ConnectorObject object, String ldapAttrName) {
-        org.identityconnectors.framework.common.objects.Attribute attr = object.getAttributeByName(ldapAttrName);
-        if (attr != null) {
-            try {
-                return (String) attr.getValue().get(0);
-            } catch (IndexOutOfBoundsException e) {
-                return null;
-            } catch (Exception e) {
-                throw new ConnectorException(e);
-            }
-        }
-        return null;
-    }
-
     /**
-     * Return the value of the {@code ldapAttrName} parameter cast to a String.
+     * @return the value of the {@code ldapAttrName} parameter cast to a String.
      */
     public static String getStringAttrValue(Attributes ldapAttrs, String ldapAttrName) {
         Attribute attr = ldapAttrs.get(ldapAttrName);
@@ -119,11 +102,11 @@ public class LdapUtil {
     }
 
     /**
-     * Return the <b>case insensitive</b> set of values of the {@code
+     * @return the <b>case insensitive</b> set of values of the {@code
      * ldapAttrName} parameter cast to a String.
      */
     public static Set<String> getStringAttrValues(Attributes ldapAttrs, String ldapAttrName) {
-        Set<String> result = new HashSet<String>();
+        Set<String> result = new HashSet<>();
         addStringAttrValues(ldapAttrs, ldapAttrName, result);
         return result;
     }
@@ -145,7 +128,8 @@ public class LdapUtil {
 
     /**
      * Escapes the given attribute value to the given {@code StringBuilder}.
-     * Returns {@code true} iff anything was written to the builder.
+     *
+     * @returns {@code true} iff anything was written to the builder.
      */
     public static boolean escapeAttrValue(Object value, StringBuilder toBuilder) {
         if (value == null) {
@@ -446,38 +430,47 @@ public class LdapUtil {
                 this.iter = iter;
             }
 
+            @Override
             public void add(E o) {
                 iter.add(o);
             }
 
+            @Override
             public boolean hasNext() {
                 return iter.hasNext();
             }
 
+            @Override
             public boolean hasPrevious() {
                 return iter.hasPrevious();
             }
 
+            @Override
             public E next() {
                 return cast(iter.next());
             }
 
+            @Override
             public int nextIndex() {
                 return iter.nextIndex();
             }
 
+            @Override
             public E previous() {
                 return cast(iter.previous());
             }
 
+            @Override
             public int previousIndex() {
                 return iter.previousIndex();
             }
 
+            @Override
             public void remove() {
                 iter.remove();
             }
 
+            @Override
             public void set(E o) {
                 iter.set(o);
             }

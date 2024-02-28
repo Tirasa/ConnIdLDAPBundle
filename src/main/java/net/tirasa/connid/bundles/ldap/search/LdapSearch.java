@@ -210,7 +210,6 @@ public class LdapSearch {
         controls.setSearchScope(searchScope);
 
         String optionsFilter = LdapConstants.getSearchFilter(options);
-        String finalFilter = "";
 
         boolean ignoreBuiltInFilters;
         if (options.getOptions().containsKey(OP_IGNORE_BUILT_IN_FILTERS)) {
@@ -219,6 +218,7 @@ public class LdapSearch {
             ignoreBuiltInFilters = false;
         }
 
+        String finalFilter;
         if (ignoreBuiltInFilters) {
             finalFilter = optionsFilter;
         } else {
@@ -231,12 +231,10 @@ public class LdapSearch {
                 searchFilter = conn.getConfiguration().getAnyObjectSearchFilter();
             }
             String nativeFilter = filter == null ? null : filter.getNativeFilter();
-    
+
             finalFilter = getSearchFilter(optionsFilter, nativeFilter, searchFilter);
         }
-        return new LdapInternalSearch(conn,
-                finalFilter,
-                dns, strategy, controls);
+        return new LdapInternalSearch(conn, finalFilter, dns, strategy, controls);
     }
 
     protected Set<String> getLdapAttributesToGet(final Set<String> attrsToGet) {
