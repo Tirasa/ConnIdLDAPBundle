@@ -31,7 +31,6 @@ import javax.naming.directory.Attributes;
 import net.tirasa.connid.bundles.ldap.LdapConnection;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
 import net.tirasa.connid.bundles.ldap.sync.GenericChangeLogSyncStrategy;
-import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributesAccessor;
@@ -48,9 +47,6 @@ import org.identityconnectors.framework.common.objects.Uid;
  */
 public class SunDSChangeLogSyncStrategy extends GenericChangeLogSyncStrategy {
 
-    // TODO detect that the change log has been trimmed.
-    private static final Log LOG = Log.getLog(SunDSChangeLogSyncStrategy.class);
-
     private ChangeLogAttributes changeLogAttrs;
 
     public SunDSChangeLogSyncStrategy(LdapConnection conn) {
@@ -63,8 +59,13 @@ public class SunDSChangeLogSyncStrategy extends GenericChangeLogSyncStrategy {
     }
 
     @Override
-    protected SyncDelta createDeletionSyncDelta(SyncDeltaBuilder syncDeltaBuilder, String targetDN, ObjectClass oclass,
-            AttributesAccessor inputAttrs) throws InvalidNameException {
+    protected SyncDelta createDeletionSyncDelta(
+            final SyncDeltaBuilder syncDeltaBuilder,
+            final String targetDN,
+            final ObjectClass oclass,
+            final AttributesAccessor inputAttrs)
+            throws InvalidNameException {
+
         LOG.ok("Creating sync delta for deleted entry {0}", inputAttrs.findString("targetEntryUUID"));
 
         String uidAttr = conn.getSchema().getLdapUidAttribute(oclass);
