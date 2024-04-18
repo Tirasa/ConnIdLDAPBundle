@@ -35,7 +35,7 @@
 
   <groupId>net.tirasa.connid.bundles</groupId>
   <artifactId>net.tirasa.connid.bundles.ldap</artifactId>
-  <version>1.5.9-SNAPSHOT</version>
+  <version>1.5.9</version>
 
   <name>ConnId Bundles: LDAP</name>
 
@@ -55,7 +55,7 @@
     <connection>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</connection>
     <url>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</url>
     <developerConnection>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>net.tirasa.connid.bundles.ldap-1.5.9</tag>
   </scm>
 
   <issueManagement>
