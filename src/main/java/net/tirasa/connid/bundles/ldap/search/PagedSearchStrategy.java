@@ -116,8 +116,11 @@ public class PagedSearchStrategy extends LdapSearchStrategy {
                 }
 
                 if (LOG.isOk()) {
-                    LOG.ok("Setting paged request control with page size '{0}' and cookie '{1}'", pageSize - records,
-                            cookie != null ? Base64.getEncoder().encodeToString(cookie) : "");
+                    if (cookie != null) {
+                        LOG.ok("Setting paged request control with page size '{0}' and cookie '{1}'",
+                                pageSize - records,
+                                cookie != null ? Base64.getEncoder().encodeToString(cookie) : "");
+                    }
                 }
                 PagedResultsControl pagedResultsControl = new PagedResultsControl(pageSize - records, cookie,
                         Control.CRITICAL);
@@ -150,7 +153,11 @@ public class PagedSearchStrategy extends LdapSearchStrategy {
                         cookie = pagedControl.getCookie();
                         if (LOG.isOk())
                         {
-                            LOG.ok("Server returned a paged results control with cookie '{0}'", Base64.getEncoder().encodeToString(cookie));
+                            if (cookie != null) {
+                                LOG.ok("Server returned a paged results control with cookie '{0}'",
+                                        Base64.getEncoder().encodeToString(cookie));
+                            }
+                            
                         }
                         
                         if (pagedControl.getResultSize() > 0) {
