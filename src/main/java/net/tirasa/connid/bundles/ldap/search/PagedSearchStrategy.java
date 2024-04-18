@@ -107,16 +107,25 @@ public class PagedSearchStrategy extends LdapSearchStrategy {
                     for (int i = 0; i < sortKeys.length; i++) {
                         skis[i] = new javax.naming.ldap.SortKey(sortKeys[i].getField(), sortKeys[i].isAscendingOrder(),
                                 null);
+                        if (LOG.isOk()) {
+                            LOG.ok("Adding '{0}' as a requested sort key", sortKeys[i].getField());
+                        }
                     }
                     // We don't want to make this critical... better return unsorted results than nothing.
                     sortControl = new SortControl(skis, Control.NONCRITICAL);
                 }
+
+                if (LOG.isOk()) {
+                    LOG.ok("Setting paged request control with page size '{0}' and cookie '{1}'", pageSize - records,
+                            cookie != null ? Base64.getEncoder().encodeToString(cookie) : "");
+                }
+                PagedResultsControl pagedResultsControl = new PagedResultsControl(pageSize - records, cookie,
+                        Control.CRITICAL);
                 if (sortControl == null) {
-                    ctx.setRequestControls(new Control[] {
-                        new PagedResultsControl(pageSize - records, cookie, Control.CRITICAL) });
+                    ctx.setRequestControls(new Control[] { pagedResultsControl });
                 } else {
                     ctx.setRequestControls(new Control[] {
-                        new PagedResultsControl(pageSize - records, cookie, Control.CRITICAL), sortControl
+                        pagedResultsControl, sortControl
                     });
                 }
 
@@ -139,6 +148,11 @@ public class PagedSearchStrategy extends LdapSearchStrategy {
                     PagedResultsResponseControl pagedControl = getPagedControl(ctx.getResponseControls());
                     if (pagedControl != null) {
                         cookie = pagedControl.getCookie();
+                        if (LOG.isOk())
+                        {
+                            LOG.ok("Server returned a paged results control with cookie '{0}'", Base64.getEncoder().encodeToString(cookie));
+                        }
+                        
                         if (pagedControl.getResultSize() > 0) {
                             remainingResults = pagedControl.getResultSize();
                         }
