@@ -406,13 +406,13 @@ public class LdapSearch {
 
     protected LdapSearchStrategy getSearchStrategy() {
         LdapSearchStrategy result = conn.getConfiguration().newDefaultSearchStrategy(false);
-        if (options.getPageSize() != null) {
+        if (conn.getConfiguration().isUsePaging()) {
             if (conn.getConfiguration().isUseVlvControls() && conn.supportsControl(VirtualListViewControl.OID)) {
                 String vlvSortAttr = conn.getConfiguration().getVlvSortAttribute();
-                result = new VlvIndexSearchStrategy(vlvSortAttr, options.getPageSize());
+                result = new VlvIndexSearchStrategy(vlvSortAttr, conn.getConfiguration().getPageSize());
             } else if (conn.supportsControl(PagedResultsControl.OID)) {
                 result = new PagedSearchStrategy(
-                        options.getPageSize(),
+                        conn.getConfiguration().getPageSize(),
                         options.getPagedResultsCookie(),
                         options.getPagedResultsOffset(),
                         handler instanceof SearchResultsHandler ? (SearchResultsHandler) handler : null,
