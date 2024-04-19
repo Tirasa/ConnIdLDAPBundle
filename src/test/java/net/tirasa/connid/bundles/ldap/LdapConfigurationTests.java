@@ -377,7 +377,7 @@ public class LdapConfigurationTests {
         assertNull(config.getAnyObjectSearchFilter());
         assertEquals("net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy", config.getSyncStrategy());
         assertEquals(100, config.getPageSize());
-        assertEquals(false, config.isUsePaging());
+        assertEquals(true, config.isUsePaging());
     }
 
     @Test
