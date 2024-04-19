@@ -310,6 +310,24 @@ public class LdapConfigurationTests {
     }
 
     @Test
+    public void pageSizeNotNegative() {
+        config.setPageSize(-1);
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void pageSizeNotZero() {
+        config.setPageSize(0);
+        assertThrows(ConfigurationException.class, () -> config.validate());
+    }
+
+    @Test
+    public void pageSizePositive() {
+        config.setPageSize(1);
+        assertDoesNotThrow(() -> config.validate());
+    }
+
+    @Test
     public void defaultValues() {
         config = new LdapConfiguration();
         assertNull(config.getHost());
@@ -358,6 +376,8 @@ public class LdapConfigurationTests {
         assertEquals(OperationOptions.SCOPE_SUBTREE, config.getAnyObjectSearchScope());
         assertNull(config.getAnyObjectSearchFilter());
         assertEquals("net.tirasa.connid.bundles.ldap.sync.sunds.SunDSChangeLogSyncStrategy", config.getSyncStrategy());
+        assertEquals(100, config.getPageSize());
+        assertEquals(false, config.isUsePaging());
     }
 
     @Test
