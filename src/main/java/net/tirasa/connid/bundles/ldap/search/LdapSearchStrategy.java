@@ -75,7 +75,7 @@ public abstract class LdapSearchStrategy {
 
     public static Class<? extends LdapSearchStrategy> getSearchStrategy(LdapConnection conn, OperationOptions options) {
         Class<? extends LdapSearchStrategy> clazz = DefaultSearchStrategy.class;
-        if (options.getPageSize() != null) {
+        if (conn.getConfiguration().isUsePaging()) {
             if (conn.getConfiguration().isUseVlvControls() && conn.supportsControl(VirtualListViewControl.OID)) {
                 clazz = VlvIndexSearchStrategy.class;
             } else if (conn.supportsControl(PagedResultsControl.OID)) {

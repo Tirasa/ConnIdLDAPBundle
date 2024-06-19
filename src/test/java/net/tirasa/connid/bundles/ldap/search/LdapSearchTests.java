@@ -94,10 +94,12 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         // Simple paged results.
         config = newConfiguration();
-        searchExpectingNoResult(config, filter, new OperationOptionsBuilder().setPageSize(25).build());
+        config.setPageSize(25);
+        searchExpectingNoResult(config, filter, new OperationOptionsBuilder().build());
 
         // No paging.
         config = newConfiguration();
+        config.setUsePaging(false);
         searchExpectingNoResult(config, filter, new OperationOptionsBuilder().build());
     }
 
@@ -112,10 +114,12 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
         // Simple paged results.
         config = newConfiguration();
-        searchExpectingNoResult(config, filter, new OperationOptionsBuilder().setPageSize(25).build());
+        config.setPageSize(25);
+        searchExpectingNoResult(config, filter, new OperationOptionsBuilder().build());
 
         // No paging.
         config = newConfiguration();
+        config.setUsePaging(false);
         searchExpectingNoResult(config, filter, new OperationOptionsBuilder().build());
     }
 
@@ -140,10 +144,12 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         // Simple paged results.
         config = newConfiguration();
         config.setBaseContexts(ACME_DN, BIG_COMPANY_DN);
-        searchExpectingSingleResult(config, new OperationOptionsBuilder().setPageSize(25).build());
+        config.setPageSize(25);
+        searchExpectingSingleResult(config, new OperationOptionsBuilder().build());
 
         // No paging.
         config = newConfiguration();
+        config.setUsePaging(false);
         config.setBaseContexts(ACME_DN, BIG_COMPANY_DN);
         searchExpectingSingleResult(config, new OperationOptionsBuilder().build());
     }
@@ -161,14 +167,15 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         ConnectorFacade facade = newFacade(config);
 
         // read first page
+        config.setPageSize(100);
         List<ConnectorObject> objects = TestHelpers.searchToList(
-                facade, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().setPageSize(100).build());
+                facade, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().build());
         assertNotNull(getObjectByName(objects, BUGS_BUNNY_DN));
         assertNotNull(getObjectByName(objects, USER_0_DN));
         assertEquals(100, objects.size());
 
         // read all pages, being each page of 100 entries
-        final OperationOptionsBuilder builder = new OperationOptionsBuilder().setPageSize(100);
+        final OperationOptionsBuilder builder = new OperationOptionsBuilder();
         final String[] cookies = new String[1];
         final Integer[] count = new Integer[] { 0, 0 };
         do {
@@ -212,10 +219,11 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         config.setUidAttribute("entryDN");
         config.setGidAttribute("entryDN");
         config.setUseVlvControls(true);
+        config.setPageSize(1);
         ConnectorFacade facade = newFacade(config);
 
         List<ConnectorObject> objects = TestHelpers.searchToList(
-                facade, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().setPageSize(1).build());
+                facade, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().build());
         assertNotNull(getObjectByName(objects, USER_0_DN));
         // 1000 is the default search size limit for OpenDJ.
         assertTrue(objects.size() > 1000);
@@ -223,7 +231,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         // OpenDJ-specific.
         OperationOptionsBuilder builder = new OperationOptionsBuilder().setAttributesToGet("debugsearchindex");
         FirstOnlyResultsHandler handler = new FirstOnlyResultsHandler();
-        facade.search(ObjectClass.ACCOUNT, null, handler, builder.setPageSize(1).build());
+        facade.search(ObjectClass.ACCOUNT, null, handler, builder.build());
         String debugsearch = handler.getSingleResult().
                 getAttributeByName("debugsearchindex").getValue().get(0).toString();
         assertTrue(debugsearch.contains("vlv"));
@@ -231,6 +239,7 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
     public void defaultStrategy() {
         LdapConfiguration config = newConfiguration();
+        config.setUsePaging(false);
         ConnectorFacade facade = newFacade(config);
 
         final boolean[] isAllResultsReturned = new boolean[1];
@@ -319,7 +328,6 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setScope(OperationOptions.SCOPE_ONE_LEVEL);
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
-        optionsBuilder.setPageSize(100);
         List<ConnectorObject> objects = TestHelpers.searchToList(
                 facade, ObjectClass.ACCOUNT, null, optionsBuilder.build());
         assertTrue(objects.isEmpty());
@@ -343,7 +351,6 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         // Prepare options
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
-        optionsBuilder.setPageSize(100);
         OperationOptions options = optionsBuilder.build();
 
         // We can get bugs bunny with an 'object' search by DN
@@ -382,7 +389,6 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         // Prepare options
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
-        optionsBuilder.setPageSize(100);
         OperationOptions options = optionsBuilder.build();
 
         // We can get 'unique bugs and friends' with an 'object' search by DN
@@ -423,7 +429,6 @@ public class LdapSearchTests extends LdapConnectorTestBase {
         // Prepare options
         OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
         optionsBuilder.setContainer(new QualifiedUid(oclass, organization.getUid()));
-        optionsBuilder.setPageSize(100);
         OperationOptions options = optionsBuilder.build();
 
         // Set up for 'device' search
@@ -598,11 +603,13 @@ public class LdapSearchTests extends LdapConnectorTestBase {
 
     @Test
     public void multipleBaseDNs() {
-        ConnectorFacade facade = newFacade();
+        LdapConfiguration config = newConfiguration();
+        config.setPageSize(1000);
+        ConnectorFacade facade = newFacade(config);
 
         // This should find accounts from both base DNs.
         List<ConnectorObject> objects = TestHelpers.searchToList(
-                facade, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().setPageSize(1000).build());
+                facade, ObjectClass.ACCOUNT, null, new OperationOptionsBuilder().build());
         assertNotNull(getObjectByName(objects, BUGS_BUNNY_DN));
         assertNotNull(getObjectByName(objects, USER_0_DN));
     }
