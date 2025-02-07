@@ -24,6 +24,7 @@
 package net.tirasa.connid.bundles.ldap;
 
 import com.sun.jndi.ldap.ctl.PasswordExpiredResponseControl;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Hashtable;
@@ -36,6 +37,8 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.Control;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
+import javax.naming.ldap.StartTlsRequest;
+import javax.naming.ldap.StartTlsResponse;
 import net.tirasa.connid.bundles.ldap.commons.LdapConstants;
 import net.tirasa.connid.bundles.ldap.commons.LdapNativeSchema;
 import net.tirasa.connid.bundles.ldap.commons.LdapUtil;
@@ -105,6 +108,8 @@ public class LdapConnection {
 
     protected LdapContext initCtx;
 
+    protected StartTlsResponse tlsCtx;
+
     protected Set<String> supportedControls;
 
     protected ServerType serverType;
@@ -126,12 +131,14 @@ public class LdapConnection {
         if (initCtx != null) {
             return initCtx;
         }
-        initCtx = connect(config.getPrincipal(), config.getCredentials());
+        Pair<LdapContext, StartTlsResponse> connectPair = connect(config.getPrincipal(), config.getCredentials());
+        initCtx = connectPair.first;
+        tlsCtx = connectPair.second;
         return initCtx;
     }
 
-    protected LdapContext connect(String principal, GuardedString credentials) {
-        Pair<AuthenticationResult, LdapContext> pair = createContext(principal, credentials);
+    protected Pair<LdapContext, StartTlsResponse> connect(String principal, GuardedString credentials) {
+        Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>> pair = createContext(principal, credentials);
         if (pair.first.getType().equals(AuthenticationResultType.SUCCESS)) {
             return pair.second;
         }
@@ -139,9 +146,9 @@ public class LdapConnection {
         throw new IllegalStateException("Should never get here");
     }
 
-    protected Pair<AuthenticationResult, LdapContext> createContext(String principal, GuardedString credentials) {
-        final List<Pair<AuthenticationResult, LdapContext>> result =
-                new ArrayList<Pair<AuthenticationResult, LdapContext>>(1);
+    protected Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>> createContext(String principal, GuardedString credentials) {
+        final List<Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>>> result =
+                new ArrayList<Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>>>(1);
 
         final Hashtable<Object, Object> env = new Hashtable<Object, Object>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, LDAP_CTX_FACTORY);
@@ -183,11 +190,20 @@ public class LdapConnection {
         return result.get(0);
     }
 
-    protected Pair<AuthenticationResult, LdapContext> createContext(final Hashtable<?, ?> env) {
+    protected Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>> createContext(final Hashtable<?, ?> env) {
         AuthenticationResult authnResult = null;
         InitialLdapContext context = null;
+        StartTlsResponse tlsContext = null;
         try {
             context = new InitialLdapContext(env, null);
+            // if needed, start TLS connection
+            if (config.isStartTLSEnabled()) {
+                tlsContext = (StartTlsResponse) context.extendedOperation(new StartTlsRequest());
+                tlsContext.negotiate();
+                // must re-bind after tls negotiation
+                context.reconnect(null);
+            }
+            
             if (config.isRespectResourcePasswordPolicyChangeAfterReset()) {
                 if (hasPasswordExpiredControl(context.getResponseControls())) {
                     authnResult = new AuthenticationResult(
@@ -206,12 +222,16 @@ public class LdapConnection {
             }
         } catch (NamingException e) {
             authnResult = new AuthenticationResult(AuthenticationResultType.FAILED, e);
+        } catch (IOException e) {
+            LOG.error("Unable to start TLS connection", e);
+            authnResult = new AuthenticationResult(AuthenticationResultType.FAILED, e);
         }
         if (authnResult == null) {
             assert context != null;
             authnResult = new AuthenticationResult(AuthenticationResultType.SUCCESS);
         }
-        return new Pair<AuthenticationResult, LdapContext>(authnResult, context);
+        return new Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>>(authnResult,
+                new Pair<LdapContext, StartTlsResponse>(context, tlsContext));
     }
 
     protected static boolean hasPasswordExpiredControl(Control[] controls) {
@@ -240,18 +260,27 @@ public class LdapConnection {
 
     public void close() {
         try {
-            quietClose(initCtx);
+            quietClose(new Pair<LdapContext, StartTlsResponse>(initCtx, tlsCtx));
         } finally {
             initCtx = null;
         }
     }
 
-    protected static void quietClose(LdapContext ctx) {
+    protected static void quietClose(Pair<LdapContext, StartTlsResponse> ctxPair) {
         try {
-            if (ctx != null) {
-                ctx.close();
+            if (ctxPair != null) {
+                // first close TLS connection, if any
+                if (ctxPair.second != null) {
+                    ctxPair.second.close();
+                }
+                // then close context
+                if (ctxPair.first != null) {
+                    ctxPair.first.close();
+                }
             }
         } catch (NamingException e) {
+            LOG.warn(e, null);
+        } catch (IOException e) {
             LOG.warn(e, null);
         }
     }
@@ -275,7 +304,7 @@ public class LdapConnection {
     public AuthenticationResult authenticate(String entryDN, GuardedString password) {
         assert entryDN != null;
         LOG.ok("Attempting to authenticate {0}", entryDN);
-        Pair<AuthenticationResult, LdapContext> pair = createContext(entryDN, password);
+        Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>> pair = createContext(entryDN, password);
         if (pair.second != null) {
             quietClose(pair.second);
         }

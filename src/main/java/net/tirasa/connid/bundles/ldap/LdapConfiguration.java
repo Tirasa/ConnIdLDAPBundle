@@ -90,6 +90,11 @@ public class LdapConfiguration extends AbstractConfiguration {
     private boolean ssl;
 
     /**
+     * Whether to start a TLS session.
+     */
+    private boolean startTLSEnabled = false;
+
+    /**
      * LDAP URL's to connect to if the main server specified through the host and port properties is not available.
      */
     private String[] failover = {};
@@ -1046,6 +1051,17 @@ public class LdapConfiguration extends AbstractConfiguration {
         return connectTimeout;
     }
 
+    @ConfigurationProperty(order = 43,
+            displayMessageKey = "startTLSEnabled.display",
+            helpMessageKey = "startTLSEnabled.help")
+    public boolean isStartTLSEnabled() {
+        return startTLSEnabled;
+    }
+
+    public void setStartTLSEnabled(final boolean startTLSEnabled) {
+        this.startTLSEnabled = startTLSEnabled;
+    }
+    
     public void setConnectTimeout(long connectTimeout) {
         this.connectTimeout = connectTimeout;
     }

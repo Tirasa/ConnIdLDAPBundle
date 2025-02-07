@@ -50,6 +50,14 @@ public class LdapConnectionTests extends LdapConnectorTestBase {
     }
 
     @Test
+    public void testStartTLS() throws NamingException {
+        BlindTrustProvider.register();
+        LdapConfiguration config = newConfiguration();
+        config.setStartTLSEnabled(true);
+        checkConnection(config);
+    }
+    
+    @Test
     public void failover() throws NamingException {
         LdapConfiguration config = newConfiguration();
         config.setHost("foobarbaz");
