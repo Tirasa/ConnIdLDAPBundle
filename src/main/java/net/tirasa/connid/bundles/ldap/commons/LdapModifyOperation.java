@@ -88,7 +88,7 @@ public abstract class LdapModifyOperation {
             } else if (algorithm.equalsIgnoreCase("SMD5") || algorithm.equalsIgnoreCase("MD5")) {
                 digest = MessageDigest.getInstance("MD5");
             } else if (algorithm.equalsIgnoreCase("SSHA256") || algorithm.equalsIgnoreCase("SHA256")) {
-                digest = MessageDigest.getInstance("SHA256");
+                digest = MessageDigest.getInstance("SHA-256");
             }
         } catch (NoSuchAlgorithmException e) {
             throw new ConnectorException("Could not find MessageDigest algorithm (" + algorithm + ") implementation");
