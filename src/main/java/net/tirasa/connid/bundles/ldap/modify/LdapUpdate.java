@@ -188,7 +188,9 @@ public class LdapUpdate extends LdapModifyOperation {
         return conn.getSchema().createUid(oclass, entryDN);
     }
 
-    public Set<AttributeDelta> updateDelta(final Set<AttributeDelta> modifications) {
+    public Set<AttributeDelta> updateDelta(final Set<AttributeDelta> unmodifiableModifications) {
+        Set<AttributeDelta> modifications = new HashSet<>(unmodifiableModifications);
+        
         String entryDN = LdapSearches.findEntryDN(conn, oclass, uid);
         PosixGroupMember posixMember = new PosixGroupMember(entryDN);
 
