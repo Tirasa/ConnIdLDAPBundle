@@ -82,7 +82,7 @@
   </mailingLists>
 
   <properties>
-    <connid.version>1.5.2.0</connid.version>
+    <connid.version>1.6.0.0</connid.version>
     
     <opendj.host>localhost</opendj.host>
     <opendj.port>1389</opendj.port>
