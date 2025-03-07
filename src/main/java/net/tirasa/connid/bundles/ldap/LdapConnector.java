@@ -219,7 +219,7 @@ public class LdapConnector implements
             final ObjectClass oclass,
             final Uid uid,
             final Set<Attribute> valuesToRemove,
-            OperationOptions options) {
+            final OperationOptions options) {
         return new LdapUpdate(conn, oclass, uid).removeAttributeValues(valuesToRemove);
     }
 
