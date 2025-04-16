@@ -69,7 +69,7 @@
   </ciManagement>
 
   <properties>
-    <connid.version>1.5.2.1</connid.version>
+    <connid.version>1.6.0.1</connid.version>
 
     <opendj.host>localhost</opendj.host>
     <opendj.port>1389</opendj.port>
