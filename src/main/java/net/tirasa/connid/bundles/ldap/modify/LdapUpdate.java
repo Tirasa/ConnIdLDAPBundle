@@ -215,19 +215,14 @@ public class LdapUpdate extends LdapModifyOperation {
             } else if (LdapConstants.isPosixGroups(attrDelta.getName())) {
                 // Handled elsewhere.
             } else if (attrDelta.is(OperationalAttributes.PASSWORD_NAME)) {
-                guardedPasswordAttribute = conn.getSchema().encodePassword(attrDelta);
+               guardedPasswordAttribute = encodePassword(attrDelta);
             } else {
                 modItems.addAll(conn.getSchema().encodeAttribute(oclass, attrDelta));
             }
         }
 
         if (guardedPasswordAttribute != null) {
-            guardedPasswordAttribute.access(passwordAttr -> {
-                hashPassword(passwordAttr, entryDN);
-                modItems.add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, passwordAttr));
-
-                modifyAttributes(entryDN, modItems);
-            });
+            handlePasswordAccess(guardedPasswordAttribute, modItems, entryDN);
         } else {
             modifyAttributes(entryDN, modItems);
         }
@@ -448,5 +443,19 @@ public class LdapUpdate extends LdapModifyOperation {
         return Optional.ofNullable(AttributeUtil.find(attrName, attrs)).
                 map(attr -> LdapUtil.checkedListByFilter(CollectionUtil.nullAsEmpty(attr.getValue()), String.class)).
                 orElse(null);
+    }
+
+    protected GuardedPasswordAttribute encodePassword(AttributeDelta attrDelta) {
+        return conn.getSchema().encodePassword(attrDelta);
+    }
+
+    protected void handlePasswordAccess(GuardedPasswordAttribute guardedPasswordAttribute,
+            List<ModificationItem> modItems,
+            String entryDN) {
+        guardedPasswordAttribute.access(passwordAttr -> {
+            hashPassword(passwordAttr, entryDN);
+            modItems.add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, passwordAttr));
+            modifyAttributes(entryDN, modItems);
+        });
     }
 }
