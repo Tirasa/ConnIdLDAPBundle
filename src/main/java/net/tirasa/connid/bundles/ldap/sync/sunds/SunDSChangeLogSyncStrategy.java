@@ -83,7 +83,7 @@ public class SunDSChangeLogSyncStrategy extends GenericChangeLogSyncStrategy {
         ConnectorObjectBuilder objectBuilder = new ConnectorObjectBuilder();
         objectBuilder.setObjectClass(oclass);
         objectBuilder.setUid(deletedUid);
-        objectBuilder.setName("fake-dn");
+        objectBuilder.setName(targetDN);
         objectBuilder.addAttributes(Collections.<Attribute>emptySet());
 
         syncDeltaBuilder.setUid(deletedUid);
