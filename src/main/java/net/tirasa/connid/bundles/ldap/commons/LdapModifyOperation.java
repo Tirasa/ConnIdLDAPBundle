@@ -87,6 +87,8 @@ public abstract class LdapModifyOperation {
                 digest = MessageDigest.getInstance("SHA-1");
             } else if (algorithm.equalsIgnoreCase("SMD5") || algorithm.equalsIgnoreCase("MD5")) {
                 digest = MessageDigest.getInstance("MD5");
+            } else if (algorithm.equalsIgnoreCase("SSHA256") || algorithm.equalsIgnoreCase("SHA256")) {
+                digest = MessageDigest.getInstance("SHA-256");
             }
         } catch (NoSuchAlgorithmException e) {
             throw new ConnectorException("Could not find MessageDigest algorithm (" + algorithm + ") implementation");
@@ -97,7 +99,7 @@ public abstract class LdapModifyOperation {
 
         byte[] salt = {};
 
-        if (algorithm.equalsIgnoreCase("SSHA") || algorithm.equalsIgnoreCase("SMD5")) {
+        if (algorithm.equalsIgnoreCase("SSHA256") || algorithm.equalsIgnoreCase("SSHA") || algorithm.equalsIgnoreCase("SMD5")) {
             Random rand = new Random();
             rand.setSeed(System.currentTimeMillis() + randSeed);
             // A RSA whitepaper <http://www.rsasecurity.com/solutions/developers/whitepapers/Article3-PBE.pdf>
