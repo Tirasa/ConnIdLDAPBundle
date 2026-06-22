@@ -35,7 +35,7 @@ jobs:
         language: [ 'java' ]
         java: [ '8', '11', '17' ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up JDK
         uses: actions/setup-java@v5
