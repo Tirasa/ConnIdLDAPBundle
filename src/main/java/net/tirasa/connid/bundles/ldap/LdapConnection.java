@@ -1,18 +1,18 @@
-/* 
+/*
  * ====================
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- * 
+ *
  * Copyright 2008-2009 Sun Microsystems, Inc. All rights reserved.
- * 
+ *
  * The contents of this file are subject to the terms of the Common Development
  * and Distribution License("CDDL") (the "License").  You may not use this file
  * except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://opensource.org/licenses/cddl1.php
  * See the License for the specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * When distributing the Covered Code, include this CDDL Header Notice in each file
  * and include the License file at http://opensource.org/licenses/cddl1.php.
  * If applicable, add the following below this CDDL Header, with the fields
@@ -132,21 +132,22 @@ public class LdapConnection {
             return initCtx;
         }
         Pair<LdapContext, StartTlsResponse> connectPair = connect(config.getPrincipal(), config.getCredentials());
-        initCtx = connectPair.first;
-        tlsCtx = connectPair.second;
+        initCtx = connectPair.getKey();
+        tlsCtx = connectPair.getValue();
         return initCtx;
     }
 
     protected Pair<LdapContext, StartTlsResponse> connect(String principal, GuardedString credentials) {
         Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>> pair = createContext(principal, credentials);
-        if (pair.first.getType().equals(AuthenticationResultType.SUCCESS)) {
-            return pair.second;
+        if (pair.getKey().getType().equals(AuthenticationResultType.SUCCESS)) {
+            return pair.getValue();
         }
-        pair.first.propagate();
+        pair.getKey().propagate();
         throw new IllegalStateException("Should never get here");
     }
 
-    protected Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>> createContext(String principal, GuardedString credentials) {
+    protected Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>> createContext(String principal,
+            GuardedString credentials) {
         final List<Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>>> result =
                 new ArrayList<Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>>>(1);
 
@@ -171,7 +172,7 @@ public class LdapConnection {
 
                     @Override
                     public void access(final char[] clearChars) {
-                        if(clearChars == null || clearChars.length == 0){
+                        if (clearChars == null || clearChars.length == 0) {
                             throw new InvalidCredentialException("Password is blank");
                         }
                         env.put(Context.SECURITY_CREDENTIALS, clearChars);
@@ -203,7 +204,7 @@ public class LdapConnection {
                 // must re-bind after tls negotiation
                 context.reconnect(null);
             }
-            
+
             if (config.isRespectResourcePasswordPolicyChangeAfterReset()) {
                 if (hasPasswordExpiredControl(context.getResponseControls())) {
                     authnResult = new AuthenticationResult(
@@ -270,12 +271,12 @@ public class LdapConnection {
         try {
             if (ctxPair != null) {
                 // first close TLS connection, if any
-                if (ctxPair.second != null) {
-                    ctxPair.second.close();
+                if (ctxPair.getValue() != null) {
+                    ctxPair.getValue().close();
                 }
                 // then close context
-                if (ctxPair.first != null) {
-                    ctxPair.first.close();
+                if (ctxPair.getKey() != null) {
+                    ctxPair.getKey().close();
                 }
             }
         } catch (NamingException e) {
@@ -305,11 +306,11 @@ public class LdapConnection {
         assert entryDN != null;
         LOG.ok("Attempting to authenticate {0}", entryDN);
         Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>> pair = createContext(entryDN, password);
-        if (pair.second != null) {
-            quietClose(pair.second);
+        if (pair.getValue() != null) {
+            quietClose(pair.getValue());
         }
-        LOG.ok("Authentication result: {0}", pair.first);
-        return pair.first;
+        LOG.ok("Authentication result: {0}", pair.getKey());
+        return pair.getKey();
     }
 
     public void test() {
@@ -384,24 +385,24 @@ public class LdapConnection {
 
         SUCCESS {
 
-                    @Override
-                    public void propagate(Exception cause) {
-                    }
-                },
+            @Override
+            public void propagate(Exception cause) {
+            }
+        },
         PASSWORD_EXPIRED {
 
-                    @Override
-                    public void propagate(Exception cause) {
-                        throw new PasswordExpiredException(cause);
-                    }
-                },
+            @Override
+            public void propagate(Exception cause) {
+                throw new PasswordExpiredException(cause);
+            }
+        },
         FAILED {
 
-                    @Override
-                    public void propagate(Exception cause) {
-                        throw new ConnectorSecurityException(cause);
-                    }
-                };
+            @Override
+            public void propagate(Exception cause) {
+                throw new ConnectorSecurityException(cause);
+            }
+        };
 
         public abstract void propagate(Exception cause);
     }

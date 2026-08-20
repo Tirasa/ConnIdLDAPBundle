@@ -98,7 +98,7 @@ public class LdapUpdate extends LdapModifyOperation {
 
         Pair<Attributes, GuardedPasswordAttribute> attrToModify = getAttributesToModify(updateAttrs);
 
-        Attributes ldapAttrs = attrToModify.first;
+        Attributes ldapAttrs = attrToModify.getKey();
 
         // If we are removing all POSIX ref attributes, check they are not used
         // in POSIX groups. Note it is OK to update the POSIX ref attribute instead of
@@ -190,7 +190,7 @@ public class LdapUpdate extends LdapModifyOperation {
 
     public Set<AttributeDelta> updateDelta(final Set<AttributeDelta> unmodifiableModifications) {
         Set<AttributeDelta> modifications = new HashSet<>(unmodifiableModifications);
-        
+
         String entryDN = LdapSearches.findEntryDN(conn, oclass, uid);
         PosixGroupMember posixMember = new PosixGroupMember(entryDN);
 
@@ -337,7 +337,7 @@ public class LdapUpdate extends LdapModifyOperation {
         PosixGroupMember posixMember = new PosixGroupMember(entryDN);
 
         Pair<Attributes, GuardedPasswordAttribute> attrsToModify = getAttributesToModify(attrs);
-        Attributes ldapAttrs = attrsToModify.first;
+        Attributes ldapAttrs = attrsToModify.getKey();
 
         Set<String> removedPosixRefAttrs = getAttributeValues(GroupHelper.getPosixRefAttribute(), null, ldapAttrs);
         if (!CollectionUtil.isEmpty(removedPosixRefAttrs)) {
@@ -415,14 +415,14 @@ public class LdapUpdate extends LdapModifyOperation {
             final Pair<Attributes, GuardedPasswordAttribute> attrs,
             final int ldapModifyOp) {
 
-        List<ModificationItem> modItems = new ArrayList<>(attrs.first.size());
-        NamingEnumeration<? extends javax.naming.directory.Attribute> attrEnum = attrs.first.getAll();
+        List<ModificationItem> modItems = new ArrayList<>(attrs.getKey().size());
+        NamingEnumeration<? extends javax.naming.directory.Attribute> attrEnum = attrs.getKey().getAll();
         while (attrEnum.hasMoreElements()) {
             modItems.add(new ModificationItem(ldapModifyOp, attrEnum.nextElement()));
         }
 
-        if (attrs.second != null) {
-            attrs.second.access(passwordAttr -> {
+        if (attrs.getValue() != null) {
+            attrs.getValue().access(passwordAttr -> {
                 // Do not add the password to the result Attributes because it is a guarded value.
                 hashPassword(passwordAttr, entryDN);
                 modItems.add(new ModificationItem(ldapModifyOp, passwordAttr));
