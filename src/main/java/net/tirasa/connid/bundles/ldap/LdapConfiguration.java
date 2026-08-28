@@ -378,6 +378,7 @@ public class LdapConfiguration extends AbstractConfiguration {
 
         checkNotBlank(syncStrategy, "syncStrategy.notBlank");
         checkLdapSyncStrategy();
+        checkSTARTTLS();
     }
 
     protected void checkNotBlank(String value, String errorMessage) {
@@ -413,6 +414,12 @@ public class LdapConfiguration extends AbstractConfiguration {
             }
         } catch (ClassNotFoundException e) {
             failValidation("syncStrategy.classNotFound");
+        }
+    }
+
+    protected void checkSTARTTLS() {
+        if (ssl && startTLSEnabled) {
+            failValidation("startTLS.sslAndStartTLS");
         }
     }
 
