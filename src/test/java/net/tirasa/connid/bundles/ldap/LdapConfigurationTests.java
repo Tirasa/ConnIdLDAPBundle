@@ -462,6 +462,16 @@ public class LdapConfigurationTests {
         assertDoesNotThrow(() -> config.validate());
     }
 
+    @Test
+    public void sslAndStartTLSEnabled(){
+        config.setSsl(true);
+        config.setStartTLSEnabled(true);
+        assertThrows(ConfigurationException.class, () -> config.validate());
+        config.setSsl(false);
+        config.setStartTLSEnabled(true);
+        assertDoesNotThrow(() -> config.validate());
+    } 
+    
     private static void assertCanValidate(LdapConfiguration config) {
         try {
             config.validate();

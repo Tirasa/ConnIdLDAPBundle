@@ -191,18 +191,35 @@ public class LdapConnection {
         return result.get(0);
     }
 
-    protected Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>> createContext(final Hashtable<?, ?> env) {
+    protected Pair<AuthenticationResult, Pair<LdapContext, StartTlsResponse>> createContext(final Hashtable<Object,
+            Object> env) {
         AuthenticationResult authnResult = null;
         InitialLdapContext context = null;
         StartTlsResponse tlsContext = null;
         try {
-            context = new InitialLdapContext(env, null);
             // if needed, start TLS connection
             if (config.isStartTLSEnabled()) {
+                LOG.ok("Starting TLS connection with autentication none");
+                final Hashtable<Object, Object> envStartTLS = new Hashtable<>(env);
+                envStartTLS.put(Context.SECURITY_AUTHENTICATION, "none");
+                envStartTLS.remove(Context.SECURITY_PRINCIPAL);
+                envStartTLS.remove(Context.SECURITY_CREDENTIALS);
+                context = new InitialLdapContext(envStartTLS, null);
                 tlsContext = (StartTlsResponse) context.extendedOperation(new StartTlsRequest());
                 tlsContext.negotiate();
                 // must re-bind after tls negotiation
-                context.reconnect(null);
+                if (StringUtil.isNotBlank(env.getOrDefault(Context.SECURITY_PRINCIPAL, StringUtil.EMPTY).toString())) {
+                    context.addToEnvironment(Context.SECURITY_AUTHENTICATION, "simple");
+                    if (env.get(Context.SECURITY_PRINCIPAL) != null) {
+                        context.addToEnvironment(Context.SECURITY_PRINCIPAL, env.get(Context.SECURITY_PRINCIPAL));
+                    }
+                    if (env.get(Context.SECURITY_CREDENTIALS) != null) {
+                        context.addToEnvironment(Context.SECURITY_CREDENTIALS, env.get(Context.SECURITY_CREDENTIALS));
+                    }
+                    context.reconnect(null);
+                }
+            } else {
+                context = new InitialLdapContext(env, null);
             }
 
             if (config.isRespectResourcePasswordPolicyChangeAfterReset()) {
