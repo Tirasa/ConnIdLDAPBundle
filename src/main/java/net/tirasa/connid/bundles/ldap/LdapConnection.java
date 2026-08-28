@@ -210,7 +210,9 @@ public class LdapConnection {
                 // must re-bind after tls negotiation
                 if (StringUtil.isNotBlank(env.getOrDefault(Context.SECURITY_PRINCIPAL, StringUtil.EMPTY).toString())) {
                     context.addToEnvironment(Context.SECURITY_AUTHENTICATION, "simple");
-                    context.addToEnvironment(Context.SECURITY_PRINCIPAL, env.get(Context.SECURITY_PRINCIPAL));
+                    if (env.get(Context.SECURITY_PRINCIPAL) != null) {
+                        context.addToEnvironment(Context.SECURITY_PRINCIPAL, env.get(Context.SECURITY_PRINCIPAL));
+                    }
                     if (env.get(Context.SECURITY_CREDENTIALS) != null) {
                         context.addToEnvironment(Context.SECURITY_CREDENTIALS, env.get(Context.SECURITY_CREDENTIALS));
                     }
