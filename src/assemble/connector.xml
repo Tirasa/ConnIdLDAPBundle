@@ -36,13 +36,6 @@
     
   <includeBaseDirectory>false</includeBaseDirectory>
 
-  <files>
-    <file>
-      <source>pom.xml</source>
-      <outputDirectory>/</outputDirectory>
-    </file>
-  </files>
-
   <fileSets>
     <fileSet>
       <directory>${project.build.directory}/classes</directory>
