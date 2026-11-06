@@ -35,7 +35,7 @@
 
   <groupId>net.tirasa.connid.bundles</groupId>
   <artifactId>net.tirasa.connid.bundles.ldap</artifactId>
-  <version>1.5.11-SNAPSHOT</version>
+  <version>1.5.11</version>
 
   <name>ConnId Bundles: LDAP</name>
 
@@ -55,7 +55,7 @@
     <connection>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</connection>
     <url>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</url>
     <developerConnection>scm:git:git@github.com:Tirasa/ConnIdLDAPBundle.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>net.tirasa.connid.bundles.ldap-1.5.11</tag>
   </scm>
 
   <issueManagement>
@@ -142,6 +142,32 @@
             <exclude>**/.*</exclude>
           </excludes>
         </configuration>
+      </plugin>
+
+      <!-- Put LICENSE file in javadocs -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-javadoc-legal-files</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/reports/apidocs/META-INF</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}</directory>
+                  <includes>
+                    <include>LICENSE</include>
+                  </includes>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
